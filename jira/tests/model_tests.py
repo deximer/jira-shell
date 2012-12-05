@@ -1,6 +1,6 @@
 import unittest
-from ..shell import Story
-from ..shell import Release
+from ..model import Story
+from ..model import Release
 from  xml.etree import ElementTree as ET
 
 class StoryTest(unittest.TestCase):
