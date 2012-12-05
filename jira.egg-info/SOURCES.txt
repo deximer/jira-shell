@@ -1,0 +1,9 @@
+setup.cfg
+setup.py
+jira/__init__.py
+jira.egg-info/PKG-INFO
+jira.egg-info/SOURCES.txt
+jira.egg-info/dependency_links.txt
+jira.egg-info/entry_points.txt
+jira.egg-info/not-zip-safe
+jira.egg-info/top_level.txt

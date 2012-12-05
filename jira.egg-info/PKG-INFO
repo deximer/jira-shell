@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: jira
+Version: 0.1dev
+Summary: Jira command line tools
+Home-page: UNKNOWN
+Author: Jeremy Stark
+Author-email: jlstark@gmail.com
+License: UNKNOWN
+Description: Command line tools for Jira.
+Keywords: jira command line
+Platform: UNKNOWN
