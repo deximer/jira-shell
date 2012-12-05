@@ -1,7 +1,6 @@
 setup.cfg
 setup.py
 jira/__init__.py
-jira/exec.py
 jira/shell.py
 jira.egg-info/PKG-INFO
 jira.egg-info/SOURCES.txt

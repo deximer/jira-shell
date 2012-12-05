@@ -16,6 +16,6 @@ class StoryTest(unittest.TestCase):
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
-        print item
         obj = Story(item)
-        self.assertTrue(obj.key == 12345)
+        print obj.key
+        self.assertTrue(obj.key == 'NG-12805')

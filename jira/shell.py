@@ -1,4 +1,3 @@
-
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
     'tempMax=10000'
@@ -17,7 +16,9 @@ STATUS_QA_ACTIVE = 10092
 STATUS_QA_READY = 10104
 
 class Story(object):
-    def __init__(self, item):
+    def __init__(self, item=None):
+        if not item:
+            return
         points = item.find(STORY_POINTS)
         if points is not None:
             self.points = float(points.text)

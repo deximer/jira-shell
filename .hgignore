@@ -4,6 +4,6 @@ syntax: glob
 nose
 dist
 build
-nose-1.2.1-py2.6.egg
+nose-*
 *.pyc
 *.swp
