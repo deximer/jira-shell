@@ -11,3 +11,4 @@ jira.egg-info/not-zip-safe
 jira.egg-info/top_level.txt
 jira/tests/__init__.py
 jira/tests/model_tests.py
+jira/tests/shell_tests.py
