@@ -17,6 +17,8 @@ Command line tools for Jira.""",
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
+      test_suite='nose.collector',
+      tests_require='nose',
       install_requires=[
           # -*- Extra requirements: -*-
       ],
