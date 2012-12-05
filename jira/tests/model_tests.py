@@ -1,6 +1,8 @@
 import unittest
 from ..model import Story
 from ..model import Release
+from ..model import Project
+from ..model import Projects
 from  xml.etree import ElementTree as ET
 
 class StoryTest(unittest.TestCase):
@@ -65,6 +67,87 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         self.assertTrue(release.total_points() == 0.998)
 
+    def test_average_story_size(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].points = 2.0
+        release.data[1].points = 4.0
+        release.data[2].points = 8.0
+        self.assertEqual(release.average_story_size(), 4.666666666666667)
+
+    def test_average_story_size_null_values(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].points = 2.0
+        release.data[1].points = None
+        release.data[2].points = 8.0
+        self.assertEqual(release.average_story_size(), 5.0)
+
+    def test_std_story_size(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].points = 2.0
+        release.data[1].points = 4.0
+        release.data[2].points = 8.0
+        self.assertEqual(release.std_story_size(), 2.4944382578492941)
+
+    def test_sort_by_size(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].points = 2.0
+        release.data[1].points = 1.0
+        release.data[2].points = 3.0
+        count = 3.0
+        for story in release.sort_by_size():
+            self.assertEqual(count, story.points)
+            count -= 1.0
+
+    def test_only_groomed_stories(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].points = 2.0
+        release.data[1].points = None
+        release.data[2].points = 3.0
+        self.assertEqual(len(release.only_groomed_stories()), 2)
+
+    def testStoriesInProcess(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].status = 3
+        release.data[1].status = 10092
+        release.data[2].status = 6
+        self.assertEqual(release.stories_in_process(), 2)
+
     def testWip(self):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()
@@ -102,4 +185,23 @@ class ReleaseTests(unittest.TestCase):
         self.assertTrue(release.wip_by_component()['Reader'] == 0.499)
         self.assertTrue(len(release.wip_by_component()) == 1)
 
+class ProjectTest(unittest.TestCase):
+    def testObjectCreate(self):
+        obj = Project()
+        self.assertTrue(obj is not None)
 
+    def testInitializeProject(self):
+        project = Project('Name', 'Key', 'Owner')
+        self.assertEquals(project.name, 'Name')
+        self.assertEquals(project.key, 'Key')
+        self.assertEquals(project.owner, 'Owner')
+
+class ProjectsTest(unittest.TestCase):
+    def testObjectCreate(self):
+        obj = Projects()
+        self.assertTrue(obj is not None)
+
+    def testInitializeProjects(self):
+        projects = Projects()
+        projects.add(Project('Name', 'Key', 'Owner'))
+        self.assertEqual(len(projects.all_projects()), 1)

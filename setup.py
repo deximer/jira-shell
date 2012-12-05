@@ -20,7 +20,7 @@ Command line tools for Jira.""",
       test_suite='nose.collector',
       tests_require='nose',
       install_requires=[
-          # -*- Extra requirements: -*-
+          'BeautifulSoup',
       ],
       entry_points="""
       # -*- Entry points: -*-
