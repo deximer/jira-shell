@@ -1,4 +1,20 @@
 
+NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
+    'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
+    'tempMax=10000'
+ITEMS = './/*/item'
+STORY_POINTS = './/*[@id="customfield_10792"]/*/customfieldvalue'
+STATUS = 'status'
+KEY = 'key'
+COMPONENTS = 'component'
+STATUS_OPEN = 1
+STATUS_IN_PROGRESS = 3
+STATUS_REOPENED = 4
+STATUS_CLOSED = 6
+STATUS_READY = 10089
+STATUS_COMPLETED = 10090
+STATUS_QA_ACTIVE = 10092
+STATUS_QA_READY = 10104
 
 class Story(object):
     def __init__(self, item):
