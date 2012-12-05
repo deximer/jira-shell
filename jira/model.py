@@ -4,6 +4,8 @@ NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
 ITEMS = './/*/item'
 STORY_POINTS = './/*[@id="customfield_10792"]/*/customfieldvalue'
 STATUS = 'status'
+TITLE = 'title'
+DESCRIPTION = 'description'
 KEY = 'key'
 COMPONENTS = 'component'
 STATUS_OPEN = 1
@@ -38,6 +40,16 @@ class Story(object):
             self.key = key.text
         else:
             self.key = None
+        title = item.find(TITLE)
+        if title is not None:
+            self.title = title.text
+        else:
+            self.title = None
+        description = item.find(DESCRIPTION)
+        if description is not None:
+            self.description = description.text
+        else:
+            self.description = None
 
 class Release(object):
     WIP = {'Open': 1, 'In Progress': 3, 'Reopened': 4, 'Ready': 10089,
