@@ -21,6 +21,7 @@ Command line tools for Jira.""",
       tests_require='nose',
       install_requires=[
           'BeautifulSoup',
+          'numpy'
       ],
       entry_points="""
       # -*- Entry points: -*-
