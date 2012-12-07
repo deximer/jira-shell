@@ -18,7 +18,9 @@ Command line tools for Jira.""",
       include_package_data=True,
       zip_safe=False,
       test_suite='nose.collector',
-      tests_require='nose',
+      tests_require=[
+          'nose',
+      ],
       install_requires=[
           'BeautifulSoup',
           'numpy'

@@ -1,9 +1,16 @@
 import unittest
-from ..model import Story
-from ..model import Release
-from ..model import Project
-from ..model import Projects
+from ..model import Story, Release, Projects, Project, Root
+from ..dao import Jira
 from  xml.etree import ElementTree as ET
+
+class RootTest(unittest.TestCase):
+    ''' Unit tests for the Root object class
+    '''
+    def testObjectCreation(self):
+        ''' Verify a Root object can be created
+        '''
+        obj = Root()
+        self.assertTrue(obj is not None)
 
 class StoryTest(unittest.TestCase):
     ''' Unit tests for the Story class
@@ -168,10 +175,9 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.data[0].status = 3 # In Progress
         release.data[1].status = 6 # Closed
-        print release.wip_by_status()
-        self.assertTrue(release.wip_by_status()['3'] == 0.499)
-        self.assertTrue(sum([v for v in release.wip_by_status().values()]) \
-            == 0.499)
+        self.assertTrue(release.wip_by_status()['3']['wip'] == 0.499)
+        self.assertTrue(sum([v['wip'] for v in release.wip_by_status().values()
+            ]) == 0.499)
 
     def testWipByComponent(self):
         release = Release()
@@ -182,7 +188,7 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.data[0].status = 3 # In Progress
         release.data[1].status = 6 # Closed
-        self.assertTrue(release.wip_by_component()['Reader'] == 0.499)
+        self.assertTrue(release.wip_by_component()['Reader']['wip'] == 0.499)
         self.assertTrue(len(release.wip_by_component()) == 1)
 
 class ProjectTest(unittest.TestCase):

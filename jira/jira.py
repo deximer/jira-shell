@@ -4,6 +4,11 @@ import urllib
 from xml.etree import ElementTree as ET
 from BeautifulSoup import BeautifulSoup as BS
 from model import Release, Story, Projects, Project
+from dao import Jira
+import commands
+
+commands = {'top': commands.top.Plugin.Command(),
+           }
 
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
@@ -38,7 +43,6 @@ def request_projects():
         projects.add(Project(names[count].text, codes[count].text,
             owner[count].text))
     return projects
-        
 
 def print_release_report(args):
     release = get_release()
@@ -55,12 +59,14 @@ def print_release_report(args):
     print 'WIP by Status:'
     wip = release.wip_by_status()
     for key in wip:
-        print key.ljust(16), ':', wip[key]
+        print key.ljust(16), ':', str(wip[key]['wip']).ljust(6), \
+            wip[key]['stories']
     print
     print 'WIP by Swim Lane:'
     wip = release.wip_by_component()
     for key in wip:
-        print key.ljust(16), ':',  wip[key]
+        print key.ljust(16), ':',  str(wip[key]['wip']).ljust(6), \
+            wip[key]['stories']
 
 def ls(args):
     release = get_release()
@@ -84,6 +90,9 @@ def stat(args):
     for component in story.components:
         print '    ', component
 
+def top(args):
+    commands['top'].run(jira, args)
+
 def shell():
     return raw_input('%s > ' % '/'.join(cwd))
 
@@ -95,12 +104,14 @@ def dispatch(command):
     table = {'report': print_release_report,
              'ls': ls,
              'stat': stat,
+             'top': top,
             }
     if command in table.keys():
         table[command](args)
     else:
         print '%s: command not found' % command
-    
+
+jira = Jira('jira.cengage.com', 'mindtap.user:m1ndtap')
 
 def main():
     p = optparse.OptionParser()

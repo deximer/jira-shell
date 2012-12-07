@@ -19,6 +19,9 @@ STATUS_COMPLETED = 10090
 STATUS_QA_ACTIVE = 10092
 STATUS_QA_READY = 10104
 
+class Root(object):
+    pass
+
 class Story(object):
     def __init__(self, item=None):
         if item is None:
@@ -113,11 +116,14 @@ class Release(object):
 
     def wip_by_status(self):
         tallies = {}
-        for value in self.WIP.values():
-            tallies[str(value)] = 0
         for story in self.data:
             if story.status in self.WIP.values() and story.points:
-                tallies[str(story.status)] += story.points
+                if str(story.status) not in tallies:
+                    tallies[str(story.status)] = \
+                        {'wip': story.points, 'stories': 1}
+                else:
+                    tallies[str(story.status)]['wip'] += story.points
+                    tallies[str(story.status)]['stories'] += 1
         return tallies
 
     def wip_by_component(self):
@@ -126,9 +132,10 @@ class Release(object):
             if story.status in self.WIP.values() and story.points:
                 for component in story.components:
                     if not tallies.has_key(component):
-                        tallies[component] = story.points
+                        tallies[component] = {'wip': story.points, 'stories': 1}
                     else:
-                        tallies[component] += story.points
+                        tallies[component]['wip'] += story.points
+                        tallies[component]['stories'] += 1
         return tallies
 
 class Project(object):
