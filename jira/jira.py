@@ -66,7 +66,7 @@ def print_release_report(args):
     wip = release.wip_by_component()
     for key in wip:
         print key.ljust(16), ':',  str(wip[key]['wip']).ljust(6), \
-            wip[key]['stories']
+            str(wip[key]['stories']).ljuest(3), wip[key]['largest']
 
 def ls(args):
     release = get_release()
@@ -91,6 +91,9 @@ def stat(args):
         print '    ', component
 
 def top(args):
+    #def mock_request_page(url):
+    #    return open('tests/data/rss.xml').read()
+    #jira.request_page = mock_request_page
     commands['top'].run(jira, args)
 
 def shell():
@@ -118,7 +121,7 @@ def main():
     p.add_option('--report', '-r', action='store_true', dest='report')
     p.add_option('--shell', '-s', action='store_true', dest='shell')
     options, arguments = p.parse_args()
-    request_projects()
+    #request_projects()
     if options.report:
         print_release_report()
     if options.shell:

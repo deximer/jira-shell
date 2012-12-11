@@ -186,10 +186,47 @@ class ReleaseTests(unittest.TestCase):
         item = tree.find('.//*/item')
         release.add(Story(item))
         release.add(Story(item))
+        release.add(Story(item))
         release.data[0].status = 3 # In Progress
-        release.data[1].status = 6 # Closed
-        self.assertTrue(release.wip_by_component()['Reader']['wip'] == 0.499)
-        self.assertTrue(len(release.wip_by_component()) == 1)
+        release.data[1].status = 3 # In Progress
+        release.data[1].points = 2.0
+        release.data[2].status = 6 # Closed
+        self.assertEqual(release.wip_by_component()['Reader']['wip'], 2.499)
+        self.assertEqual(release.wip_by_component()['Reader']['largest'], 2.0)
+        self.assertEqual(len(release.wip_by_component()), 1)
+
+    def testKanban(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].status = 3 # In Progress
+        release.data[0].points = 2.0
+        release.data[1].status = 3 # In Progress
+        release.data[1].points = 2.0
+        release.data[2].status = 6 # Closed
+        release.data[2].points = 2.0
+        self.assertEqual(release.kanban()['Reader']['3']['wip'], 4.0)
+        self.assertEqual(release.kanban()['Reader']['6']['wip'], 2.0)
+
+    def testGraphKanban(self):
+        jira = Jira()
+        def mock_request_page(url, refresh=False):
+            return open('jira/tests/data/rss.xml').read()
+        jira.request_page = mock_request_page
+        release = jira.get_release()
+        self.assertEqual(release.graph_kanban(), '.Oo')
+
+    def testGraphKanbanByComponent(self):
+        jira = Jira()
+        def mock_request_page(url, refresh=False):
+            return open('jira/tests/data/rss.xml').read()
+        jira.request_page = mock_request_page
+        release = jira.get_release()
+        self.assertEqual(release.graph_kanban('Core'), '_O.')
 
 class ProjectTest(unittest.TestCase):
     def testObjectCreate(self):
@@ -211,3 +248,4 @@ class ProjectsTest(unittest.TestCase):
         projects = Projects()
         projects.add(Project('Name', 'Key', 'Owner'))
         self.assertEqual(len(projects.all_projects()), 1)
+
