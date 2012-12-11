@@ -66,7 +66,7 @@ def print_release_report(args):
     wip = release.wip_by_component()
     for key in wip:
         print key.ljust(16), ':',  str(wip[key]['wip']).ljust(6), \
-            str(wip[key]['stories']).ljuest(3), wip[key]['largest']
+            str(wip[key]['stories']).ljust(3), wip[key]['largest']
 
 def ls(args):
     release = get_release()

@@ -71,7 +71,7 @@ class Command(object):
             total_stories += lanes[lane]['stories']
             total_wip += lanes[lane]['wip']
         window.addstr(0,0, 'Release 2.5, 8 days remaining')
-        window.addstr(1,3, 'r=refresh, Total WIP: %s, Total Stories: %s'
+        window.addstr(1,3, 'r=refresh, Total WIP: %s in %s stories'
             % (total_wip, total_stories))
         window.addstr(1,0, '')
         window.refresh()

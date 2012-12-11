@@ -67,6 +67,12 @@ class Release(object):
     def add(self, story):
         self.data.append(story)
 
+    def get(self, key):
+        for story in self.data:
+            if story.key == key:
+                return story
+        return None
+
     def only_groomed_stories(self):
         return [story for story in self.data if story.points]
 

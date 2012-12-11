@@ -46,6 +46,16 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         self.assertTrue(release.data[0].key == 'NG-12805')
 
+    def testGetStory(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        key = 'NG-12805'
+        story = release.get(key)
+        self.assertEqual(story.key, key)
+
     def testTotalStories(self):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()
