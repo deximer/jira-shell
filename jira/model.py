@@ -6,7 +6,10 @@ NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
 ITEMS = './/*/item'
 STORY_POINTS = './/*[@id="customfield_10792"]/*/customfieldvalue'
 STATUS = 'status'
+BUG_TYPE = '1'
+STORY_TYPE = '72'
 TITLE = 'title'
+TYPE = 'type'
 DESCRIPTION = 'description'
 KEY = 'key'
 COMPONENTS = 'component'
@@ -51,6 +54,11 @@ class Story(object):
             self.title = title.text
         else:
             self.title = None
+        issue_type = item.find(TYPE)
+        if issue_type is not None:
+            self.type = issue_type.attrib['id']
+        else:
+            self.type = None
         description = item.find(DESCRIPTION)
         if description is not None:
             self.description = description.text
@@ -73,32 +81,39 @@ class Release(object):
                 return story
         return None
 
+    def stories(self):
+        return [story for story in self.data if story.type == STORY_TYPE]
+
+    def bugs(self):
+        return [story for story in self.data if story.type == BUG_TYPE]
+
     def only_groomed_stories(self):
-        return [story for story in self.data if story.points]
+        return [story for story in self.stories() if story.points]
 
     def total_stories(self):
-        return len(self.data)
+        return len(self.stories())
 
     def total_points(self):
-        return sum([story.points for story in self.data if story.points])
+        return sum([story.points for story in self.stories()
+            if story.points])
 
     def points_completed(self):
         points = 0
-        for story in self.data:
+        for story in self.stories():
             if story.status == 6 and story.points:
                 points += story.points
         return points
 
     def average_story_size(self):
         points = []
-        for story in self.data:
+        for story in self.stories():
             if story.points:
                 points.append(story.points)
         return numpy.average(numpy.array(points))
 
     def std_story_size(self):
         points = []
-        for story in self.data:
+        for story in self.stories():
             if story.points:
                 points.append(story.points)
         return numpy.std(numpy.array(points))
@@ -109,21 +124,21 @@ class Release(object):
 
     def stories_in_process(self):
         stories = 0
-        for story in self.data:
+        for story in self.stories():
             if story.status in self.WIP.values() and story.points:
                 stories += 1
         return stories
 
     def wip(self):
         points = 0
-        for story in self.data:
+        for story in self.stories():
             if story.status in self.WIP.values() and story.points:
                 points += story.points
         return points
 
     def wip_by_status(self):
         tallies = {}
-        for story in self.data:
+        for story in self.stories():
             if story.status in self.WIP.values() and story.points:
                 if str(story.status) not in tallies:
                     tallies[str(story.status)] = \
@@ -135,7 +150,7 @@ class Release(object):
 
     def wip_by_component(self):
         tallies = {}
-        for story in self.data:
+        for story in self.stories():
             if story.status in self.WIP.values() and story.points:
                 for component in story.components:
                     if not tallies.has_key(component):
@@ -150,7 +165,7 @@ class Release(object):
 
     def kanban(self):
         kanban = {}
-        for story in self.data:
+        for story in self.stories():
             status = str(story.status)
             for component in story.components:
                 if not kanban.has_key(component):

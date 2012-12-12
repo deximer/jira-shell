@@ -27,8 +27,8 @@ class StoryTest(unittest.TestCase):
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
         obj = Story(item)
-        print obj.key
-        self.assertTrue(obj.key == 'NG-12805')
+        self.assertEqual(obj.key, 'NG-12805')
+        self.assertEqual(obj.type, '1')
 
 class ReleaseTests(unittest.TestCase):
     ''' Unit tests for the Release class
@@ -56,14 +56,40 @@ class ReleaseTests(unittest.TestCase):
         story = release.get(key)
         self.assertEqual(story.key, key)
 
+    def testOnlyStories(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].type = '72'
+        release.data[2].type = '72'
+        self.assertEqual(len(release.stories()), 2)
+
+    def testOnlyBugs(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].type = '72'
+        release.data[2].type = '72'
+        self.assertEqual(len(release.bugs()), 1)
+
     def testTotalStories(self):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
         release.add(Story(item))
+        release.data[0].type = '72'
         self.assertTrue(release.total_stories() == 1)
         release.add(Story(item))
+        release.data[1].type = '72'
         self.assertTrue(release.total_stories() == 2)
 
     def testTotalPoints(self):
@@ -73,6 +99,8 @@ class ReleaseTests(unittest.TestCase):
         item = tree.find('.//*/item')
         release.add(Story(item))
         release.add(Story(item))
+        release.data[0].type = '72'
+        release.data[1].type = '72'
         self.assertTrue(release.total_points() == 0.998)
 
     def testPointsCompleted(self):
@@ -82,9 +110,11 @@ class ReleaseTests(unittest.TestCase):
         item = tree.find('.//*/item')
         release.add(Story(item))
         release.add(Story(item))
+        release.data[0].type = '72'
+        release.data[1].type = '72'
         self.assertTrue(release.total_points() == 0.998)
 
-    def test_average_story_size(self):
+    def testAverageStorySize(self):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
@@ -93,11 +123,14 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.add(Story(item))
         release.data[0].points = 2.0
+        release.data[0].type = '72'
         release.data[1].points = 4.0
+        release.data[1].type = '72'
         release.data[2].points = 8.0
+        release.data[2].type = '72'
         self.assertEqual(release.average_story_size(), 4.666666666666667)
 
-    def test_average_story_size_null_values(self):
+    def testAverageStorySizeNullValues(self):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
@@ -106,11 +139,14 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.add(Story(item))
         release.data[0].points = 2.0
+        release.data[0].type = '72'
         release.data[1].points = None
+        release.data[1].type = '72'
         release.data[2].points = 8.0
+        release.data[2].type = '72'
         self.assertEqual(release.average_story_size(), 5.0)
 
-    def test_std_story_size(self):
+    def testStdStorySize(self):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
@@ -119,8 +155,11 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.add(Story(item))
         release.data[0].points = 2.0
+        release.data[0].type = '72'
         release.data[1].points = 4.0
+        release.data[1].type = '72'
         release.data[2].points = 8.0
+        release.data[2].type = '72'
         self.assertEqual(release.std_story_size(), 2.4944382578492941)
 
     def test_sort_by_size(self):
@@ -148,8 +187,11 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.add(Story(item))
         release.data[0].points = 2.0
+        release.data[0].type = '72'
         release.data[1].points = None
+        release.data[1].type = '72'
         release.data[2].points = 3.0
+        release.data[2].type = '72'
         self.assertEqual(len(release.only_groomed_stories()), 2)
 
     def testStoriesInProcess(self):
@@ -160,9 +202,13 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.add(Story(item))
         release.add(Story(item))
+        release.add(Story(item)) # Left as type=1, bug
         release.data[0].status = 3
+        release.data[0].type = '72'
         release.data[1].status = 10092
+        release.data[1].type = '72'
         release.data[2].status = 6
+        release.data[2].type = '72'
         self.assertEqual(release.stories_in_process(), 2)
 
     def testWip(self):
@@ -173,7 +219,9 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.add(Story(item))
         release.data[0].status = 3
+        release.data[0].type = '72'
         release.data[1].status = 6
+        release.data[1].type = '72'
         self.assertTrue(release.wip() == 0.499)
 
     def testWipByStatus(self):
@@ -184,7 +232,9 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.add(Story(item))
         release.data[0].status = 3 # In Progress
+        release.data[0].type = '72'
         release.data[1].status = 6 # Closed
+        release.data[1].type = '72'
         self.assertTrue(release.wip_by_status()['3']['wip'] == 0.499)
         self.assertTrue(sum([v['wip'] for v in release.wip_by_status().values()
             ]) == 0.499)
@@ -198,9 +248,12 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.add(Story(item))
         release.data[0].status = 3 # In Progress
+        release.data[0].type = '72'
         release.data[1].status = 3 # In Progress
         release.data[1].points = 2.0
+        release.data[1].type = '72'
         release.data[2].status = 6 # Closed
+        release.data[2].type = '72'
         self.assertEqual(release.wip_by_component()['Reader']['wip'], 2.499)
         self.assertEqual(release.wip_by_component()['Reader']['largest'], 2.0)
         self.assertEqual(len(release.wip_by_component()), 1)
@@ -215,10 +268,13 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.data[0].status = 3 # In Progress
         release.data[0].points = 2.0
+        release.data[0].type = '72'
         release.data[1].status = 3 # In Progress
         release.data[1].points = 2.0
+        release.data[1].type = '72'
         release.data[2].status = 6 # Closed
         release.data[2].points = 2.0
+        release.data[2].type = '72'
         self.assertEqual(release.kanban()['Reader']['3']['wip'], 4.0)
         self.assertEqual(release.kanban()['Reader']['6']['wip'], 2.0)
 
