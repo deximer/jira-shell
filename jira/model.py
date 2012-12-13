@@ -1,10 +1,12 @@
 import numpy
+import time
 
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
     'tempMax=10000'
 ITEMS = './/*/item'
 STORY_POINTS = './/*[@id="customfield_10792"]/*/customfieldvalue'
+IN_PROGRESS = './/*[@id="customfield_13434"]/*/customfieldvalue'
 STATUS = 'status'
 BUG_TYPE = '1'
 STORY_TYPE = '72'
@@ -12,6 +14,7 @@ TITLE = 'title'
 TYPE = 'type'
 DESCRIPTION = 'description'
 KEY = 'key'
+RESOLVED = 'resolved'
 COMPONENTS = 'component'
 STATUS_OPEN = 1
 STATUS_IN_PROGRESS = 3
@@ -21,7 +24,8 @@ STATUS_READY = 10089
 STATUS_COMPLETED = 10090
 STATUS_QA_ACTIVE = 10092
 STATUS_QA_READY = 10104
-KANBAN = [1, 10089, 3, 4, 10104, 10092, 6]
+KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_IN_PROGRESS, STATUS_REOPENED,
+    STATUS_QA_READY, STATUS_QA_ACTIVE, STATUS_CLOSED]
 
 class Root(object):
     pass
@@ -62,6 +66,18 @@ class Story(object):
         description = item.find(DESCRIPTION)
         if description is not None:
             self.description = description.text
+        else:
+            self.description = None
+        resolved = item.find(RESOLVED)
+        if resolved is not None:
+            self.resolved = time.strptime(resolved.text[:-6],
+                '%a, %d %b %Y %H:%M:%S')
+        else:
+            self.description = None
+        started = item.find(IN_PROGRESS)
+        if started is not None:
+            self.started = time.strptime(started.text[:-6],
+                '%a, %d %b %Y %H:%M:%S')
         else:
             self.description = None
 
@@ -212,9 +228,9 @@ class Release(object):
             value = short_wip[status]/total
             if value == 0.0:
                 points.append('_')
-            elif value <= 0.15:
+            elif value <= 0.25:
                 points.append('.')
-            elif value > 0.15 and value <= 0.5:
+            elif value > 0.25 and value <= 0.5:
                 points.append('o')
             elif value > 0.5:
                 points.append('O')

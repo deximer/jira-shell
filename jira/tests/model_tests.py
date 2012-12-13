@@ -23,12 +23,15 @@ class StoryTest(unittest.TestCase):
         self.assertTrue(obj is not None)
 
     def testObjectInitialized(self):
+        import time
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
         obj = Story(item)
         self.assertEqual(obj.key, 'NG-12805')
         self.assertEqual(obj.type, '1')
+        self.assertEqual(time.asctime(obj.started), 'Mon Nov 19 09:35:03 2012')
+        self.assertEqual(time.asctime(obj.resolved), 'Tue Nov 27 01:03:48 2012')
 
 class ReleaseTests(unittest.TestCase):
     ''' Unit tests for the Release class
@@ -277,6 +280,27 @@ class ReleaseTests(unittest.TestCase):
         release.data[2].type = '72'
         self.assertEqual(release.kanban()['Reader']['3']['wip'], 4.0)
         self.assertEqual(release.kanban()['Reader']['6']['wip'], 2.0)
+
+    def testCycleTimeByComponent(self):
+        # Not implemented yet
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].status = 3 # In Progress
+        release.data[0].points = 2.0
+        release.data[0].type = '72'
+        release.data[1].status = 3 # In Progress
+        release.data[1].points = 2.0
+        release.data[1].type = '72'
+        release.data[2].status = 6 # Closed
+        release.data[2].points = 2.0
+        release.data[2].type = '72'
+        # cycle_times = release.cycle_times()
+        # self.assertEqual(cycle_times['Reader'], 1)
 
     def testGraphKanban(self):
         jira = Jira()
