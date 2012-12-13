@@ -1,5 +1,5 @@
 import unittest
-from ..model import Story, Release, Projects, Project, Root
+from ..model import Story, Release, Projects, Project, Root, Kanban
 from ..dao import Jira
 from  xml.etree import ElementTree as ET
 
@@ -32,6 +32,42 @@ class StoryTest(unittest.TestCase):
         self.assertEqual(obj.type, '1')
         self.assertEqual(time.asctime(obj.started), 'Mon Nov 19 09:35:03 2012')
         self.assertEqual(time.asctime(obj.resolved), 'Tue Nov 27 01:03:48 2012')
+
+class KanbanTest(unittest.TestCase):
+    def testObjectCreation(self):
+        obj = Kanban()
+        self.assertTrue(obj is not None)
+
+    def testAddStory(self):
+        kanban = Kanban()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        kanban.add(Story(item))
+        self.assertEqual(len(kanban.stories), 1)
+        self.assertEqual(len(kanban.grid.keys()), 1)
+
+    def testAddRelease(self):
+        jira = Jira()
+        def mock_request_page(url, refresh=False):
+            return open('jira/tests/data/rss.xml').read()
+        jira.request_page = mock_request_page
+        release = jira.get_release()
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(len(kanban.stories), 116)
+        self.assertEqual(len(kanban.grid['Reader']), 6)
+
+    def testAverageCycleTime(self):
+        jira = Jira()
+        def mock_request_page(url, refresh=False):
+            return open('jira/tests/data/rss.xml').read()
+        jira.request_page = mock_request_page
+        release = jira.get_release()
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.average_cycle_time(), 5)
+
 
 class ReleaseTests(unittest.TestCase):
     ''' Unit tests for the Release class
@@ -278,8 +314,9 @@ class ReleaseTests(unittest.TestCase):
         release.data[2].status = 6 # Closed
         release.data[2].points = 2.0
         release.data[2].type = '72'
-        self.assertEqual(release.kanban()['Reader']['3']['wip'], 4.0)
-        self.assertEqual(release.kanban()['Reader']['6']['wip'], 2.0)
+        self.assertEqual(release.kanban().grid['Reader']['3']['wip'], 4.0)
+        self.assertEqual(release.kanban().grid['Reader']['6']['wip'], 2.0)
+        self.assertEqual(len(release.kanban().grid['Reader']['3']['stories']),2)
 
     def testCycleTimeByComponent(self):
         # Not implemented yet

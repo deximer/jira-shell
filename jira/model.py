@@ -1,5 +1,6 @@
 import numpy
 import time
+import datetime
 
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
@@ -19,13 +20,15 @@ COMPONENTS = 'component'
 STATUS_OPEN = 1
 STATUS_IN_PROGRESS = 3
 STATUS_REOPENED = 4
+STATUS_VERIFIED = 10036
 STATUS_CLOSED = 6
 STATUS_READY = 10089
 STATUS_COMPLETED = 10090
 STATUS_QA_ACTIVE = 10092
 STATUS_QA_READY = 10104
 KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_IN_PROGRESS, STATUS_REOPENED,
-    STATUS_QA_READY, STATUS_QA_ACTIVE, STATUS_CLOSED]
+    STATUS_QA_READY, STATUS_QA_ACTIVE, STATUS_COMPLETED, STATUS_VERIFIED,
+    STATUS_CLOSED]
 
 class Root(object):
     pass
@@ -73,13 +76,57 @@ class Story(object):
             self.resolved = time.strptime(resolved.text[:-6],
                 '%a, %d %b %Y %H:%M:%S')
         else:
-            self.description = None
+            self.resolved = None
         started = item.find(IN_PROGRESS)
         if started is not None:
             self.started = time.strptime(started.text[:-6],
                 '%a, %d %b %Y %H:%M:%S')
         else:
-            self.description = None
+            self.started = None
+
+
+class Kanban(object):
+    def __init__(self):
+        self.stories = []
+        self.release = None
+        self.grid = {}
+
+    def add(self, story):
+        self.stories.append(story)
+        status = str(story.status)
+        for component in story.components:
+            if not self.grid.has_key(component):
+                self.grid[component] = {status: {
+                    'wip': story.points or 0.0,
+                    'stories': [story],
+                    'largest': story.points}}
+            elif not self.grid[component].has_key(status):
+                self.grid[component][status] = {
+                    'wip': story.points or 0.0,
+                    'stories': [story],
+                    'largest': story.points}
+            else:
+                if story.points is not None:
+                    self.grid[component][status]['wip'] += story.points
+                self.grid[component][status]['stories'].append(story)
+                if self.grid[component][status]['largest'] < story.points:
+                    self.grid[component][status]['largest'] = story.points
+
+    def add_release(self, release):
+        self.release = release
+        for story in release.data:
+            self.add(story)
+
+    def average_cycle_time(self):
+        deltas = []
+        for story in self.release.stories():
+            if not story.started or not story.resolved:
+                continue
+            started = datetime.datetime.fromtimestamp(time.mktime(story.started))
+            resolved = datetime.datetime.fromtimestamp(time.mktime(story.resolved))
+            deltas.append(resolved - started)
+        result = sum(deltas, datetime.timedelta())
+        return result.days/len(self.release.stories())
 
 class Release(object):
     WIP = {'Open': 1, 'In Progress': 3, 'Reopened': 4, 'Ready': 10089,
@@ -180,33 +227,17 @@ class Release(object):
         return tallies
 
     def kanban(self):
-        kanban = {}
+        kanban = Kanban()
         for story in self.stories():
-            status = str(story.status)
-            for component in story.components:
-                if not kanban.has_key(component):
-                    kanban[component] = {status: {
-                        'wip': story.points or 0.0,
-                        'stories': 1,
-                        'largest': story.points}}
-                elif not kanban[component].has_key(status):
-                    kanban[component][status] = {
-                        'wip': story.points or 0.0,
-                        'stories': 1,
-                        'largest': story.points}
-                else:
-                    if story.points is not None:
-                        kanban[component][status]['wip'] += story.points
-                    kanban[component][status]['stories'] += 1
-                    if kanban[component][status]['largest'] < story.points:
-                        kanban[component][status]['largest'] = story.points
+            kanban.add(story)
         return kanban
 
     def graph_kanban(self, swimlane=None):
-        kanban = self.kanban()
+        kanban = self.kanban().grid
         points = []
-        wip = {'1': 0.0, '10104': 0.0, '3': 0.0, '10092': 0.0, '4': 0.0,
-            '10036': 0.0, '10090': 0.0, '10089': 0.0}
+        wip = {}
+        for status in KANBAN:
+            wip[str(status)] = 0.0
         total = 0.0
         for component in kanban:
             if swimlane and swimlane != component:
