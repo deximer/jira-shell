@@ -73,14 +73,14 @@ class Story(object):
             self.description = None
         resolved = item.find(RESOLVED)
         if resolved is not None:
-            self.resolved = time.strptime(resolved.text[:-6],
-                '%a, %d %b %Y %H:%M:%S')
+            self.resolved = datetime.datetime.fromtimestamp(time.mktime(
+                time.strptime(resolved.text[:-6], '%a, %d %b %Y %H:%M:%S')))
         else:
             self.resolved = None
         started = item.find(IN_PROGRESS)
         if started is not None:
-            self.started = time.strptime(started.text[:-6],
-                '%a, %d %b %Y %H:%M:%S')
+            self.started = datetime.datetime.fromtimestamp(time.mktime(
+                time.strptime(started.text[:-6], '%a, %d %b %Y %H:%M:%S')))
         else:
             self.started = None
 
@@ -117,13 +117,17 @@ class Kanban(object):
         for story in release.data:
             self.add(story)
 
-    def average_cycle_time(self):
+    def average_cycle_time(self, component=None):
+        if not self.release.stories():
+            return None
         deltas = []
         for story in self.release.stories():
+            if component and component not in story.components:
+                continue
             if not story.started or not story.resolved:
                 continue
-            started = datetime.datetime.fromtimestamp(time.mktime(story.started))
-            resolved = datetime.datetime.fromtimestamp(time.mktime(story.resolved))
+            started = story.started
+            resolved = story.resolved
             deltas.append(resolved - started)
         result = sum(deltas, datetime.timedelta())
         return result.days/len(self.release.stories())
@@ -228,8 +232,7 @@ class Release(object):
 
     def kanban(self):
         kanban = Kanban()
-        for story in self.stories():
-            kanban.add(story)
+        kanban.add_release(self)
         return kanban
 
     def graph_kanban(self, swimlane=None):

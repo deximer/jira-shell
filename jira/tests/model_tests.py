@@ -1,7 +1,15 @@
 import unittest
+import datetime
 from ..model import Story, Release, Projects, Project, Root, Kanban
 from ..dao import Jira
 from  xml.etree import ElementTree as ET
+
+D20121201 = datetime.date(2012, 12, 1)
+D20121202 = datetime.date(2012, 12, 2)
+D20121203 = datetime.date(2012, 12, 3)
+D20121205 = datetime.date(2012, 12, 5)
+D20121208 = datetime.date(2012, 12, 8)
+D20121213 = datetime.date(2012, 12, 13)
 
 class RootTest(unittest.TestCase):
     ''' Unit tests for the Root object class
@@ -30,8 +38,8 @@ class StoryTest(unittest.TestCase):
         obj = Story(item)
         self.assertEqual(obj.key, 'NG-12805')
         self.assertEqual(obj.type, '1')
-        self.assertEqual(time.asctime(obj.started), 'Mon Nov 19 09:35:03 2012')
-        self.assertEqual(time.asctime(obj.resolved), 'Tue Nov 27 01:03:48 2012')
+        self.assertEqual(obj.started.isoformat(), '2012-11-19T09:35:03')
+        self.assertEqual(obj.resolved.isoformat(), '2012-11-27T01:03:48')
 
 class KanbanTest(unittest.TestCase):
     def testObjectCreation(self):
@@ -68,6 +76,53 @@ class KanbanTest(unittest.TestCase):
         kanban.add_release(release)
         self.assertEqual(kanban.average_cycle_time(), 5)
 
+    def testAverageCycleTimeOnlyBugs(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        release.add(Story(item))
+        release.data[0].started = D20121201
+        release.data[0].resolved = D20121205
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.average_cycle_time(), None)
+
+    def testAverageCycleTimeStrictBaked(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].started = D20121201
+        release.data[0].resolved = D20121205
+        release.data[0].type = '72'
+        release.data[1].started = D20121203
+        release.data[1].resolved = D20121205
+        release.data[1].type = '72'
+        release.data[2].started = D20121205
+        release.data[2].resolved = D20121213
+        release.data[2].type = '72'
+        release.data[3].started = D20121203
+        release.data[3].resolved = D20121213
+        release.data[3].type = '72'
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.average_cycle_time(), 6)
+
+    def testCycleTimeForComponent(self):
+        jira = Jira()
+        def mock_request_page(url, refresh=False):
+            return open('jira/tests/data/rss.xml').read()
+        jira.request_page = mock_request_page
+        release = jira.get_release()
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.average_cycle_time('Appification'), 2)
+        
 
 class ReleaseTests(unittest.TestCase):
     ''' Unit tests for the Release class
