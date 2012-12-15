@@ -92,9 +92,9 @@ def stat(args):
         print '    ', component
 
 def top(args):
-    def mock_request_page(self, url):
-        return open('tests/data/rss.xml').read()
-    jira.request_page = mock_request_page
+    #def mock_request_page(self, url):
+    #    return open('tests/data/rss.xml').read()
+    #jira.request_page = mock_request_page
     commands['top'].run(jira, args)
 
 def shell():

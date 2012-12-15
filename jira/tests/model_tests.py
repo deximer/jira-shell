@@ -40,6 +40,7 @@ class StoryTest(unittest.TestCase):
         self.assertEqual(obj.type, '1')
         self.assertEqual(obj.started.isoformat(), '2012-11-19T09:35:03')
         self.assertEqual(obj.resolved.isoformat(), '2012-11-27T01:03:48')
+        self.assertEqual(obj.cycle_time.days, 7)
 
 class KanbanTest(unittest.TestCase):
     def testObjectCreation(self):

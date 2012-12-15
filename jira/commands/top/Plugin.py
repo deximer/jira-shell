@@ -38,18 +38,19 @@ class Command(object):
         window.addstr(count,10, 'Pts', curses.A_REVERSE)
         window.addstr(count,16, 'Sta', curses.A_REVERSE)
         window.addstr(count,22, 'CT', curses.A_REVERSE)
-        window.addstr(count,28, 'Components', curses.A_REVERSE)
-        for story in self.release.data[:20]:
+        window.addstr(count,26, 'Type', curses.A_REVERSE)
+        window.addstr(count,32, 'Components', curses.A_REVERSE)
+        for story in self.release.stories()[20:]:
             count += 1
             window.addstr(count,0, story.key)
             window.addstr(count,10, str(story.points))
             window.addstr(count,16, str(story.status))
-            cycle_time = '->'
-            if story.resolved and story.started:
-                cycle_time = story.resolved - story.started
-                cycle_time = str(cycle_time.days)
+            cycle_time = '?'
+            if story.cycle_time:
+                cycle_time = str(story.cycle_time.days)
             window.addstr(count,22, cycle_time)
-            window.addstr(count,28, ' '.join(story.components))
+            window.addstr(count,26, story.type)
+            window.addstr(count,32, ' '.join(story.components))
         window.addstr(0,0, 'Release 2.5, 8 days remaining')
         window.addstr(1,3, '!=refresh')
         window.addstr(1,0, '?  ')

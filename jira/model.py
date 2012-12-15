@@ -83,6 +83,13 @@ class Story(object):
                 time.strptime(started.text[:-6], '%a, %d %b %Y %H:%M:%S')))
         else:
             self.started = None
+        if self.started and self.resolved:
+            self.cycle_time = self.resolved - self.started
+        elif self.started and not self.resolved:
+            self.cycle_time = datetime.datetime.today() - self.started
+        else:
+            self.cycle_time = None
+
 
 
 class Kanban(object):
