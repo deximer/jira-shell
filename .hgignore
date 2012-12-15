@@ -6,5 +6,6 @@ dist
 build
 nose-*
 jira.egg-*
+jira/export-*
 *.pyc
 *.swp

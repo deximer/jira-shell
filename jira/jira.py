@@ -8,6 +8,7 @@ from dao import Jira
 import commands
 
 commands = {'top': commands.top.Plugin.Command(),
+            'export': commands.export.Plugin.Command(),
            }
 
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
@@ -99,6 +100,12 @@ def top(args):
     #jira.request_page = mock_request_page
     commands['top'].run(jira, args)
 
+def export(args):
+    #def mock_request_page(self, url):
+    #    return open('tests/data/rss.xml').read()
+    #jira.request_page = mock_request_page
+    commands['export'].run(jira, args)
+
 def shell():
     return raw_input('%s > ' % '/'.join(cwd))
 
@@ -111,6 +118,7 @@ def dispatch(command):
              'ls': ls,
              'stat': stat,
              'top': top,
+             'export': export,
             }
     if command in table.keys():
         table[command](args)

@@ -114,6 +114,60 @@ class KanbanTest(unittest.TestCase):
         kanban.add_release(release)
         self.assertEqual(kanban.average_cycle_time(), 6)
 
+    def testStdevCycleTimeStrictBaked(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].started = D20121201
+        release.data[0].resolved = D20121205
+        release.data[0].type = '72'
+        release.data[1].started = D20121203
+        release.data[1].resolved = D20121205
+        release.data[1].type = '72'
+        release.data[2].started = D20121205
+        release.data[2].resolved = D20121213
+        release.data[2].type = '72'
+        release.data[3].started = D20121203
+        release.data[3].resolved = D20121213
+        release.data[3].type = '72'
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.stdev_cycle_time(), 3.1622776601683795)
+
+    def testCycleTimePerPointStrictBaked(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].started = D20121201
+        release.data[0].resolved = D20121205
+        release.data[0].type = '72'
+        release.data[0].points = 2.0
+        release.data[1].started = D20121203
+        release.data[1].resolved = D20121205
+        release.data[1].type = '72'
+        release.data[1].points = 6.0
+        release.data[2].started = D20121205
+        release.data[2].resolved = D20121213
+        release.data[2].type = '72'
+        release.data[2].points = 1.0
+        release.data[3].started = D20121203
+        release.data[3].resolved = D20121213
+        release.data[3].type = '72'
+        release.data[3].points = 3.0
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.cycle_time_per_point(), 2.0)
+
     def testCycleTimeForComponent(self):
         jira = Jira()
         def mock_request_page(url, refresh=False):
@@ -162,6 +216,34 @@ class ReleaseTests(unittest.TestCase):
         release.data[0].type = '72'
         release.data[2].type = '72'
         self.assertEqual(len(release.stories()), 2)
+
+    def testOnlyStartedStories(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].type = '72'
+        release.data[0].started = D20121201
+        release.data[2].type = '72'
+        release.data[2].started = None
+        self.assertEqual(len(release.started_stories()), 1)
+
+    def testOnlyStartedStories(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].type = '72'
+        release.data[0].resolved = D20121201
+        release.data[2].type = '72'
+        release.data[2].resolved = None
+        self.assertEqual(len(release.resolved_stories()), 1)
 
     def testOnlyBugs(self):
         release = Release()

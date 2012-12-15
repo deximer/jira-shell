@@ -139,6 +139,36 @@ class Kanban(object):
         result = sum(deltas, datetime.timedelta())
         return result.days/len(self.release.stories())
 
+    def stdev_cycle_time(self, component=None):
+        if not self.release.stories():
+            return None
+        cycle_times = []
+        for story in self.release.stories():
+            if component and component not in story.components:
+                continue
+            if not story.started or not story.resolved:
+                continue
+            started = story.started
+            resolved = story.resolved
+            delta = resolved - started
+            cycle_times.append(delta.days)
+        return numpy.std(numpy.array(cycle_times))
+
+    def cycle_time_per_point(self, component=None):
+        if not self.release.stories():
+            return None
+        deltas = []
+        for story in self.release.stories():
+            if component and component not in story.components:
+                continue
+            if not story.started or not story.resolved:
+                continue
+            started = story.started
+            resolved = story.resolved
+            deltas.append(resolved - started)
+        result = sum(deltas, datetime.timedelta())
+        return result.days/self.release.total_points()
+
 class Release(object):
     WIP = {'Open': 1, 'In Progress': 3, 'Reopened': 4, 'Ready': 10089,
            'QA Active': 10092, 'Ready for QA': 10104}
@@ -157,6 +187,14 @@ class Release(object):
 
     def stories(self):
         return [story for story in self.data if story.type == STORY_TYPE]
+
+    def started_stories(self):
+        return [story for story in self.data if story.type == STORY_TYPE
+            and story.started]
+
+    def resolved_stories(self):
+        return [story for story in self.data if story.type == STORY_TYPE
+            and story.resolved]
 
     def bugs(self):
         return [story for story in self.data if story.type == BUG_TYPE]

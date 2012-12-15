@@ -42,23 +42,26 @@ class Command(object):
         window.addstr(count,32, 'Components', curses.A_REVERSE)
         total_cycle_time = 0
         total_points = 0
-        for story in self.release.stories()[20:]:
+        for story in self.release.stories()[:21]:
             count += 1
-            window.addstr(count,0, story.key)
-            window.addstr(count,10, str(story.points))
-            window.addstr(count,16, str(story.status))
-            total_points += story.points
             cycle_time = '?'
             if story.cycle_time:
                 cycle_time = story.cycle_time.days
                 total_cycle_time += cycle_time
+            total_points += story.points
+            window.addstr(count,0, story.key)
+            window.addstr(count,10, str(story.points))
+            window.addstr(count,16, str(story.status))
             window.addstr(count,22, str(cycle_time))
             window.addstr(count,26, story.type)
             window.addstr(count,32, ' '.join(story.components))
+        kanban = self.release.kanban()
         window.addstr(0, 0, 'Release 2.5, 8 days remaining')
         window.addstr(1, 0, '!=refresh')
-        window.addstr(1, 10, str(round(total_points/count, 2)))
-        window.addstr(1, 22, str(total_cycle_time/count))
+        window.addstr(1, 10, str(round(self.release.total_points(), 1)) + '/'
+            + str(round(self.release.average_story_size(), 1)))
+        window.addstr(1, 22, str(kanban.average_cycle_time()) + '/'
+            + str(round(kanban.cycle_time_per_point(), 1)))
         window.addstr(1, 0, '')
         window.refresh()
 
