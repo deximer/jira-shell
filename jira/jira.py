@@ -46,12 +46,14 @@ def request_projects():
 
 def print_release_report(args):
     release = get_release()
+    kanban = release.kanban()
     print 'Total Stories    :', release.total_stories()
     print 'Total Bugs       :', len(release.bugs())
     print 'Average Size     :', round(release.average_story_size(), 2)
     print 'Std Dev          :', round(release.std_story_size(), 2)
     print 'Smallest Story   :', release.sort_by_size()[-1].points
     print 'Largest Story    :', release.sort_by_size()[0].points
+    print 'Avg Cycle Time   :', kanban.average_cycle_time()
     print 'Points in scope  :', round(release.total_points(), 2)
     print 'Points completed :', round(release.points_completed(), 2)
     print 'Stories IP       :', release.stories_in_process()
