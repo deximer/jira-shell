@@ -75,7 +75,7 @@ class KanbanTest(unittest.TestCase):
         release = jira.get_release()
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.average_cycle_time(), 5)
+        self.assertEqual(kanban.average_cycle_time(), 10.578947368421053)
 
     def testAverageCycleTimeOnlyBugs(self):
         xml = open('jira/tests/data/rss.xml').read()
@@ -168,6 +168,36 @@ class KanbanTest(unittest.TestCase):
         kanban.add_release(release)
         self.assertEqual(kanban.cycle_time_per_point(), 2.5)
 
+    def testStdevCycleTimePerPointStrictBaked(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].started = D20121201
+        release.data[0].resolved = D20121205 # 4 days
+        release.data[0].type = '72'
+        release.data[0].points = 2.0
+        release.data[1].started = D20121203
+        release.data[1].resolved = D20121205 # 2 days
+        release.data[1].type = '72'
+        release.data[1].points = 1.0
+        release.data[2].started = D20121205
+        release.data[2].resolved = D20121213 # 8 days
+        release.data[2].type = '72'
+        release.data[2].points = 3.0
+        release.data[3].started = D20121203
+        release.data[3].resolved = D20121213 # 10 days
+        release.data[3].type = '72'
+        release.data[3].points = 3.0
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.stdev_cycle_time_per_point(),
+            0.55277079839256671)
+
     def testCycleTimeForComponent(self):
         jira = Jira()
         def mock_request_page(url, refresh=False):
@@ -176,7 +206,7 @@ class KanbanTest(unittest.TestCase):
         release = jira.get_release()
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.average_cycle_time('Appification'), 2)
+        self.assertEqual(kanban.average_cycle_time('Appification'), 14)
         
 
 class ReleaseTests(unittest.TestCase):

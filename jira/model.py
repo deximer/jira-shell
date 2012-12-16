@@ -126,17 +126,15 @@ class Kanban(object):
     def average_cycle_time(self, component=None):
         if not self.release.stories():
             return None
-        deltas = []
+        days = []
         for story in self.release.stories():
             if component and component not in story.components:
                 continue
             if not story.started or not story.resolved:
                 continue
-            started = story.started
-            resolved = story.resolved
-            deltas.append(resolved - started)
-        result = sum(deltas, datetime.timedelta())
-        return result.days/len(self.release.stories())
+            delta = story.resolved - story.started
+            days.append(delta.days)
+        return numpy.average(numpy.array(days))
 
     def stdev_cycle_time(self, component=None):
         if not self.release.stories():
@@ -170,11 +168,26 @@ class Kanban(object):
         for story in self.release.stories():
             if component and component not in story.components:
                 continue
-            if not story.started or not story.resolved:
+            if not story.started or not story.resolved or not story.points:
                 continue
             delta = story.resolved - story.started
             days.append(delta.days/story.points)
-        return sum(days)/len(self.release.stories())
+        return numpy.average(numpy.array(days))
+
+    def stdev_cycle_time_per_point(self, component=None):
+        ''' See doc string for cycle_time_per_point re: calculations
+        '''
+        if not self.release.stories():
+            return None
+        days = []
+        for story in self.release.stories():
+            if component and component not in story.components:
+                continue
+            if not story.started or not story.resolved or not story.points:
+                continue
+            delta = story.resolved - story.started
+            days.append(delta.days/story.points)
+        return numpy.std(numpy.array(days))
 
 class Release(object):
     WIP = {'Open': 1, 'In Progress': 3, 'Reopened': 4, 'Ready': 10089,

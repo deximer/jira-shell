@@ -60,7 +60,7 @@ class Command(object):
         window.addstr(1, 0, '!=refresh')
         window.addstr(1, 10, str(round(self.release.total_points(), 1)) + '/'
             + str(round(self.release.average_story_size(), 1)))
-        window.addstr(1, 22, str(kanban.average_cycle_time()) + '/'
+        window.addstr(1, 22, str(round(kanban.average_cycle_time(), 1)) + '/'
             + str(round(kanban.cycle_time_per_point(), 1)))
         window.addstr(1, 0, '')
         window.refresh()
