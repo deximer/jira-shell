@@ -91,7 +91,6 @@ class Story(object):
             self.cycle_time = None
 
 
-
 class Kanban(object):
     def __init__(self):
         self.stories = []
@@ -155,19 +154,27 @@ class Kanban(object):
         return numpy.std(numpy.array(cycle_times))
 
     def cycle_time_per_point(self, component=None):
+        ''' Note that this method does not just add up the cycle times
+            and the points and divide the former by the later (ct/pts). It
+            first calculates the cycle per point per story, then divides
+            the total by the number of stories. This makes results here
+            consistent with other results that report cycle times for
+            individual stories. It also keeps the calulation of cycle time
+            per story point close to the actual work. i.e. a 2 point story
+            with a 50 day cycle time will have a greater impact on the average
+            using this method. This better surfaces variance.
+        '''
         if not self.release.stories():
             return None
-        deltas = []
+        days = []
         for story in self.release.stories():
             if component and component not in story.components:
                 continue
             if not story.started or not story.resolved:
                 continue
-            started = story.started
-            resolved = story.resolved
-            deltas.append(resolved - started)
-        result = sum(deltas, datetime.timedelta())
-        return result.days/self.release.total_points()
+            delta = story.resolved - story.started
+            days.append(delta.days/story.points)
+        return sum(days)/len(self.release.stories())
 
 class Release(object):
     WIP = {'Open': 1, 'In Progress': 3, 'Reopened': 4, 'Ready': 10089,
