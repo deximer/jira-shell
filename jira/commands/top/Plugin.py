@@ -57,11 +57,11 @@ class Command(object):
             window.addstr(count,32, ' '.join(story.components))
         kanban = self.release.kanban()
         window.addstr(0, 0, 'Release 2.5, 8 days remaining')
-        window.addstr(1, 0, '!=refresh')
-        window.addstr(1, 10, str(round(self.release.total_points(), 1)) + '/'
-            + str(round(self.release.average_story_size(), 1)))
-        window.addstr(1, 22, str(round(kanban.average_cycle_time(), 1)) + '/'
-            + str(round(kanban.cycle_time_per_point(), 1)))
+        window.addstr(1, 0, 'TPts: ' + str(round(
+            self.release.total_points(), 1)) + ' AvgPts: '
+            + str(round(self.release.average_story_size(), 1)) +
+            ' AvgCT: ' +  str(round(kanban.average_cycle_time(), 1)) +
+            ' CT/Pts: ' + str(round(kanban.cycle_time_per_point(), 1)))
         window.addstr(1, 0, '')
         window.refresh()
 
