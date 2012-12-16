@@ -47,6 +47,23 @@ class Command(object):
                 average_story_size,
                 average_story_size - (self.release.std_story_size() * 2),
                 average_story_size - (self.release.std_story_size() * 3)))
+        export_ratio = open('export-ratio.csv', 'w')
+        export_ratio.write(
+            'Key, Ratio, NSUL, NSUW, Average Ratio, NSLW, NSLL\r\n')
+        average_story_size = self.release.average_story_size()
+        for story in stories:
+            if not story.started and story.resolved:
+                continue
+            export_pt.write(
+                '%s, %d, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
+                story.key,
+                story.cycle_time.days/story.points,
+                average_story_size + (self.release.std_story_size() * 3),
+                average_story_size + (self.release.std_story_size() * 2),
+                average_story_size,
+                average_story_size - (self.release.std_story_size() * 2),
+                average_story_size - (self.release.std_story_size() * 3)))
+
 
     def refresh_data(self, jira, refresh):
         self.release = jira.get_release(refresh)

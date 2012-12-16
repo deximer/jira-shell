@@ -96,7 +96,6 @@ class Command(object):
             % (total_wip, total_stories, kanban.average_cycle_time()))
         window.addstr(1,0, '')
         window.refresh()
-        
 
     def refresh_data(self, jira, refresh):
         self.release = jira.get_release(refresh)
