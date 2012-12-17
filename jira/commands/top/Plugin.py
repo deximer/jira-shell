@@ -63,7 +63,7 @@ class Command(object):
             self.release.total_points(), 1)) + ' AvgPts: '
             + str(round(self.release.average_story_size(), 1)) +
             ' AvgCT: ' +  str(round(kanban.average_cycle_time(), 1)) +
-            ' CT/Pts: ' + str(round(kanban.cycle_time_per_point(), 1)))
+            ' CT/Pt: ' + str(round(kanban.cycle_time_per_point(), 1)))
         window.addstr(1, 0, '')
         window.refresh()
 

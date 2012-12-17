@@ -14,7 +14,7 @@ class Command(object):
             'Key, Points, Started, Resolved, Cycle Time, NSUL, NSUW, Average CT, NSLW, NSLL\r\n')
         average_cycle_time = kanban.average_cycle_time()
         for story in stories:
-            if not story.started and story.resolved:
+            if not story.started or not story.resolved:
                 continue
             export_ct.write(
                 '%s, %.2f, %s, %s, %d, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
@@ -49,20 +49,21 @@ class Command(object):
                 average_story_size - (self.release.std_story_size() * 3)))
         export_ratio = open('export-ratio.csv', 'w')
         export_ratio.write(
-            'Key, Ratio, NSUL, NSUW, Average, NSLW, NSLL\r\n')
+            'Resolved, Key, Ratio, NSUL, NSUW, Average, NSLW, NSLL\r\n')
         average_story_size = self.release.average_story_size()
         for story in stories:
             if not story.started and story.resolved:
                 continue
             export_ratio.write(
-                '%s, %d, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
+                '%s, %s, %d, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
+                story.resolved.strftime('%m/%d/%y'),
                 story.key,
                 story.cycle_time.days/story.points,
-                average_story_size + (self.release.std_story_size() * 3),
-                average_story_size + (self.release.std_story_size() * 2),
-                average_story_size,
-                average_story_size - (self.release.std_story_size() * 2),
-                average_story_size - (self.release.std_story_size() * 3)))
+                average_cycle_time + (kanban.stdev_cycle_time() * 3),
+                average_cycle_time + (kanban.stdev_cycle_time() * 2),
+                average_cycle_time,
+                average_cycle_time - (kanban.stdev_cycle_time() * 2),
+                average_cycle_time - (kanban.stdev_cycle_time() * 3)))
         # Export Dev charts
         developers = {}
         for story in stories:
