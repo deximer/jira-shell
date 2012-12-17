@@ -8,10 +8,12 @@ NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
 ITEMS = './/*/item'
 STORY_POINTS = './/*[@id="customfield_10792"]/*/customfieldvalue'
 IN_PROGRESS = './/*[@id="customfield_13434"]/*/customfieldvalue'
+DEVELOPER = './/*[@id="customfield_13435"]/*/customfieldvalue'
 STATUS = 'status'
 BUG_TYPE = '1'
 STORY_TYPE = '72'
 TITLE = 'title'
+ASSIGNEE = 'assignee'
 TYPE = 'type'
 DESCRIPTION = 'description'
 KEY = 'key'
@@ -89,6 +91,16 @@ class Story(object):
             self.cycle_time = datetime.datetime.today() - self.started
         else:
             self.cycle_time = None
+        assignee = item.find(ASSIGNEE)
+        if assignee is not None:
+            self.assignee = assignee.text
+        else:
+            self.assignee = None
+        developer = item.find(DEVELOPER)
+        if developer is not None:
+            self.developer = developer.text
+        else:
+            self.developer = None
 
 
 class Kanban(object):

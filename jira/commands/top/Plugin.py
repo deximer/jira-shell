@@ -39,7 +39,8 @@ class Command(object):
         window.addstr(count,16, 'Sta', curses.A_REVERSE)
         window.addstr(count,22, 'CT', curses.A_REVERSE)
         window.addstr(count,26, 'Type', curses.A_REVERSE)
-        window.addstr(count,32, 'Components', curses.A_REVERSE)
+        window.addstr(count,32, 'Assignee', curses.A_REVERSE)
+        window.addstr(count,50, 'Components', curses.A_REVERSE)
         total_cycle_time = 0
         total_points = 0
         for story in self.release.stories()[:21]:
@@ -54,7 +55,8 @@ class Command(object):
             window.addstr(count,16, str(story.status))
             window.addstr(count,22, str(cycle_time))
             window.addstr(count,26, story.type)
-            window.addstr(count,32, ' '.join(story.components))
+            window.addstr(count,32, story.assignee)
+            window.addstr(count,50, ' '.join(story.components)[:29])
         kanban = self.release.kanban()
         window.addstr(0, 0, 'Release 2.5, 8 days remaining')
         window.addstr(1, 0, 'TPts: ' + str(round(

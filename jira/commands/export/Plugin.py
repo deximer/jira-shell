@@ -49,13 +49,13 @@ class Command(object):
                 average_story_size - (self.release.std_story_size() * 3)))
         export_ratio = open('export-ratio.csv', 'w')
         export_ratio.write(
-            'Key, Ratio, NSUL, NSUW, Average Ratio, NSLW, NSLL\r\n')
+            'Key, Ratio, NSUL, NSUW, Average, NSLW, NSLL\r\n')
         average_story_size = self.release.average_story_size()
         for story in stories:
             if not story.started and story.resolved:
                 continue
-            export_pt.write(
-                '%s, %d, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
+            export_ratio.write(
+                '%s, %d, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
                 story.key,
                 story.cycle_time.days/story.points,
                 average_story_size + (self.release.std_story_size() * 3),
@@ -63,7 +63,24 @@ class Command(object):
                 average_story_size,
                 average_story_size - (self.release.std_story_size() * 2),
                 average_story_size - (self.release.std_story_size() * 3)))
-
+        # Export Dev charts
+        developers = {}
+        for story in stories:
+            if not story.developer or not story.resolved or not story.started:
+                continue
+            if not developers.has_key(story.developer):
+                developers[story.developer] = [story]
+            else:
+                developers[story.developer].append(story)
+        export_devs = open('export-devs.csv', 'w')
+        export_devs.write('Developer, Points, Cycle Time, Story\r\n')
+        for key in developers:
+            for story in developers[key]:
+                export_devs.write('%s, %.2f, %d, %s\r\n'
+                 % (key,
+                    story.points,
+                    story.cycle_time.days,
+                    story.key))
 
     def refresh_data(self, jira, refresh):
         self.release = jira.get_release(refresh)
