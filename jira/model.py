@@ -149,6 +149,8 @@ class Kanban(object):
         return numpy.average(numpy.array(days))
 
     def stdev_cycle_time(self, component=None):
+        ''' Uses ddof=1 to sync std calc with excel's
+        '''
         if not self.release.stories():
             return None
         cycle_times = []
@@ -161,7 +163,7 @@ class Kanban(object):
             resolved = story.resolved
             delta = resolved - started
             cycle_times.append(delta.days)
-        return numpy.std(numpy.array(cycle_times))
+        return numpy.std(numpy.array(cycle_times), ddof=1)
 
     def cycle_time_per_point(self, component=None):
         ''' Note that this method does not just add up the cycle times
@@ -188,6 +190,7 @@ class Kanban(object):
 
     def stdev_cycle_time_per_point(self, component=None):
         ''' See doc string for cycle_time_per_point re: calculations
+            Uses ddof=1 to sync std calc with excel's
         '''
         if not self.release.stories():
             return None
@@ -199,7 +202,7 @@ class Kanban(object):
                 continue
             delta = story.resolved - story.started
             days.append(delta.days/story.points)
-        return numpy.std(numpy.array(days))
+        return numpy.std(numpy.array(days), ddof=1)
 
 class Release(object):
     WIP = {'Open': 1, 'In Progress': 3, 'Reopened': 4, 'Ready': 10089,
@@ -256,11 +259,13 @@ class Release(object):
         return numpy.average(numpy.array(points))
 
     def std_story_size(self):
+        ''' Uses ddof=1 to sync std calc with excel's
+        '''
         points = []
         for story in self.stories():
             if story.points:
                 points.append(story.points)
-        return numpy.std(numpy.array(points))
+        return numpy.std(numpy.array(points), ddof=1)
 
     def sort_by_size(self):
         return sorted(self.only_groomed_stories(),

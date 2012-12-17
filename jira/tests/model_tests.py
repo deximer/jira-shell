@@ -137,7 +137,7 @@ class KanbanTest(unittest.TestCase):
         release.data[3].type = '72'
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.stdev_cycle_time(), 3.1622776601683795)
+        self.assertEqual(kanban.stdev_cycle_time(), 3.6514837167011072)
 
     def testCycleTimePerPointStrictBaked(self):
         xml = open('jira/tests/data/rss.xml').read()
@@ -196,7 +196,7 @@ class KanbanTest(unittest.TestCase):
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.stdev_cycle_time_per_point(),
-            0.55277079839256671)
+            0.6382847385042254)
 
     def testCycleTimeForComponent(self):
         jira = Jira()
@@ -367,7 +367,7 @@ class ReleaseTests(unittest.TestCase):
         release.data[1].type = '72'
         release.data[2].points = 8.0
         release.data[2].type = '72'
-        self.assertEqual(release.std_story_size(), 2.4944382578492941)
+        self.assertEqual(release.std_story_size(), 3.0550504633038931)
 
     def test_sort_by_size(self):
         release = Release()
