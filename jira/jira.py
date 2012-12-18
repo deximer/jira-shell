@@ -48,17 +48,17 @@ def request_projects():
 def print_release_report(args):
     release = get_release()
     kanban = release.kanban()
-    print 'Total Stories    :', release.total_stories()
-    print 'Total Bugs       :', len(release.bugs())
-    print 'Average Size     :', round(release.average_story_size(), 2)
-    print 'Std Dev          :', round(release.std_story_size(), 2)
+    print 'Stories          :', release.total_stories()
+    print 'Bugs             :', len(release.bugs())
+    print 'Average Size     :', round(release.average_story_size(), 1)
+    print 'Std Dev          :', round(release.std_story_size(), 1)
     print 'Smallest Story   :', release.sort_by_size()[-1].points
     print 'Largest Story    :', release.sort_by_size()[0].points
-    print 'Avg Cycle Time   :', kanban.average_cycle_time()
-    print 'Points in scope  :', round(release.total_points(), 2)
-    print 'Points completed :', round(release.points_completed(), 2)
+    print 'Avg Cycle Time   :', round(kanban.average_cycle_time(), 1)
+    print 'Points in scope  :', round(release.total_points(), 1)
+    print 'Points completed :', round(release.points_completed(), 1)
     print 'Stories IP       :', release.stories_in_process()
-    print 'Total WIP        :', round(release.wip(), 2)
+    print 'Total WIP        :', round(release.wip(), 1)
     print
     print 'WIP by Status:'
     wip = release.wip_by_status()
