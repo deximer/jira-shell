@@ -259,8 +259,6 @@ class Kanban(object):
         if not average:
             return None
         std = self.stdev_cycle_time_for_estimate(str(story.points))
-        if not std:
-            return None
         outside = average + (std * 2)
         return round(outside - story.cycle_time, 1)
 
