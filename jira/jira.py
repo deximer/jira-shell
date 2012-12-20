@@ -79,7 +79,7 @@ def ls(args):
         team = story.scrum_team
         if not team:
             team = 'Everything Else'
-        print team[:18].ljust(18), str(story.points).ljust(5), str(story.status).ljust(5), story.title[:49]
+        print team[:18].ljust(18), str(story.points).ljust(5), str(story.status).ljust(5), str(release.kanban().contingency_outside(story.key)).ljust(5), story.title[:43]
 
 def process_raw_key(args):
     if args[:2] != 'NG':

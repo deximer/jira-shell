@@ -217,6 +217,101 @@ class KanbanTest(unittest.TestCase):
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.average_cycle_time('Tech Maintenance'), 10.0)
+
+    def testAverageCycleTimeForEstimate(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].started = D20121201
+        release.data[0].resolved = D20121205 # 4 days
+        release.data[0].type = '72'
+        release.data[0].points = 2.0
+        release.data[1].started = D20121203
+        release.data[1].resolved = D20121205 # 2 days
+        release.data[1].type = '72'
+        release.data[1].points = 1.0
+        release.data[2].started = D20121205
+        release.data[2].resolved = D20121213 # 8 days
+        release.data[2].type = '72'
+        release.data[2].points = 3.0
+        release.data[3].started = D20121203
+        release.data[3].resolved = D20121213 # 10 days
+        release.data[3].type = '72'
+        release.data[3].points = 3.0
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.average_cycle_time_for_estimate('3.0'), 9.0)
+        self.assertEqual(kanban.average_cycle_time_for_estimate('2.0'), 4.0)
+        self.assertEqual(kanban.average_cycle_time_for_estimate('1.0'), 2.0)
+
+    def testStdevCycleTimeForEstimate(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].started = D20121201
+        release.data[0].resolved = D20121205 # 4 days
+        release.data[0].type = '72'
+        release.data[0].points = 2.0
+        release.data[1].started = D20121203
+        release.data[1].resolved = D20121205 # 2 days
+        release.data[1].type = '72'
+        release.data[1].points = 1.0
+        release.data[2].started = D20121205
+        release.data[2].resolved = D20121213 # 8 days
+        release.data[2].type = '72'
+        release.data[2].points = 3.0
+        release.data[3].started = D20121203
+        release.data[3].resolved = D20121213 # 10 days
+        release.data[3].type = '72'
+        release.data[3].points = 3.0
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.stdev_cycle_time_for_estimate('3.0'), 1.0)
+        self.assertEqual(kanban.stdev_cycle_time_for_estimate('2.0'), 0.0)
+        self.assertEqual(kanban.stdev_cycle_time_for_estimate('1.0'), 0.0)
+
+    def testContingency(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].key = 'NG-TEST'
+        release.data[0].started = D20121201
+        release.data[0].resolved = D20121205 # 4 days
+        release.data[0].type = '72'
+        release.data[0].points = 2.0
+        release.data[1].started = D20121203
+        release.data[1].resolved = D20121205 # 2 days
+        release.data[1].type = '72'
+        release.data[1].points = 2.0
+        release.data[2].started = D20121205
+        release.data[2].resolved = D20121213 # 8 days
+        release.data[2].type = '72'
+        release.data[2].points = 2.0
+        release.data[3].started = D20121203
+        release.data[3].resolved = D20121213 # 10 days
+        release.data[3].type = '72'
+        release.data[3].points = 2.0
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.contingency_average('NG-TEST'), 2.0)
+        self.assertEqual(kanban.contingency_inside('NG-TEST'), -4.3)
+        self.assertEqual(kanban.contingency_outside('NG-TEST'), 8.3)
+
         
 
 class ReleaseTests(unittest.TestCase):
@@ -396,7 +491,7 @@ class ReleaseTests(unittest.TestCase):
             self.assertEqual(count, story.points)
             count -= 1.0
 
-    def test_only_groomed_stories(self):
+    def testOnlyGroomedStories(self):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
@@ -411,6 +506,25 @@ class ReleaseTests(unittest.TestCase):
         release.data[2].points = 3.0
         release.data[2].type = '72'
         self.assertEqual(len(release.only_groomed_stories()), 2)
+
+    def testStoriesByEstimate(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].points = 2.0
+        release.data[0].type = '72'
+        release.data[1].points = 2.0
+        release.data[1].type = '72'
+        release.data[2].points = 3.0
+        release.data[2].type = '72'
+        self.assertEqual(len(release.stories_by_estimate().keys()), 2)
+        self.assertEqual(len(release.stories_by_estimate()['2.0']), 2)
+        self.assertEqual(len(release.stories_by_estimate()['3.0']), 1)
+
 
     def testStoriesInProcess(self):
         release = Release()

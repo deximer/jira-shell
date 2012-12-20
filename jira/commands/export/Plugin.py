@@ -7,8 +7,8 @@ class Command(object):
         print 'Retrieving data...'
         self.refresh_data(jira, False)
         kanban = self.release.kanban()
-        stories = self.release.resolved_stories()
-        stories.sort(key=lambda i:i.resolved)
+        stories = self.release.stories()
+        stories.sort(key=lambda i:i.key)
         export_ct = open('export-ct.csv', 'w')
         export_ct.write(
             'Key, Points, Started, Resolved, Cycle Time, NSUL, NSUW, Average CT, NSLW, NSLL\r\n')
@@ -22,7 +22,7 @@ class Command(object):
                 story.points or 0.0,
                 story.started.strftime("%m/%d/%y"),
                 story.resolved.strftime('%m/%d/%y'),
-                story.cycle_time.days,
+                story.cycle_time,
                 average_cycle_time + (kanban.stdev_cycle_time() * 3),
                 average_cycle_time + (kanban.stdev_cycle_time() * 2),
                 average_cycle_time,
@@ -38,7 +38,7 @@ class Command(object):
             export_pt.write(
                 '%s, %d, %s, %s, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
                 story.key,
-                story.cycle_time.days,
+                story.cycle_time,
                 story.started.strftime("%m/%d/%y"),
                 story.resolved.strftime('%m/%d/%y'),
                 story.points or 0.0,
@@ -58,7 +58,7 @@ class Command(object):
                 '%s, %s, %d, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
                 story.resolved.strftime('%m/%d/%y'),
                 story.key,
-                story.cycle_time.days/story.points if story.points else 0,
+                story.cycle_time/story.points if story.points else 0,
                 average_cycle_time + (kanban.stdev_cycle_time() * 3),
                 average_cycle_time + (kanban.stdev_cycle_time() * 2),
                 average_cycle_time,
@@ -80,7 +80,7 @@ class Command(object):
                 export_devs.write('%s, %.2f, %d, %s\r\n'
                  % (key,
                     story.points or 0.0,
-                    story.cycle_time.days,
+                    story.cycle_time,
                     story.key))
 
     def refresh_data(self, jira, refresh):

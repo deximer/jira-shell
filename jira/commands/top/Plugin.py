@@ -8,12 +8,12 @@ class Command(object):
         quit = False
         print 'Retrieving data...'
         self.refresh_data(jira, False)
-        command = 'swimlanes'
+        command = 'wip'
         c = 0
         while not quit:
             window.clear()
-            if command == 'swimlanes':
-                self.top_swimlanes(jira, window)
+            if command == 'wip':
+                self.top_wip(jira, window)
             else:
                 self.top_issues(jira, window)
             window.refresh()
@@ -24,8 +24,8 @@ class Command(object):
                 window.refresh()
                 self.refresh_data(jira, True)
                 continue
-            elif chr(c) == 'l':
-                command = 'swimlanes'
+            elif chr(c) == 'w':
+                command = 'wip'
             elif chr(c) == 'i':
                  command = 'issues'
             else:
@@ -73,7 +73,7 @@ class Command(object):
         window.addstr(1, 0, '')
         window.refresh()
 
-    def top_swimlanes(self, jira, window):
+    def top_wip(self, jira, window):
         count = 2
         graph = self.release.graph_kanban()
         window.addstr(1,77, graph)

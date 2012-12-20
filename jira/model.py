@@ -215,6 +215,56 @@ class Kanban(object):
             days.append(delta.days/story.points)
         return numpy.std(numpy.array(days), ddof=1)
 
+    def average_cycle_time_for_estimate(self, estimate):
+        grid = self.release.stories_by_estimate()
+        days = []
+        if not grid.has_key(estimate):
+            return None
+        for story in grid[estimate]:
+            if not story.started or not story.resolved or not story.points:
+                continue
+            delta = story.resolved - story.started
+            days.append(delta.days)
+        return numpy.average(numpy.array(days))
+
+    def stdev_cycle_time_for_estimate(self, estimate):
+        grid = self.release.stories_by_estimate()
+        days = []
+        if not grid.has_key(estimate):
+            return None
+        for story in grid[estimate]:
+            if not story.started or not story.resolved or not story.points:
+                continue
+            delta = story.resolved - story.started
+            days.append(delta.days)
+        return numpy.std(numpy.array(days))
+
+    def contingency_average(self, key):
+        story = self.release.get(key)
+        average = self.average_cycle_time_for_estimate(str(story.points))
+        return average - story.cycle_time
+
+    def contingency_inside(self, key):
+        story = self.release.get(key)
+        average = self.average_cycle_time_for_estimate(str(story.points))
+        std2 = self.stdev_cycle_time_for_estimate(str(story.points)) * 2
+        inside = average - std2
+        return round(inside - story.cycle_time, 1)
+
+    def contingency_outside(self, key):
+        story = self.release.get(key)
+        if not story.cycle_time:
+            return None
+        average = self.average_cycle_time_for_estimate(str(story.points))
+        if not average:
+            return None
+        std = self.stdev_cycle_time_for_estimate(str(story.points))
+        if not std:
+            return None
+        outside = average + (std * 2)
+        return round(outside - story.cycle_time, 1)
+
+
 class Release(object):
     WIP = {'Open': 1, 'In Progress': 3, 'Reopened': 4, 'Ready': 10089,
            'QA Active': 10092, 'Ready for QA': 10104}
@@ -247,6 +297,18 @@ class Release(object):
 
     def only_groomed_stories(self):
         return [story for story in self.stories() if story.points]
+
+    def stories_by_estimate(self, estimate=None):
+        result = {}
+        for story in self.stories():
+            if not story.points:
+                continue
+            points = str(story.points)
+            if result.has_key(points):
+                result[points].append(story)
+            else:
+                result[points] = [story]
+        return result
 
     def total_stories(self):
         return len(self.stories())
