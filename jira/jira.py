@@ -14,6 +14,7 @@ commands = {'top': commands.top.Plugin.Command(),
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
     'tempMax=10000'
+NG_NEXT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?tempMax=10000'
 ISSUE='http://mindtap.user:m1ndtap@jira.cengage.com/si/jira.issueviews:issue-xml/%s/%s.xml'
 ITEMS = './/*/item'
 PROJECTS = 'http://mindtap.user:m1ndtap@jira.cengage.com/secure/BrowseProjects.jspa#all'
@@ -75,7 +76,10 @@ def print_release_report(args):
 def ls(args):
     release = get_release()
     for story in release.data:
-        print story.key, str(story.points).ljust(5), str(story.status).ljust(5), story.title[:50]
+        team = story.scrum_team
+        if not team:
+            team = 'Everything Else'
+        print team[:18].ljust(18), str(story.points).ljust(5), str(story.status).ljust(5), story.title[:49]
 
 def process_raw_key(args):
     if args[:2] != 'NG':

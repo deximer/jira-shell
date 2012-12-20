@@ -19,6 +19,7 @@ DESCRIPTION = 'description'
 KEY = 'key'
 RESOLVED = 'resolved'
 COMPONENTS = 'component'
+SCRUM_TEAM = './/*[@id="customfield_11261"]/*/customfieldvalue'
 STATUS_OPEN = 1
 STATUS_IN_PROGRESS = 3
 STATUS_REOPENED = 4
@@ -85,22 +86,32 @@ class Story(object):
                 time.strptime(started.text[:-6], '%a, %d %b %Y %H:%M:%S')))
         else:
             self.started = None
-        if self.started and self.resolved:
-            self.cycle_time = self.resolved - self.started
-        elif self.started and not self.resolved:
-            self.cycle_time = datetime.datetime.today() - self.started
-        else:
-            self.cycle_time = None
         assignee = item.find(ASSIGNEE)
         if assignee is not None:
             self.assignee = assignee.text
         else:
             self.assignee = None
+        scrum_team = item.find(SCRUM_TEAM)
+        if scrum_team is not None:
+            self.scrum_team = scrum_team.text
+        else:
+            self.scrum_team = None
         developer = item.find(DEVELOPER)
         if developer is not None:
             self.developer = developer.text
         else:
             self.developer = None
+
+    def _get_cycle_time(self):
+        if self.started and self.resolved:
+            delta = self.resolved - self.started
+            return delta.days
+        elif self.started and not self.resolved:
+            delta = datetime.datetime.today() - self.started
+            return delta.days
+        return None
+
+    cycle_time = property(_get_cycle_time)
 
 
 class Kanban(object):
@@ -112,23 +123,23 @@ class Kanban(object):
     def add(self, story):
         self.stories.append(story)
         status = str(story.status)
-        for component in story.components:
-            if not self.grid.has_key(component):
-                self.grid[component] = {status: {
-                    'wip': story.points or 0.0,
-                    'stories': [story],
-                    'largest': story.points}}
-            elif not self.grid[component].has_key(status):
-                self.grid[component][status] = {
-                    'wip': story.points or 0.0,
-                    'stories': [story],
-                    'largest': story.points}
-            else:
-                if story.points is not None:
-                    self.grid[component][status]['wip'] += story.points
-                self.grid[component][status]['stories'].append(story)
-                if self.grid[component][status]['largest'] < story.points:
-                    self.grid[component][status]['largest'] = story.points
+        team = story.scrum_team
+        if not self.grid.has_key(team):
+            self.grid[team] = {status: {
+                'wip': story.points or 0.0,
+                'stories': [story],
+                'largest': story.points}}
+        elif not self.grid[team].has_key(status):
+            self.grid[team][status] = {
+                'wip': story.points or 0.0,
+                'stories': [story],
+                'largest': story.points}
+        else:
+            if story.points is not None:
+                self.grid[team][status]['wip'] += story.points
+            self.grid[team][status]['stories'].append(story)
+            if self.grid[team][status]['largest'] < story.points:
+                self.grid[team][status]['largest'] = story.points
 
     def add_release(self, release):
         self.release = release
@@ -301,15 +312,17 @@ class Release(object):
         tallies = {}
         for story in self.stories():
             if story.status in self.WIP.values() and story.points:
-                for component in story.components:
-                    if not tallies.has_key(component):
-                        tallies[component] = {'wip': story.points, 'stories': 1,
-                            'largest': story.points}
-                    else:
-                        tallies[component]['wip'] += story.points
-                        tallies[component]['stories'] += 1
-                        if tallies[component]['largest'] < story.points:
-                            tallies[component]['largest'] = story.points
+                team = story.scrum_team
+                if not team:
+                    team = 'Everything Else'
+                if not tallies.has_key(team):
+                    tallies[team] = {'wip': story.points, 'stories': 1,
+                        'largest': story.points}
+                else:
+                    tallies[team]['wip'] += story.points
+                    tallies[team]['stories'] += 1
+                    if tallies[team]['largest'] < story.points:
+                        tallies[team]['largest'] = story.points
         return tallies
 
     def kanban(self):
@@ -341,6 +354,9 @@ class Release(object):
             + wip['10036'] + wip['10090'] + wip['10089']
         short_wip['done'] = wip['6']
         for status in ['start', 'middle', 'done']:
+            if total == 0.0:
+                points.append('_')
+                continue
             value = short_wip[status]/total
             if value == 0.0:
                 points.append('_')

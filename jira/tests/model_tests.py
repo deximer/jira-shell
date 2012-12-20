@@ -34,13 +34,23 @@ class StoryTest(unittest.TestCase):
         import time
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        obj = Story(item)
-        self.assertEqual(obj.key, 'NG-12805')
-        self.assertEqual(obj.type, '1')
-        self.assertEqual(obj.started.isoformat(), '2012-11-19T09:35:03')
-        self.assertEqual(obj.resolved.isoformat(), '2012-11-27T01:03:48')
-        self.assertEqual(obj.cycle_time.days, 7)
+        item = tree.findall('.//*/item')
+        obj = Story(item[3])
+        self.assertEqual(obj.key, 'NG-12391')
+        self.assertEqual(obj.type, '72')
+        self.assertEqual(obj.started.isoformat(), '2012-12-13T11:17:19')
+
+    def testCycleTime(self):
+        story = Story()
+        story.started = D20121201
+        story.resolved = D20121205
+        self.assertEqual(story.cycle_time, 4)
+
+    def testCycleTimeNullDates(self):
+        story = Story()
+        story.started = None
+        story.resolved = None
+        self.assertEqual(story.cycle_time, None)
 
 class KanbanTest(unittest.TestCase):
     def testObjectCreation(self):
@@ -64,8 +74,8 @@ class KanbanTest(unittest.TestCase):
         release = jira.get_release()
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(len(kanban.stories), 116)
-        self.assertEqual(len(kanban.grid['Reader']), 6)
+        self.assertEqual(len(kanban.stories), 125)
+        self.assertEqual(len(kanban.grid['Core and Builder']), 6)
 
     def testAverageCycleTime(self):
         jira = Jira()
@@ -75,7 +85,7 @@ class KanbanTest(unittest.TestCase):
         release = jira.get_release()
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.average_cycle_time(), 10.578947368421053)
+        self.assertEqual(kanban.average_cycle_time(), 8.0)
 
     def testAverageCycleTimeOnlyBugs(self):
         xml = open('jira/tests/data/rss.xml').read()
@@ -206,7 +216,7 @@ class KanbanTest(unittest.TestCase):
         release = jira.get_release()
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.average_cycle_time('Appification'), 14)
+        self.assertEqual(kanban.average_cycle_time('Tech Maintenance'), 10.0)
         
 
 class ReleaseTests(unittest.TestCase):
@@ -223,7 +233,7 @@ class ReleaseTests(unittest.TestCase):
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
         release.add(Story(item))
-        self.assertTrue(release.data[0].key == 'NG-12805')
+        self.assertEqual(release.data[0].key, 'NG-12459')
 
     def testGetStory(self):
         release = Release()
@@ -231,7 +241,7 @@ class ReleaseTests(unittest.TestCase):
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
         release.add(Story(item))
-        key = 'NG-12805'
+        key = 'NG-12459'
         story = release.get(key)
         self.assertEqual(story.key, key)
 
@@ -283,7 +293,8 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.add(Story(item))
         release.add(Story(item))
-        release.data[0].type = '72'
+        release.data[0].type = '1'
+        release.data[1].type = '72'
         release.data[2].type = '72'
         self.assertEqual(len(release.bugs()), 1)
 
@@ -308,7 +319,7 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.data[0].type = '72'
         release.data[1].type = '72'
-        self.assertTrue(release.total_points() == 0.998)
+        self.assertEqual(release.total_points(), 3.0)
 
     def testPointsCompleted(self):
         release = Release()
@@ -319,7 +330,7 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.data[0].type = '72'
         release.data[1].type = '72'
-        self.assertTrue(release.total_points() == 0.998)
+        self.assertEqual(release.total_points(), 3.0)
 
     def testAverageStorySize(self):
         release = Release()
@@ -429,7 +440,7 @@ class ReleaseTests(unittest.TestCase):
         release.data[0].type = '72'
         release.data[1].status = 6
         release.data[1].type = '72'
-        self.assertTrue(release.wip() == 0.499)
+        self.assertEqual(release.wip(), 1.5)
 
     def testWipByStatus(self):
         release = Release()
@@ -442,9 +453,9 @@ class ReleaseTests(unittest.TestCase):
         release.data[0].type = '72'
         release.data[1].status = 6 # Closed
         release.data[1].type = '72'
-        self.assertTrue(release.wip_by_status()['3']['wip'] == 0.499)
-        self.assertTrue(sum([v['wip'] for v in release.wip_by_status().values()
-            ]) == 0.499)
+        self.assertEqual(release.wip_by_status()['3']['wip'], 1.5)
+        self.assertEqual(sum([v['wip'] for v in release.wip_by_status().values()
+            ]), 1.5)
 
     def testWipByComponent(self):
         release = Release()
@@ -455,15 +466,40 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.add(Story(item))
         release.data[0].status = 3 # In Progress
+        release.data[0].points = 5.0
         release.data[0].type = '72'
         release.data[1].status = 3 # In Progress
         release.data[1].points = 2.0
         release.data[1].type = '72'
         release.data[2].status = 6 # Closed
+        release.data[2].points = 0.499
         release.data[2].type = '72'
-        self.assertEqual(release.wip_by_component()['Reader']['wip'], 2.499)
-        self.assertEqual(release.wip_by_component()['Reader']['largest'], 2.0)
+        self.assertEqual(release.wip_by_component()['Core and Builder'][
+            'wip'], 7.0)
+        self.assertEqual(release.wip_by_component()['Core and Builder'][
+            'largest'], 5.0)
         self.assertEqual(len(release.wip_by_component()), 1)
+
+    def testWipByTeamNullTeam(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].status = 3 # In Progress
+        release.data[0].points = 5.0
+        release.data[0].type = '72'
+        release.data[0].scrum_team = 'Some Team'
+        release.data[1].status = 3 # In Progress
+        release.data[1].points = 2.0
+        release.data[1].type = '72'
+        release.data[1].scrum_team = None
+        for story in release.stories():
+            print story.scrum_team
+        self.assertEqual(release.wip_by_component()['Some Team']['wip'], 5.0)
+        self.assertEqual(release.wip_by_component()['Everything Else']['wip']
+            , 2.0)
 
     def testKanban(self):
         release = Release()
@@ -482,9 +518,12 @@ class ReleaseTests(unittest.TestCase):
         release.data[2].status = 6 # Closed
         release.data[2].points = 2.0
         release.data[2].type = '72'
-        self.assertEqual(release.kanban().grid['Reader']['3']['wip'], 4.0)
-        self.assertEqual(release.kanban().grid['Reader']['6']['wip'], 2.0)
-        self.assertEqual(len(release.kanban().grid['Reader']['3']['stories']),2)
+        self.assertEqual(release.kanban().grid['Core and Builder'][
+            '3']['wip'], 4.0)
+        self.assertEqual(release.kanban().grid['Core and Builder'][
+            '6']['wip'], 2.0)
+        self.assertEqual(len(release.kanban().grid['Core and Builder'][
+            '3']['stories']),2)
 
     def testCycleTimeByComponent(self):
         # Not implemented yet
@@ -513,7 +552,7 @@ class ReleaseTests(unittest.TestCase):
             return open('jira/tests/data/rss.xml').read()
         jira.request_page = mock_request_page
         release = jira.get_release()
-        self.assertEqual(release.graph_kanban(), '.Oo')
+        self.assertEqual(release.graph_kanban(), '.O.')
 
     def testGraphKanbanByComponent(self):
         jira = Jira()
@@ -521,7 +560,7 @@ class ReleaseTests(unittest.TestCase):
             return open('jira/tests/data/rss.xml').read()
         jira.request_page = mock_request_page
         release = jira.get_release()
-        self.assertEqual(release.graph_kanban('Core'), '_O.')
+        self.assertEqual(release.graph_kanban('Core and Builder'), '.O.')
 
 class ProjectTest(unittest.TestCase):
     def testObjectCreate(self):

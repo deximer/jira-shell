@@ -43,4 +43,4 @@ class JiraTest(unittest.TestCase):
             return open('jira/tests/data/rss.xml').read()
         jira.request_page = mock_request_page
         release = jira.get_release()
-        self.assertEqual(release.data[0].key, 'NG-12805')
+        self.assertEqual(release.data[0].key, 'NG-12459')

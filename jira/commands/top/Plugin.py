@@ -40,23 +40,29 @@ class Command(object):
         window.addstr(count,22, 'CT', curses.A_REVERSE)
         window.addstr(count,26, 'Type', curses.A_REVERSE)
         window.addstr(count,32, 'Assignee', curses.A_REVERSE)
-        window.addstr(count,50, 'Components', curses.A_REVERSE)
+        window.addstr(count,50, 'Team', curses.A_REVERSE)
         total_cycle_time = 0
         total_points = 0
         for story in self.release.stories()[:21]:
             count += 1
             cycle_time = '?'
             if story.cycle_time:
-                cycle_time = story.cycle_time.days
-                total_cycle_time += cycle_time
-            total_points += story.points
+                cycle_time = str(story.cycle_time)
+                total_cycle_time += story.cycle_time
+                if not story.resolved:
+                    cycle_time += '>'
+            if story.points:
+                total_points += story.points
+            team = story.scrum_team
+            if not team:
+                team = 'Everything Else'
             window.addstr(count,0, story.key)
             window.addstr(count,10, str(story.points))
             window.addstr(count,16, str(story.status))
-            window.addstr(count,22, str(cycle_time))
+            window.addstr(count,22, cycle_time)
             window.addstr(count,26, story.type)
             window.addstr(count,32, story.assignee)
-            window.addstr(count,50, ' '.join(story.components)[:29])
+            window.addstr(count,50, team)
         kanban = self.release.kanban()
         window.addstr(0, 0, 'Release 2.5, 8 days remaining')
         window.addstr(1, 0, 'TPts: ' + str(round(
@@ -83,12 +89,15 @@ class Command(object):
         total_stories = 0
         for lane in lanes:
             count += 1
+            if count >= 23:
+                break
             window.addstr(count, 0, chr(count + 94) + ':')
-            window.addstr(count, 4, lane)
-            window.addstr(count, 24, str(lanes[lane]['wip']))
+            window.addstr(count, 4, lane[:19])
+            window.addstr(count, 24, str(round(lanes[lane]['wip'], 1)))
             window.addstr(count, 30, str(lanes[lane]['stories']))
-            window.addstr(count, 34, str(lanes[lane]['largest']))
-            window.addstr(count, 39, str(kanban.average_cycle_time(lane)))
+            window.addstr(count, 34, str(round(lanes[lane]['largest'], 1)))
+            window.addstr(count, 39, str(
+                round(kanban.average_cycle_time(lane), 1)))
             window.addstr(count, 77, self.release.graph_kanban(lane))
             total_stories += lanes[lane]['stories']
             total_wip += lanes[lane]['wip']

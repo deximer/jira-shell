@@ -19,7 +19,7 @@ class Command(object):
             export_ct.write(
                 '%s, %.2f, %s, %s, %d, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
                 story.key,
-                story.points,
+                story.points or 0.0,
                 story.started.strftime("%m/%d/%y"),
                 story.resolved.strftime('%m/%d/%y'),
                 story.cycle_time.days,
@@ -41,7 +41,7 @@ class Command(object):
                 story.cycle_time.days,
                 story.started.strftime("%m/%d/%y"),
                 story.resolved.strftime('%m/%d/%y'),
-                story.points,
+                story.points or 0.0,
                 average_story_size + (self.release.std_story_size() * 3),
                 average_story_size + (self.release.std_story_size() * 2),
                 average_story_size,
@@ -58,7 +58,7 @@ class Command(object):
                 '%s, %s, %d, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
                 story.resolved.strftime('%m/%d/%y'),
                 story.key,
-                story.cycle_time.days/story.points,
+                story.cycle_time.days/story.points if story.points else 0,
                 average_cycle_time + (kanban.stdev_cycle_time() * 3),
                 average_cycle_time + (kanban.stdev_cycle_time() * 2),
                 average_cycle_time,
@@ -79,7 +79,7 @@ class Command(object):
             for story in developers[key]:
                 export_devs.write('%s, %.2f, %d, %s\r\n'
                  % (key,
-                    story.points,
+                    story.points or 0.0,
                     story.cycle_time.days,
                     story.key))
 
