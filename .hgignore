@@ -2,10 +2,11 @@
 syntax: glob
 
 .Python
+nose-*
+BeautifulSoup-*
 nose
 dist
 build
-nose-*
 bin
 include
 lib
