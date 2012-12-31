@@ -67,7 +67,7 @@ class Command(object):
         window.addstr(1, 0, 'TPts: ' + str(round(
             self.release.total_points(), 1)) + ' AvgPts: '
             + str(round(self.release.average_story_size(), 1)) +
-            ' AvgCT: ' +  str(round(kanban.average_cycle_time(), 1)) +
+            ' AvgCT: ' +  str(kanban.average_cycle_time()) +
             ' CT/Pt: ' + str(round(kanban.cycle_time_per_point(), 1)))
         window.addstr(1, 0, '')
         window.refresh()
@@ -95,8 +95,7 @@ class Command(object):
             window.addstr(count, 24, str(round(lanes[lane]['wip'], 1)))
             window.addstr(count, 30, str(lanes[lane]['stories']))
             window.addstr(count, 34, str(round(lanes[lane]['largest'], 1)))
-            window.addstr(count, 39, str(
-                round(kanban.average_cycle_time(lane), 1)))
+            window.addstr(count, 39, str(kanban.average_cycle_time(lane)))
             window.addstr(count, 77, self.release.graph_kanban(lane))
             total_stories += lanes[lane]['stories']
             total_wip += lanes[lane]['wip']
