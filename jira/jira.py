@@ -22,7 +22,8 @@ PROJECTS = 'http://mindtap.user:m1ndtap@jira.cengage.com/secure/BrowseProjects.j
 cwd = ['/']
 
 def request_issue(key):
-    return ET.fromstring(urllib.urlopen(ISSUE % (key, key)).read())
+    tree = ET.fromstring(urllib.urlopen(ISSUE % (key, key)).read())
+    return Story(tree.find(ITEMS))
 
 def request_current_release():
     return ET.fromstring(urllib.urlopen(NG_CURRENT_RELEASE).read())
@@ -89,7 +90,6 @@ def process_raw_key(args):
 def stat(args):
     key = process_raw_key(args)
     story = request_issue(key)
-    story = Story(story.find(ITEMS))
     print 'Key: ', story.key
     print 'Title: ', story.title
     print 'Points: ', story.points

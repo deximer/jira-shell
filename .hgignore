@@ -1,10 +1,16 @@
 # use glob syntax.
 syntax: glob
 
+.Python
 nose
 dist
 build
 nose-*
+bin
+include
+lib
+man
+jira
 jira.egg-*
 jira/export-*
 jira/cache.xml

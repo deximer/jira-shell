@@ -6,7 +6,6 @@ class Command(object):
         opts, args = getopt.getopt(args, '1:', ())
         window = curses.initscr()
         quit = False
-        print 'Retrieving data...'
         self.refresh_data(jira, False)
         command = 'wip'
         c = 0
