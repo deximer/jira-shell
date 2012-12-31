@@ -9,6 +9,7 @@ import commands
 
 commands = {'top': commands.top.Plugin.Command(),
             'export': commands.export.Plugin.Command(),
+            'report': commands.report.Plugin.Command(),
            }
 
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
@@ -47,33 +48,6 @@ def request_projects():
             owner[count].text))
     return projects
 
-def print_release_report(args):
-    release = get_release()
-    kanban = release.kanban()
-    print 'Stories          :', release.total_stories()
-    print 'Bugs             :', len(release.bugs())
-    print 'Average Size     :', round(release.average_story_size(), 1)
-    print 'Std Dev          :', round(release.std_story_size(), 1)
-    print 'Smallest Story   :', release.sort_by_size()[-1].points
-    print 'Largest Story    :', release.sort_by_size()[0].points
-    print 'Avg Cycle Time   :', round(kanban.average_cycle_time(), 1)
-    print 'Points in scope  :', round(release.total_points(), 1)
-    print 'Points completed :', round(release.points_completed(), 1)
-    print 'Stories IP       :', release.stories_in_process()
-    print 'Total WIP        :', round(release.wip(), 1)
-    print
-    print 'WIP by Status:'
-    wip = release.wip_by_status()
-    for key in wip:
-        print key.ljust(16), ':', str(wip[key]['wip']).ljust(6), \
-            wip[key]['stories']
-    print
-    print 'WIP by Swim Lane:'
-    wip = release.wip_by_component()
-    for key in wip:
-        print key.ljust(16), ':',  str(wip[key]['wip']).ljust(6), \
-            str(wip[key]['stories']).ljust(3), wip[key]['largest']
-
 def ls(args):
     release = get_release()
     for story in release.data:
@@ -102,13 +76,22 @@ def top(args):
     #def mock_request_page(self, url):
     #    return open('tests/data/rss.xml').read()
     #jira.request_page = mock_request_page
-    commands['top'].run(jira, args)
+    commands['top'].run(connect_to_jira(), args)
 
 def export(args):
     #def mock_request_page(self, url):
     #    return open('tests/data/rss.xml').read()
     #jira.request_page = mock_request_page
-    commands['export'].run(jira, args)
+    commands['export'].run(connect_to_jira(), args)
+
+def report(args):
+    #def mock_request_page(self, url):
+    #    return open('tests/data/rss.xml').read()
+    #jira.request_page = mock_request_page
+    commands['report'].run(connect_to_jira(), args)
+
+def connect_to_jira():
+    return Jira('jira.cengage.com', 'mindtap.user:m1ndtap')
 
 def shell():
     return raw_input('%s > ' % '/'.join(cwd))
@@ -118,7 +101,7 @@ def dispatch(command):
         command, args = command.split(' ')
     except ValueError:
         args = ''
-    table = {'report': print_release_report,
+    table = {'report': report,
              'ls': ls,
              'stat': stat,
              'top': top,
@@ -129,8 +112,6 @@ def dispatch(command):
     else:
         print '%s: command not found' % command
 
-jira = Jira('jira.cengage.com', 'mindtap.user:m1ndtap')
-
 def main():
     p = optparse.OptionParser()
     p.add_option('--report', '-r', action='store_true', dest='report')
@@ -138,7 +119,7 @@ def main():
     options, arguments = p.parse_args()
     #request_projects()
     if options.report:
-        print_release_report()
+        report('')
     if options.shell:
         command = ''
         while command != 'quit':
