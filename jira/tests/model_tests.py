@@ -99,6 +99,19 @@ class KanbanTest(unittest.TestCase):
         kanban.add_release(release)
         self.assertEqual(kanban.average_cycle_time(), None)
 
+    def testAverageCycleTimeNoCompletedStories(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        release.add(Story(item))
+        release.data[0].type = '72'
+        release.data[0].started = D20121201
+        release.data[0].resolved = None
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.average_cycle_time(), None)
+
     def testAverageCycleTimeStrictBaked(self):
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)

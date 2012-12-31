@@ -103,7 +103,7 @@ class Command(object):
         window.addstr(0,0, 'Release 2.5, 8 days remaining')
         window.addstr(1, 3,
             '!=refresh, Total WIP: %s in %s stories, Avg Cycle Time %s'
-            % (total_wip, total_stories, round(kanban.average_cycle_time(), 1)))
+            % (total_wip, total_stories, kanban.average_cycle_time()))
         window.addstr(1,0, '')
         window.refresh()
 

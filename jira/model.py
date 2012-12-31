@@ -157,7 +157,9 @@ class Kanban(object):
                 continue
             delta = story.resolved - story.started
             days.append(delta.days)
-        return numpy.average(numpy.array(days))
+        if not days:
+            return None
+        return round(numpy.average(numpy.array(days)), 1)
 
     def stdev_cycle_time(self, component=None):
         ''' Uses ddof=1 to sync std calc with excel's
