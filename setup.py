@@ -1,5 +1,10 @@
 from setuptools import setup, find_packages
 import sys, os
+# This is a fix for nose sys.modules manipulation bug. Remove after nose fixed
+try:
+    import multiprocessing
+except ImportError:
+    pass
 
 version = '0.1'
 
