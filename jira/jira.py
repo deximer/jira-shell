@@ -126,7 +126,7 @@ def main():
     options, arguments = p.parse_args()
     #request_projects()
     if options.command:
-        dispatch(arguments[0])
+        dispatch(' '.join(arguments))
     elif options.shell:
         command = ''
         while command != 'quit':
