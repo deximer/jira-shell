@@ -121,13 +121,13 @@ def dispatch(command):
 
 def main():
     p = optparse.OptionParser()
-    p.add_option('--report', '-r', action='store_true', dest='report')
+    p.add_option('--command', '-c', action='store_true', dest='command')
     p.add_option('--shell', '-s', action='store_true', dest='shell')
     options, arguments = p.parse_args()
     #request_projects()
-    if options.report:
-        report('')
-    if options.shell:
+    if options.command:
+        dispatch(arguments[0])
+    elif options.shell:
         command = ''
         while command != 'quit':
             command = shell()
