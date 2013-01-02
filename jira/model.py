@@ -25,6 +25,7 @@ STATUS_IN_PROGRESS = 3
 STATUS_REOPENED = 4
 STATUS_VERIFIED = 10036
 STATUS_CLOSED = 6
+STATUS_READY_FOR_PO = 10036
 STATUS_READY = 10089
 STATUS_COMPLETED = 10090
 STATUS_QA_ACTIVE = 10092
@@ -124,6 +125,8 @@ class Kanban(object):
         self.stories.append(story)
         status = str(story.status)
         team = story.scrum_team
+        if not team:
+            team = 'Everything Else'
         if not self.grid.has_key(team):
             self.grid[team] = {status: {
                 'wip': story.points or 0.0,
@@ -266,8 +269,8 @@ class Kanban(object):
 
 
 class Release(object):
-    WIP = {'Open': 1, 'In Progress': 3, 'Reopened': 4, 'Ready': 10089,
-           'QA Active': 10092, 'Ready for QA': 10104}
+    WIP = {'In Progress': 3, 'Complete': 10090, 'QA Active': 10092,
+           'Ready for QA': 10104, 'Ready for PO': 10036}
 
     def __init__(self):
         self.data = []

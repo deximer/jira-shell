@@ -563,11 +563,37 @@ class ReleaseTests(unittest.TestCase):
         item = tree.find('.//*/item')
         release.add(Story(item))
         release.add(Story(item))
-        release.data[0].status = 3
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].status = 1
+        release.data[0].points = 1.0
         release.data[0].type = '72'
-        release.data[1].status = 6
+        release.data[1].status = 3 # WIP
+        release.data[1].points = 1.0
         release.data[1].type = '72'
-        self.assertEqual(release.wip(), 1.5)
+        release.data[2].status = 4
+        release.data[2].points = 1.0
+        release.data[2].type = '72'
+        release.data[3].status = 10036
+        release.data[3].points = 1.0
+        release.data[3].type = '72'
+        release.data[4].status = 10089
+        release.data[4].points = 1.0
+        release.data[4].type = '72'
+        release.data[5].status = 10090
+        release.data[5].points = 1.0
+        release.data[5].type = '72'
+        release.data[6].status = 10092
+        release.data[6].points = 1.0
+        release.data[6].type = '72'
+        release.data[7].status = 10104
+        release.data[7].points = 1.0
+        release.data[7].type = '72'
+        self.assertEqual(release.wip(), 5.0)
 
     def testWipByStatus(self):
         release = Release()
