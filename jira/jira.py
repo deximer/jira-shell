@@ -8,6 +8,7 @@ from dao import Jira
 import commands
 
 commands = {'top': commands.top.Plugin.Command(),
+            'ls': commands.ls.Plugin.Command(),
             'export': commands.export.Plugin.Command(),
             'report': commands.report.Plugin.Command(),
             'teams': commands.teams.Plugin.Command(),
@@ -49,14 +50,6 @@ def request_projects():
             owner[count].text))
     return projects
 
-def ls(args):
-    release = get_release()
-    for story in release.data:
-        team = story.scrum_team
-        if not team:
-            team = 'Everything Else'
-        print team[:18].ljust(18), str(story.points).ljust(5), str(story.status).ljust(5), str(release.kanban().contingency_outside(story.key)).ljust(5), story.title[:43]
-
 def process_raw_key(args):
     if args[:2] != 'NG':
         args = 'NG-' + args.strip()
@@ -84,6 +77,12 @@ def export(args):
     #    return open('tests/data/rss.xml').read()
     #jira.request_page = mock_request_page
     commands['export'].run(connect_to_jira(), args)
+
+def ls(args):
+    #def mock_request_page(self, url):
+    #    return open('tests/data/rss.xml').read()
+    #jira.request_page = mock_request_page
+    commands['ls'].run(connect_to_jira(), args)
 
 def report(args):
     #def mock_request_page(self, url):
