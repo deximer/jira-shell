@@ -83,8 +83,7 @@ class KanbanTest(unittest.TestCase):
             return open('jira/tests/data/rss.xml').read()
         jira.request_page = mock_request_page
         release = jira.get_release()
-        kanban = Kanban()
-        kanban.add_release(release)
+        kanban = release.kanban()
         self.assertEqual(kanban.average_cycle_time(), 8.0)
 
     def testAverageCycleTimeOnlyBugs(self):
@@ -227,9 +226,8 @@ class KanbanTest(unittest.TestCase):
             return open('jira/tests/data/rss.xml').read()
         jira.request_page = mock_request_page
         release = jira.get_release()
-        kanban = Kanban()
-        kanban.add_release(release)
-        self.assertEqual(kanban.average_cycle_time('MathML'), 10.0)
+        kanban = release.kanban()
+        self.assertEqual(kanban.average_cycle_time('Continuous Improvement '), 10.0)
 
     def testAverageCycleTimeForEstimate(self):
         xml = open('jira/tests/data/rss.xml').read()
