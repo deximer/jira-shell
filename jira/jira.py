@@ -9,6 +9,7 @@ import commands
 
 commands = {'top': commands.top.Plugin.Command(),
             'ls': commands.ls.Plugin.Command(),
+            'chart': commands.chart.Plugin.Command(),
             'export': commands.export.Plugin.Command(),
             'report': commands.report.Plugin.Command(),
             'teams': commands.teams.Plugin.Command(),
@@ -78,6 +79,12 @@ def export(args):
     #jira.request_page = mock_request_page
     commands['export'].run(connect_to_jira(), args)
 
+def chart(args):
+    #def mock_request_page(self, url):
+    #    return open('tests/data/rss.xml').read()
+    #jira.request_page = mock_request_page
+    commands['chart'].run(connect_to_jira(), args)
+
 def ls(args):
     #def mock_request_page(self, url):
     #    return open('tests/data/rss.xml').read()
@@ -113,6 +120,7 @@ def dispatch(command):
              'stat': stat,
              'top': top,
              'export': export,
+             'chart': chart,
             }
     if command in table.keys():
         table[command](args)

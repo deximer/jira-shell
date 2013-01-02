@@ -28,7 +28,10 @@ Command line tools for Jira.""",
       ],
       install_requires=[
           'BeautifulSoup',
-          'numpy'
+          'numpy',
+          'matplotlib',
+          'ez_setup',
+          'spc',
       ],
       entry_points="""
       # -*- Entry points: -*-
