@@ -229,7 +229,7 @@ class KanbanTest(unittest.TestCase):
         release = jira.get_release()
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.average_cycle_time('Tech Maintenance'), 10.0)
+        self.assertEqual(kanban.average_cycle_time('MathML'), 10.0)
 
     def testAverageCycleTimeForEstimate(self):
         xml = open('jira/tests/data/rss.xml').read()
@@ -352,6 +352,28 @@ class ReleaseTests(unittest.TestCase):
         key = 'NG-12459'
         story = release.get(key)
         self.assertEqual(story.key, key)
+
+    def testTaskedTeams(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].type = '72'
+        release.data[0].scrum_team = 'Foo'
+        release.data[1].type = '72'
+        release.data[1].scrum_team = 'Foo'
+        release.data[2].type = '72'
+        release.data[2].scrum_team = 'Bar'
+        release.data[3].type = '72'
+        release.data[3].scrum_team = None
+        self.assertEqual(len(release.tasked_teams().keys()), 3)
+        self.assertEqual(release.tasked_teams()['Foo'], 2)
+        self.assertEqual(release.tasked_teams()['Bar'], 1)
+        self.assertEqual(release.tasked_teams()['Everything Else'], 1)
 
     def testOnlyStories(self):
         release = Release()

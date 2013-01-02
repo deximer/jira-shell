@@ -10,6 +10,7 @@ import commands
 commands = {'top': commands.top.Plugin.Command(),
             'export': commands.export.Plugin.Command(),
             'report': commands.report.Plugin.Command(),
+            'teams': commands.teams.Plugin.Command(),
            }
 
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
@@ -90,6 +91,12 @@ def report(args):
     #jira.request_page = mock_request_page
     commands['report'].run(connect_to_jira(), args)
 
+def teams(args):
+    #def mock_request_page(self, url):
+    #    return open('tests/data/rss.xml').read()
+    #jira.request_page = mock_request_page
+    commands['teams'].run(connect_to_jira(), args)
+
 def connect_to_jira():
     return Jira('jira.cengage.com', 'mindtap.user:m1ndtap')
 
@@ -102,6 +109,7 @@ def dispatch(command):
     except ValueError:
         args = ''
     table = {'report': report,
+             'teams': teams,
              'ls': ls,
              'stat': stat,
              'top': top,

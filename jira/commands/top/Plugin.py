@@ -101,8 +101,9 @@ class Command(object):
             total_wip += lanes[lane]['wip']
         window.addstr(0,0, 'Release 2.5, 8 days remaining')
         window.addstr(1, 3,
-            '!=refresh, Total WIP: %s in %s stories, Avg Cycle Time %s'
-            % (total_wip, total_stories, kanban.average_cycle_time()))
+            '!=refresh, Total WIP: %s in %s stories, Done: %s, ACT %s'
+            % (total_wip, total_stories, self.release.points_completed(),
+            kanban.average_cycle_time()))
         window.addstr(1,0, '')
         window.refresh()
 

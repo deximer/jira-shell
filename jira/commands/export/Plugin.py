@@ -11,13 +11,14 @@ class Command(object):
         stories.sort(key=lambda i:i.key)
         export_ct = open('export-ct.csv', 'w')
         export_ct.write(
-            'Key, Points, Started, Resolved, Cycle Time, NSUL, NSUW, Average CT, NSLW, NSLL\r\n')
+            'Team, Key, Points, Started, Resolved, Cycle Time, NSUL, NSUW, Average CT, NSLW, NSLL\r\n')
         average_cycle_time = kanban.average_cycle_time()
         for story in stories:
             if not story.started or not story.resolved:
                 continue
             export_ct.write(
-                '%s, %.2f, %s, %s, %d, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
+                '%s, %s, %.2f, %s, %s, %d, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
+                story.scrum_team,
                 story.key,
                 story.points or 0.0,
                 story.started.strftime("%m/%d/%y"),
@@ -30,13 +31,14 @@ class Command(object):
                 average_cycle_time - (kanban.stdev_cycle_time() * 3)))
         export_pt = open('export-pt.csv', 'w')
         export_pt.write(
-            'Key, Cycle Time, Started, Resolved, Points, NSUL, NSUW, Average Pts, NSLW, NSLL\r\n')
+            'Team, Key, Cycle Time, Started, Resolved, Points, NSUL, NSUW, Average Pts, NSLW, NSLL\r\n')
         average_story_size = self.release.average_story_size()
         for story in stories:
-            if not story.started and story.resolved:
+            if not story.started or not story.resolved:
                 continue
             export_pt.write(
-                '%s, %d, %s, %s, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
+                '%s, %s, %d, %s, %s, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
+                story.scrum_team,
                 story.key,
                 story.cycle_time,
                 story.started.strftime("%m/%d/%y"),
@@ -49,13 +51,14 @@ class Command(object):
                 average_story_size - (self.release.std_story_size() * 3)))
         export_ratio = open('export-ratio.csv', 'w')
         export_ratio.write(
-            'Resolved, Key, Ratio, NSUL, NSUW, Average, NSLW, NSLL\r\n')
+            'Team, Resolved, Key, Ratio, NSUL, NSUW, Average, NSLW, NSLL\r\n')
         average_story_size = self.release.average_story_size()
         for story in stories:
-            if not story.started and story.resolved:
+            if not story.started or not story.resolved:
                 continue
             export_ratio.write(
-                '%s, %s, %d, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
+                '%s, %s, %s, %d, %.2f, %.2f, %.2f, %.2f, %.2f\r\n' % (
+                story.scrum_team,
                 story.resolved.strftime('%m/%d/%y'),
                 story.key,
                 story.cycle_time/story.points if story.points else 0,
@@ -77,8 +80,9 @@ class Command(object):
         export_devs.write('Developer, Points, Cycle Time, Story\r\n')
         for key in developers:
             for story in developers[key]:
-                export_devs.write('%s, %.2f, %d, %s\r\n'
-                 % (key,
+                export_devs.write('%s, %s, %.2f, %d, %s\r\n'
+                 % (story.scrum_team,
+                    key,
                     story.points or 0.0,
                     story.cycle_time,
                     story.key))

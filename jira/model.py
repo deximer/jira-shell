@@ -284,6 +284,16 @@ class Release(object):
                 return story
         return None
 
+    def tasked_teams(self):
+        teams = {}
+        for story in self.stories():
+            team = story.scrum_team if story.scrum_team else 'Everything Else'
+            if team not in teams:
+                teams[team] = 1
+            else:
+                teams[team] += 1
+        return teams
+
     def stories(self):
         return [story for story in self.data if story.type == STORY_TYPE]
 
