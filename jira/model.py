@@ -154,7 +154,7 @@ class Kanban(object):
             return None
         days = []
         for story in self.release.stories():
-            if component and component not in story.components:
+            if component and component != story.scrum_team:
                 continue
             if not story.started or not story.resolved:
                 continue

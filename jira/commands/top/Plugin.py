@@ -77,11 +77,11 @@ class Command(object):
         graph = self.release.graph_kanban()
         window.addstr(1,77, graph)
         window.addstr(count,0, 'Key', curses.A_REVERSE)
-        window.addstr(count,4, 'Lane', curses.A_REVERSE)
+        window.addstr(count,4, 'Team', curses.A_REVERSE)
         window.addstr(count,24, 'WIP', curses.A_REVERSE)
         window.addstr(count,30, '#', curses.A_REVERSE)
         window.addstr(count,34, 'S>s', curses.A_REVERSE)
-        window.addstr(count,39, 'CT', curses.A_REVERSE)
+        window.addstr(count,39, 'ACT', curses.A_REVERSE)
         lanes = self.release.wip_by_component()
         kanban = self.release.kanban()
         total_wip = 0
