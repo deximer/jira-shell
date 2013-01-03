@@ -1,7 +1,11 @@
 import getopt
 import curses
+from commands.base import BaseCommand
 
-class Command(object):
+class Command(BaseCommand):
+    help = 'Report on the current release'
+    usage = 'report'
+
     def run(self, jira, args):
         opts, args = getopt.getopt(args, '1:', ())
         print 'Retrieving data...'

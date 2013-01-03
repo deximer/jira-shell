@@ -2,8 +2,16 @@ import getopt
 import curses
 import spc
 from matplotlib import pyplot
+from commands.base import BaseCommand
 
-class Command(object):
+class Command(BaseCommand):
+    help = 'Render various charts based on the data'
+    usage = 'chart [chart_type]'
+    options_help = '''    ratio : chart ratio of estimates to cycle time
+    cycle : chart cycle time
+    '''
+    examples = '    chart ratio'
+
     def run(self, jira, args):
         opts, args = getopt.getopt(args, '1:', ())
         args = args.split()
@@ -36,6 +44,3 @@ class Command(object):
         chart = spc.Spc(data, spc.CHART_X_MR_X)
         chart.get_chart()
         pyplot.show()
-
-    def refresh_data(self, jira, refresh):
-        self.release = jira.get_release(refresh)

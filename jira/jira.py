@@ -56,11 +56,35 @@ def dispatch(command):
              'export': commands['export'].run,
              'refresh': commands['refresh'].run,
              'chart': commands['chart'].run,
+             'help': help,
             }
     if command in table.keys():
         table[command](connect_to_jira(), args)
     else:
         print '%s: command not found' % command
+
+def help(jira, command):
+    if not command:
+        print 'Print help text for a specified command'
+        print 'Usage: help [commands || [command_name]]'
+        print 'Example:'
+        print '    help commands'
+        print '    help ls'
+        return
+    if command == 'commands':
+        print 'Available commands:'
+        for command in commands.keys():
+            print command
+        return
+    print commands[command].help
+    print
+    print 'Usage: %s' % commands[command].usage
+    if commands[command].options_help:
+        print 'Options:'
+        print commands[command].options_help
+    if commands[command].examples:
+        print 'Examples:'
+        print commands[command].examples
 
 def main():
     p = optparse.OptionParser()

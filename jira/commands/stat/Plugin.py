@@ -1,7 +1,14 @@
 import getopt
 import curses
+from commands.base import BaseCommand
 
-class Command(object):
+class Command(BaseCommand):
+    help = 'Print details of specified issues'
+    usage = 'stat [issue_id]'
+    examples = '''    stat 12345
+    stat NG-12345
+    '''
+
     def run(self, jira, args):
         opts, args = getopt.getopt(args, '1:', ())
         self.refresh_data(jira, False)

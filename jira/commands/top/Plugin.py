@@ -1,7 +1,11 @@
 import getopt
 import curses
+from commands.base import BaseCommand
 
-class Command(object):
+class Command(BaseCommand):
+    help = 'Display control panel of critical release data'
+    usage = 'top'
+
     def run(self, jira, args):
         opts, args = getopt.getopt(args, '1:', ())
         window = curses.initscr()

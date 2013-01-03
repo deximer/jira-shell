@@ -1,7 +1,11 @@
 import getopt
 import curses
+from commands.base import BaseCommand
 
-class Command(object):
+class Command(BaseCommand):
+    help = 'List the teams with commitments to the release'
+    usage = 'teams'
+
     def run(self, jira, args):
         opts, args = getopt.getopt(args, '1:', ())
         self.refresh_data(jira, False)
