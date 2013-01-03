@@ -7,10 +7,10 @@ from commands.base import BaseCommand
 class Command(BaseCommand):
     help = 'Render various charts based on the data'
     usage = 'chart [chart_type]'
-    options_help = '''    ratio : chart ratio of estimates to cycle time
-    cycle : chart cycle time
+    options_help = '''    ratios : chart ratio of estimates to cycle time
+    cycles : chart cycle time
     '''
-    examples = '    chart ratio'
+    examples = '    chart ratios'
 
     def run(self, jira, args):
         opts, args = getopt.getopt(args, '1:', ())
@@ -19,12 +19,14 @@ class Command(BaseCommand):
         kanban = self.release.kanban()
         stories = self.release.stories()
         stories.sort(key=lambda i:i.key)
-        if not args or args[0] == 'cycle_time':
-            self.cycle_time(stories)
-        elif args[0] == 'ratio':
-            self.ratio(stories)
+        if not args or args[0] == 'cycles':
+            self.cycles(stories)
+        elif args[0] == 'ratios':
+            self.ratios(stories)
+        else:
+            print 'Unknown chart type: %s' % args[0]
 
-    def cycle_time(self, stories):
+    def cycles(self, stories):
         data = []
         for story in stories:
             if not story.started or not story.resolved:
@@ -34,7 +36,7 @@ class Command(BaseCommand):
         chart.get_chart()
         pyplot.show()
 
-    def ratio(self, stories):
+    def ratios(self, stories):
         data = []
         for story in stories:
             if not story.started or not story.resolved:
