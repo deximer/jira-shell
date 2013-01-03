@@ -1,5 +1,4 @@
 import getopt
-import curses
 import spc
 from matplotlib import pyplot
 from commands.base import BaseCommand

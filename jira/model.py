@@ -226,10 +226,8 @@ class Kanban(object):
         if not grid.has_key(estimate):
             return None
         for story in grid[estimate]:
-            if not story.started or not story.resolved or not story.points:
-                continue
-            delta = story.resolved - story.started
-            days.append(delta.days)
+            if story.cycle_time:
+                days.append(story.cycle_time)
         return numpy.average(numpy.array(days))
 
     def stdev_cycle_time_for_estimate(self, estimate):
@@ -247,25 +245,33 @@ class Kanban(object):
     def contingency_average(self, key):
         story = self.release.get(key)
         average = self.average_cycle_time_for_estimate(str(story.points))
-        return average - story.cycle_time
+        if story.cycle_time:
+            return average - story.cycle_time
+        return round(average, 1)
 
     def contingency_inside(self, key):
         story = self.release.get(key)
         average = self.average_cycle_time_for_estimate(str(story.points))
         std2 = self.stdev_cycle_time_for_estimate(str(story.points)) * 2
+        if not std2:
+            return None
         inside = average - std2
-        return round(inside - story.cycle_time, 1)
+        if story.cycle_time:
+            return round(inside - story.cycle_time, 1)
+        return round(inside, 1)
 
     def contingency_outside(self, key):
         story = self.release.get(key)
-        if not story.cycle_time:
-            return None
         average = self.average_cycle_time_for_estimate(str(story.points))
         if not average:
             return None
         std = self.stdev_cycle_time_for_estimate(str(story.points))
+        if not std:
+            return None
         outside = average + (std * 2)
-        return round(outside - story.cycle_time, 1)
+        if story.cycle_time:
+            return round(outside - story.cycle_time, 1)
+        return round(outside, 1)
 
 
 class Release(object):

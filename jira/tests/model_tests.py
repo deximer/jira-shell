@@ -317,12 +317,29 @@ class KanbanTest(unittest.TestCase):
         release.data[3].resolved = D20121213 # 10 days
         release.data[3].type = '72'
         release.data[3].points = 2.0
-        kanban = Kanban()
-        kanban.add_release(release)
+        kanban = release.kanban()
         self.assertEqual(kanban.contingency_average('NG-TEST'), 2.0)
         self.assertEqual(kanban.contingency_inside('NG-TEST'), -4.3)
         self.assertEqual(kanban.contingency_outside('NG-TEST'), 8.3)
 
+    def testContingencyNoCycleTimes(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        kanban = release.kanban()
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].key = 'NG-TEST'
+        release.data[0].started = None
+        release.data[0].resolved = None
+        release.data[0].type = '72'
+        release.data[0].points = 2.0
+        release.data[1].started = None
+        release.data[1].resolved = None
+        release.data[1].type = '72'
+        release.data[1].points = 2.0
+        self.assertEqual(kanban.contingency_average('NG-TEST'), None)
         
 
 class ReleaseTests(unittest.TestCase):
