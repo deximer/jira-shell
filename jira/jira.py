@@ -1,7 +1,5 @@
 #!/usr/bin/env python2.7
 import optparse
-import urllib
-from xml.etree import ElementTree as ET
 from BeautifulSoup import BeautifulSoup as BS
 from model import Release, Story, Projects, Project
 from dao import Jira
@@ -38,11 +36,6 @@ def request_projects():
         projects.add(Project(names[count].text, codes[count].text,
             owner[count].text))
     return projects
-
-def process_raw_key(args):
-    if args[:2] != 'NG':
-        args = 'NG-' + args.strip()
-    return args.strip()
 
 def connect_to_jira():
     return Jira('jira.cengage.com', 'mindtap.user:m1ndtap')
