@@ -8,7 +8,6 @@ class Command(BaseCommand):
 
     def run(self, jira, args):
         opts, args = getopt.getopt(args, '1:', ())
-        print 'Retrieving data...'
         self.refresh_data(jira, False)
         for story in self.release.data:
             team = story.scrum_team

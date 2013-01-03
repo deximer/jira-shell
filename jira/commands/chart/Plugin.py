@@ -15,7 +15,6 @@ class Command(BaseCommand):
     def run(self, jira, args):
         opts, args = getopt.getopt(args, '1:', ())
         args = args.split()
-        print 'Retrieving data...'
         self.refresh_data(jira, False)
         kanban = self.release.kanban()
         stories = self.release.stories()
