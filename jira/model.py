@@ -275,10 +275,16 @@ class Release(object):
     def __init__(self):
         self.data = []
 
+    def process_raw_key(self, key):
+        if key[:3] != 'NG-':
+            key = 'NG-%s' % key
+        return key.strip()
+
     def add(self, story):
         self.data.append(story)
 
     def get(self, key):
+        key = self.process_raw_key(key)
         for story in self.data:
             if story.key == key:
                 return story

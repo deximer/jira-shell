@@ -333,6 +333,17 @@ class ReleaseTests(unittest.TestCase):
         obj = Release()
         self.assertTrue(obj is not None)
 
+    def testProcessRawKeyNumberOnly(self):
+        release = Release()
+        key = release.process_raw_key('12345')
+        self.assertEqual(key, 'NG-12345')
+
+    def testProcessRawKey(self):
+        release = Release()
+        key = release.process_raw_key('NG-12345')
+        self.assertEqual(key, 'NG-12345')
+
+
     def testAddStory(self):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()

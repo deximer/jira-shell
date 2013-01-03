@@ -12,6 +12,7 @@ commands = {'top': commands.top.Plugin.Command(),
             'chart': commands.chart.Plugin.Command(),
             'export': commands.export.Plugin.Command(),
             'report': commands.report.Plugin.Command(),
+            'stat': commands.stat.Plugin.Command(),
             'teams': commands.teams.Plugin.Command(),
             'refresh': commands.refresh.Plugin.Command(),
            }
@@ -25,20 +26,6 @@ ITEMS = './/*/item'
 PROJECTS = 'http://mindtap.user:m1ndtap@jira.cengage.com/secure/BrowseProjects.jspa#all'
 
 cwd = ['/']
-
-def request_issue(key):
-    tree = ET.fromstring(urllib.urlopen(ISSUE % (key, key)).read())
-    return Story(tree.find(ITEMS))
-
-def request_current_release():
-    return ET.fromstring(urllib.urlopen(NG_CURRENT_RELEASE).read())
-
-def get_release():
-    tree = request_current_release()
-    release = Release()
-    for item in tree.findall(ITEMS):
-        release.add(Story(item))
-    return release
 
 def request_projects():
     page = urllib.urlopen(PROJECTS).read()
@@ -57,60 +44,6 @@ def process_raw_key(args):
         args = 'NG-' + args.strip()
     return args.strip()
 
-def stat(args):
-    key = process_raw_key(args)
-    story = request_issue(key)
-    print 'Key: ', story.key
-    print 'Title: ', story.title
-    print 'Points: ', story.points
-    print 'Status: ', story.status
-    print 'Components:'
-    for component in story.components:
-        print '    ', component
-
-def top(args):
-    #def mock_request_page(self, url):
-    #    return open('tests/data/rss.xml').read()
-    #jira.request_page = mock_request_page
-    commands['top'].run(connect_to_jira(), args)
-
-def export(args):
-    #def mock_request_page(self, url):
-    #    return open('tests/data/rss.xml').read()
-    #jira.request_page = mock_request_page
-    commands['export'].run(connect_to_jira(), args)
-
-def refresh(args):
-    #def mock_request_page(self, url):
-    #    return open('tests/data/rss.xml').read()
-    #jira.request_page = mock_request_page
-    commands['refresh'].run(connect_to_jira(), args)
-
-
-def chart(args):
-    #def mock_request_page(self, url):
-    #    return open('tests/data/rss.xml').read()
-    #jira.request_page = mock_request_page
-    commands['chart'].run(connect_to_jira(), args)
-
-def ls(args):
-    #def mock_request_page(self, url):
-    #    return open('tests/data/rss.xml').read()
-    #jira.request_page = mock_request_page
-    commands['ls'].run(connect_to_jira(), args)
-
-def report(args):
-    #def mock_request_page(self, url):
-    #    return open('tests/data/rss.xml').read()
-    #jira.request_page = mock_request_page
-    commands['report'].run(connect_to_jira(), args)
-
-def teams(args):
-    #def mock_request_page(self, url):
-    #    return open('tests/data/rss.xml').read()
-    #jira.request_page = mock_request_page
-    commands['teams'].run(connect_to_jira(), args)
-
 def connect_to_jira():
     return Jira('jira.cengage.com', 'mindtap.user:m1ndtap')
 
@@ -122,17 +55,17 @@ def dispatch(command):
         command, args = command.split(' ')
     except ValueError:
         args = ''
-    table = {'report': report,
-             'teams': teams,
-             'ls': ls,
-             'stat': stat,
-             'top': top,
-             'export': export,
-             'refresh': refresh,
-             'chart': chart,
+    table = {'report': commands['report'].run,
+             'teams': commands['teams'].run,
+             'ls': commands['ls'].run,
+             'stat': commands['stat'].run,
+             'top': commands['top'].run,
+             'export': commands['export'].run,
+             'refresh': commands['refresh'].run,
+             'chart': commands['chart'].run,
             }
     if command in table.keys():
-        table[command](args)
+        table[command](connect_to_jira(), args)
     else:
         print '%s: command not found' % command
 
