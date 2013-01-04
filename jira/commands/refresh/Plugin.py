@@ -1,4 +1,4 @@
-from commands.base import BaseCommand
+from ..base import BaseCommand
 
 class Command(BaseCommand):
     help = 'Refresh the local cache of Jira data'

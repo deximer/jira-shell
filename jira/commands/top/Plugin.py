@@ -1,5 +1,5 @@
 import curses
-from commands.base import BaseCommand
+from ..base import BaseCommand
 
 class Command(BaseCommand):
     help = 'Display control panel of critical release data'

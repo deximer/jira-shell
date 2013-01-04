@@ -1,6 +1,6 @@
 import curses
 import argparse
-from commands.base import BaseCommand
+from ..base import BaseCommand
 
 class Command(BaseCommand):
     help = 'Print details of specified issues'

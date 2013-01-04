@@ -1,4 +1,4 @@
-from commands.base import BaseCommand
+from ..base import BaseCommand
 
 class Command(BaseCommand):
     help = 'List the teams with commitments to the release'

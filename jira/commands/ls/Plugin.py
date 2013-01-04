@@ -1,6 +1,6 @@
 import getopt
 import argparse
-from commands.base import BaseCommand
+from ..base import BaseCommand
 
 class Command(BaseCommand):
     help = 'List issues in a release'

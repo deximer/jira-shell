@@ -1,7 +1,7 @@
 import spc
 import argparse
 from matplotlib import pyplot
-from commands.base import BaseCommand
+from ..base import BaseCommand
 
 class Command(BaseCommand):
     help = 'Render various charts based on the data'
