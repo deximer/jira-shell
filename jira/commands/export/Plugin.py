@@ -1,4 +1,3 @@
-import getopt
 import curses
 from commands.base import BaseCommand
 
@@ -7,7 +6,6 @@ class Command(BaseCommand):
     usage = 'export'
 
     def run(self, jira, args):
-        opts, args = getopt.getopt(args, '1:', ())
         self.refresh_data(jira, False)
         kanban = self.release.kanban()
         stories = self.release.stories()

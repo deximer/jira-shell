@@ -1,4 +1,3 @@
-import getopt
 import curses
 from commands.base import BaseCommand
 
@@ -7,7 +6,6 @@ class Command(BaseCommand):
     usage = 'top'
 
     def run(self, jira, args):
-        opts, args = getopt.getopt(args, '1:', ())
         window = curses.initscr()
         quit = False
         self.refresh_data(jira, False)

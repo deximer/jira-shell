@@ -1,5 +1,3 @@
-import getopt
-import curses
 from commands.base import BaseCommand
 
 class Command(BaseCommand):
@@ -7,7 +5,6 @@ class Command(BaseCommand):
     usage = 'teams'
 
     def run(self, jira, args):
-        opts, args = getopt.getopt(args, '1:', ())
         self.refresh_data(jira, False)
         teams = self.release.tasked_teams()
         for team in teams:

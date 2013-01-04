@@ -1,5 +1,5 @@
-import getopt
 import curses
+import argparse
 from commands.base import BaseCommand
 
 class Command(BaseCommand):
@@ -10,10 +10,12 @@ class Command(BaseCommand):
     '''
 
     def run(self, jira, args):
-        opts, args = getopt.getopt(args, '1:', ())
+        parser = argparse.ArgumentParser()
+        parser.add_argument('key')
+        args = parser.parse_args(args)
         self.refresh_data(jira, False)
         kanban = self.release.kanban()
-        story = self.release.get(args)
+        story = self.release.get(args.key)
         print 'ID: ', story.key
         print 'Title: ', story.title
         print 'Team: ', story.scrum_team

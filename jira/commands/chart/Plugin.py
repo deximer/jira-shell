@@ -1,5 +1,5 @@
-import getopt
 import spc
+import argparse
 from matplotlib import pyplot
 from commands.base import BaseCommand
 
@@ -12,15 +12,16 @@ class Command(BaseCommand):
     examples = '    chart ratios'
 
     def run(self, jira, args):
-        opts, args = getopt.getopt(args, '1:', ())
-        args = args.split()
+        parser = argparse.ArgumentParser()
+        parser.add_argument('chart')
+        args = parser.parse_args(args)
         self.refresh_data(jira, False)
         kanban = self.release.kanban()
         stories = self.release.stories()
         stories.sort(key=lambda i:i.key)
-        if not args or args[0] == 'cycles':
+        if not args.chart or args.chart == 'cycles':
             self.cycles(stories)
-        elif args[0] == 'ratios':
+        elif args.chart == 'ratios':
             self.ratios(stories)
         else:
             print 'Unknown chart type: %s' % args[0]

@@ -427,7 +427,7 @@ class ReleaseTests(unittest.TestCase):
         release.data[2].started = None
         self.assertEqual(len(release.started_stories()), 1)
 
-    def testOnlyStartedStories(self):
+    def testStoriesByStatus(self):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
@@ -436,10 +436,12 @@ class ReleaseTests(unittest.TestCase):
         release.add(Story(item))
         release.add(Story(item))
         release.data[0].type = '72'
-        release.data[0].resolved = D20121201
+        release.data[0].status = 6
+        release.data[1].type = '72'
+        release.data[1].status = 3
         release.data[2].type = '72'
-        release.data[2].resolved = None
-        self.assertEqual(len(release.resolved_stories()), 1)
+        release.data[2].status = 3
+        self.assertEqual(len(release.stories_by_status()['3']), 2)
 
     def testOnlyBugs(self):
         release = Release()

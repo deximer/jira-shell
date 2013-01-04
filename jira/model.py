@@ -335,6 +335,18 @@ class Release(object):
                 result[points] = [story]
         return result
 
+    def stories_by_status(self):
+        result = {}
+        for story in self.stories():
+            if not story.status:
+                continue
+            status = str(story.status)
+            if result.has_key(status):
+                result[status].append(story)
+            else:
+                result[status] = [story]
+        return result
+
     def total_stories(self):
         return len(self.stories())
 

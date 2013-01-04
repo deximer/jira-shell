@@ -1,5 +1,3 @@
-import getopt
-import curses
 from commands.base import BaseCommand
 
 class Command(BaseCommand):
@@ -7,7 +5,6 @@ class Command(BaseCommand):
     usage = 'refresh'
 
     def run(self, jira, args):
-        opts, args = getopt.getopt(args, '1:', ())
         print 'Retrieving data...'
         self.refresh_data(jira, True)
         print 'Cache refreshed'

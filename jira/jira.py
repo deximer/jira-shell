@@ -5,7 +5,7 @@ from model import Release, Story, Projects, Project
 from dao import Jira
 import commands
 
-commands = {'top': commands.top.Plugin.Command(),
+cmds = {'top': commands.top.Plugin.Command(),
             'ls': commands.ls.Plugin.Command(),
             'chart': commands.chart.Plugin.Command(),
             'export': commands.export.Plugin.Command(),
@@ -44,26 +44,26 @@ def shell():
     return raw_input('%s > ' % '/'.join(cwd))
 
 def dispatch(command):
-    try:
-        command, args = command.split(' ')
-    except ValueError:
-        args = ''
-    table = {'report': commands['report'].run,
-             'teams': commands['teams'].run,
-             'ls': commands['ls'].run,
-             'stat': commands['stat'].run,
-             'top': commands['top'].run,
-             'export': commands['export'].run,
-             'refresh': commands['refresh'].run,
-             'chart': commands['chart'].run,
+    table = {'report': cmds['report'].run,
+             'teams': cmds['teams'].run,
+             'ls': cmds['ls'].run,
+             'stat': cmds['stat'].run,
+             'top': cmds['top'].run,
+             'export': cmds['export'].run,
+             'refresh': cmds['refresh'].run,
+             'chart': cmds['chart'].run,
              'help': help,
             }
+    args = command.split()[1:]
+    command = command.split()[0]
     if command in table.keys():
         table[command](connect_to_jira(), args)
     else:
         print '%s: command not found' % command
 
 def help(jira, command):
+    if command:
+        command = command[0]
     if not command:
         print 'Print help text for a specified command'
         print 'Usage: help [commands || [command_name]]'
@@ -73,18 +73,18 @@ def help(jira, command):
         return
     if command == 'commands':
         print 'Available commands:'
-        for command in commands.keys():
+        for command in cmds.keys():
             print command
         return
-    print commands[command].help
+    print cmds[command].help
     print
-    print 'Usage: %s' % commands[command].usage
-    if commands[command].options_help:
+    print 'Usage: %s' % cmds[command].usage
+    if cmds[command].options_help:
         print 'Options:'
-        print commands[command].options_help
-    if commands[command].examples:
+        print cmds[command].options_help
+    if cmds[command].examples:
         print 'Examples:'
-        print commands[command].examples
+        print cmds[command].examples
 
 def main():
     p = optparse.OptionParser()
