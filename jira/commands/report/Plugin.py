@@ -8,19 +8,24 @@ class Command(BaseCommand):
         self.refresh_data(jira, False)
         release = self.release
         kanban = self.release.kanban()
-        print 'Stories          :', release.total_stories()
-        print 'Bugs             :', len(release.bugs())
-        print '  Avg Cycle Time :', kanban.average_cycle_time(type='1')
-        print '  M Cycle Time   :', kanban.median_cycle_time(type='1')
-        print 'Average Size     :', round(release.average_story_size(), 1)
-        print 'Std Dev          :', round(release.std_story_size(), 1)
-        print 'Smallest Story   :', release.sort_by_size()[-1].points
-        print 'Largest Story    :', release.sort_by_size()[0].points
-        print 'Avg Cycle Time   :', kanban.average_cycle_time()
         print 'Points in scope  :', round(release.total_points(), 1)
         print 'Points completed :', round(release.points_completed(), 1)
-        print 'Stories IP       :', release.stories_in_process()
         print 'Total WIP        :', round(release.wip(), 1)
+        print 'Stories          :', release.total_stories()
+        print '  Avg Size       :', round(release.average_story_size(), 1)
+        print '  Std Dev        :', round(release.std_story_size(), 1)
+        print '  Smallest       :', release.sort_by_size()[-1].points
+        print '  Largest        :', release.sort_by_size()[0].points
+        print '  # In Process   :', release.stories_in_process()
+        print '  Avg Cycle Time :', kanban.average_cycle_time()
+        print '  m Cycle Time   :', kanban.median_cycle_time()
+        print 'Bugs             :', len(release.bugs())
+        print '  Production     :', len(release.stories(type=['78']))
+        print '  Development    :', len(release.stories(type=['1']))
+        print '  Avg Cycle Time :', kanban.average_cycle_time_life(
+            type=['1', '78'])
+        print '  m Cycle Time   :', kanban.median_cycle_time_life(
+            type=['1', '78'])
         print
         print 'WIP by Status:'
         wip = release.wip_by_status()

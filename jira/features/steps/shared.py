@@ -42,6 +42,11 @@ def make_story(row):
         story.points = float(row['points'])
     else:
         story.points = 1.0
+    if 'created' in row.headings and row['created']:
+        date = row['created'].split('/')
+        story.created = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
+    else:
+        story.created = None
     if 'started' in row.headings and row['started']:
         date = row['started'].split('/')
         story.started = datetime(2000+int(date[0]), int(date[1]), int(date[2]))

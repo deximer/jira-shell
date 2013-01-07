@@ -35,8 +35,9 @@ class Command(BaseCommand):
                 continue
             if args.t and story.type not in args.t:
                 continue
-            if args.team and story.scrum_team and \
-                story.scrum_team[:len(args.team)] != args.team:
+            if not story.scrum_team:
+                story.scrum_team = 'Everything Else'
+            if args.team and story.scrum_team[:len(args.team)] != args.team:
                 continue
             
             team = story.scrum_team

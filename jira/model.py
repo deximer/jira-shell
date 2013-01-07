@@ -11,6 +11,7 @@ IN_PROGRESS = './/*[@id="customfield_13434"]/*/customfieldvalue'
 DEVELOPER = './/*[@id="customfield_13435"]/*/customfieldvalue'
 STATUS = 'status'
 BUG_TYPE = '1'
+PRODUCTION_BUG_TYPE = '78'
 STORY_TYPE = '72'
 TITLE = 'title'
 ASSIGNEE = 'assignee'
@@ -18,6 +19,7 @@ TYPE = 'type'
 DESCRIPTION = 'description'
 KEY = 'key'
 RESOLVED = 'resolved'
+CREATED = 'created'
 COMPONENTS = 'component'
 SCRUM_TEAM = './/*[@id="customfield_11261"]/*/customfieldvalue'
 STATUS_OPEN = 1
@@ -75,6 +77,12 @@ class Story(object):
             self.description = description.text
         else:
             self.description = None
+        created = item.find(CREATED)
+        if created is not None:
+            self.created = datetime.datetime.fromtimestamp(time.mktime(
+                time.strptime(created.text[:-6], '%a, %d %b %Y %H:%M:%S')))
+        else:
+            self.created = None
         resolved = item.find(RESOLVED)
         if resolved is not None:
             self.resolved = datetime.datetime.fromtimestamp(time.mktime(
@@ -112,7 +120,17 @@ class Story(object):
             return delta.days
         return None
 
+    def _get_cycle_time_life(self):
+        if self.created and self.resolved:
+            delta = self.resolved - self.created
+            return delta.days
+        elif self.created and not self.resolved:
+            delta = datetime.datetime.today() - self.created
+            return delta.days
+        return None
+
     cycle_time = property(_get_cycle_time)
+    cycle_time_life = property(_get_cycle_time_life)
 
 
 class Kanban(object):
@@ -149,7 +167,23 @@ class Kanban(object):
         for story in release.data:
             self.add(story)
 
-    def average_cycle_time(self, component=None, type='72'):
+    def average_cycle_time_life(self, component=None, type=['72']):
+        stories = self.release.stories(type=type)
+        if not stories:
+            return None
+        days = []
+        for story in stories:
+            if component and component != story.scrum_team:
+                continue
+            if not story.created or not story.resolved:
+                continue
+            delta = story.resolved - story.created
+            days.append(delta.days)
+        if not days:
+            return None
+        return round(numpy.average(numpy.array(days)), 1)
+
+    def average_cycle_time(self, component=None, type=['72']):
         stories = self.release.stories(type=type)
         if not stories:
             return None
@@ -165,7 +199,23 @@ class Kanban(object):
             return None
         return round(numpy.average(numpy.array(days)), 1)
 
-    def median_cycle_time(self, component=None, type='72'):
+    def median_cycle_time_life(self, component=None, type=['72']):
+        stories = self.release.stories(type=type)
+        if not stories:
+            return None
+        days = []
+        for story in stories:
+            if component and component != story.scrum_team:
+                continue
+            if not story.created or not story.resolved:
+                continue
+            delta = story.resolved - story.created
+            days.append(delta.days)
+        if not days:
+            return None
+        return numpy.median(numpy.array(days))
+
+    def median_cycle_time(self, component=None, type=['72']):
         stories = self.release.stories(type=type)
         if not stories:
             return None
@@ -329,8 +379,8 @@ class Release(object):
                 teams[team] += 1
         return teams
 
-    def stories(self, type='72'):
-        return [story for story in self.data if story.type == type]
+    def stories(self, type=['72']):
+        return [story for story in self.data if story.type in type]
 
     def started_stories(self):
         return [story for story in self.data if story.type == STORY_TYPE
@@ -341,7 +391,8 @@ class Release(object):
             and story.resolved]
 
     def bugs(self):
-        return [story for story in self.data if story.type == BUG_TYPE]
+        return [story for story in self.data if story.type == BUG_TYPE or
+            story.type == PRODUCTION_BUG_TYPE]
 
     def only_groomed_stories(self):
         return [story for story in self.stories() if story.points]
