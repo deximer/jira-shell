@@ -199,6 +199,31 @@ class KanbanTest(unittest.TestCase):
         kanban.add_release(release)
         self.assertEqual(kanban.average_cycle_time(), 6)
 
+    def testStdevCycleTimeLife(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].created = D20121201
+        release.data[0].resolved = D20121205
+        release.data[0].type = '72'
+        release.data[1].created = D20121203
+        release.data[1].resolved = D20121205
+        release.data[1].type = '72'
+        release.data[2].created = D20121205
+        release.data[2].resolved = D20121213
+        release.data[2].type = '72'
+        release.data[3].created = D20121203
+        release.data[3].resolved = D20121213
+        release.data[3].type = '72'
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.stdev_cycle_time_life(), 3.7)
+
     def testStdevCycleTimeStrictBaked(self):
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)

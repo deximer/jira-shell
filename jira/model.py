@@ -231,6 +231,24 @@ class Kanban(object):
             return None
         return numpy.median(numpy.array(days))
 
+    def stdev_cycle_time_life(self, component=None, type=['72']):
+        ''' Uses ddof=1 to sync std calc with excel's
+        '''
+        stories = self.release.stories(type)
+        if not stories:
+            return None
+        cycle_times = []
+        for story in stories:
+            if component and component not in story.components:
+                continue
+            if not story.type in type:
+                continue
+            if not story.created or not story.resolved:
+                continue
+            delta = story.resolved - story.created
+            cycle_times.append(delta.days)
+        return round(numpy.std(numpy.array(cycle_times), ddof=1), 1)
+
     def stdev_cycle_time(self, component=None):
         ''' Uses ddof=1 to sync std calc with excel's
         '''
@@ -242,9 +260,7 @@ class Kanban(object):
                 continue
             if not story.started or not story.resolved:
                 continue
-            started = story.started
-            resolved = story.resolved
-            delta = resolved - started
+            delta = story.resolved - story.started
             cycle_times.append(delta.days)
         return round(numpy.std(numpy.array(cycle_times), ddof=1), 1)
 

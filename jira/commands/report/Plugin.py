@@ -22,11 +22,19 @@ class Command(BaseCommand):
         print '  m Cycle Time   :', kanban.median_cycle_time()
         print 'Bugs             :', len(release.bugs())
         print '  Production     :', len(release.stories(type=['78']))
+        print '    Avg Cycle Time :', kanban.average_cycle_time_life(
+            type=['78'])
+        print '    m Cycle Time   :', kanban.median_cycle_time_life(
+            type=['78'])
+        print '    Std Cycle Time :', kanban.stdev_cycle_time_life(
+            type=['78'])
         print '  Development    :', len(release.stories(type=['1']))
-        print '  Avg Cycle Time :', kanban.average_cycle_time_life(
-            type=['1', '78'])
-        print '  m Cycle Time   :', kanban.median_cycle_time_life(
-            type=['1', '78'])
+        print '    Avg Cycle Time :', kanban.average_cycle_time_life(
+            type=['1'])
+        print '    m Cycle Time   :', kanban.median_cycle_time_life(
+            type=['1'])
+        print '    Std Cycle Time :', kanban.stdev_cycle_time_life(
+            type=['1'])
         print
         print 'WIP by Status:'
         wip = release.wip_by_status()
