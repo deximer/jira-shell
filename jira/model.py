@@ -256,6 +256,8 @@ class Kanban(object):
     def contingency_inside(self, key):
         story = self.release.get(key)
         average = self.average_cycle_time_for_estimate(str(story.points))
+        if not average:
+            return
         std2 = self.stdev_cycle_time_for_estimate(str(story.points))
         if not std2:
             return None

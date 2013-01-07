@@ -2,6 +2,7 @@ from behave import *
 import model
 import jira
 import dao
+from datetime import datetime
 
 @given('I have the following issues in the release')
 def step(context):
@@ -41,13 +42,24 @@ def make_story(row):
         story.points = float(row['points'])
     else:
         story.points = 1.0
-    story.started = None
-    story.resolved = None
+    if 'started' in row.headings and row['started']:
+        date = row['started'].split('/')
+        story.started = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
+    else:
+        story.started = None
+    if 'resolved' in row.headings and row['resolved']:
+        date = row['resolved'].split('/')
+        story.resolved = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
+    else:
+        story.resolved = None
     story.components = []
     story.title = row['title']
     if 'status' in row.headings:
         story.status = int(row['status'])
     else:
         story.status = 3
-    story.type = '72'
+    if 'type' in row.headings:
+        story.type = row['type']
+    else:
+        story.type = '72'
     return story
