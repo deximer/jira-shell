@@ -21,6 +21,7 @@ Feature: Report data required by the ExecReport.xls
         And I see "  # In Process   : 2" in the output
         And I see "  Avg Cycle Time : 13.3" in the output
         And I see "  m Cycle Time   : 14.0" in the output
+        And I see "  Std Cycle Time : 7.0" in the output
         And I see "Bugs             : 3" in the output
         And I see "  Production     : 1" in the output
         And I see "  Development    : 2" in the output

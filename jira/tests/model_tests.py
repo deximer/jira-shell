@@ -222,7 +222,7 @@ class KanbanTest(unittest.TestCase):
         release.data[3].type = '72'
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.stdev_cycle_time(), 3.6514837167011072)
+        self.assertEqual(kanban.stdev_cycle_time(), 3.7)
 
     def testCycleTimePerPointStrictBaked(self):
         xml = open('jira/tests/data/rss.xml').read()

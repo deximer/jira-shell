@@ -246,7 +246,7 @@ class Kanban(object):
             resolved = story.resolved
             delta = resolved - started
             cycle_times.append(delta.days)
-        return numpy.std(numpy.array(cycle_times), ddof=1)
+        return round(numpy.std(numpy.array(cycle_times), ddof=1), 1)
 
     def cycle_time_per_point(self, component=None):
         ''' Note that this method does not just add up the cycle times

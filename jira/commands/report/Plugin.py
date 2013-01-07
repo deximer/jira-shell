@@ -18,6 +18,7 @@ class Command(BaseCommand):
         print '  Largest        :', release.sort_by_size()[0].points
         print '  # In Process   :', release.stories_in_process()
         print '  Avg Cycle Time :', kanban.average_cycle_time()
+        print '  Std Cycle Time :', kanban.stdev_cycle_time()
         print '  m Cycle Time   :', kanban.median_cycle_time()
         print 'Bugs             :', len(release.bugs())
         print '  Production     :', len(release.stories(type=['78']))
