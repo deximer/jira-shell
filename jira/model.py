@@ -149,11 +149,12 @@ class Kanban(object):
         for story in release.data:
             self.add(story)
 
-    def average_cycle_time(self, component=None):
-        if not self.release.stories():
+    def average_cycle_time(self, component=None, type='72'):
+        stories = self.release.stories(type=type)
+        if not stories:
             return None
         days = []
-        for story in self.release.stories():
+        for story in stories:
             if component and component != story.scrum_team:
                 continue
             if not story.started or not story.resolved:
@@ -163,6 +164,22 @@ class Kanban(object):
         if not days:
             return None
         return round(numpy.average(numpy.array(days)), 1)
+
+    def median_cycle_time(self, component=None, type='72'):
+        stories = self.release.stories(type=type)
+        if not stories:
+            return None
+        days = []
+        for story in stories:
+            if component and component != story.scrum_team:
+                continue
+            if not story.started or not story.resolved:
+                continue
+            delta = story.resolved - story.started
+            days.append(delta.days)
+        if not days:
+            return None
+        return numpy.median(numpy.array(days))
 
     def stdev_cycle_time(self, component=None):
         ''' Uses ddof=1 to sync std calc with excel's
@@ -312,8 +329,8 @@ class Release(object):
                 teams[team] += 1
         return teams
 
-    def stories(self):
-        return [story for story in self.data if story.type == STORY_TYPE]
+    def stories(self, type='72'):
+        return [story for story in self.data if story.type == type]
 
     def started_stories(self):
         return [story for story in self.data if story.type == STORY_TYPE

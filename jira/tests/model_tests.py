@@ -86,6 +86,51 @@ class KanbanTest(unittest.TestCase):
         kanban = release.kanban()
         self.assertEqual(kanban.average_cycle_time(), 8.0)
 
+    def testAverageCycleTimeBugs(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].type = '1'
+        release.data[0].started = D20121201
+        release.data[0].resolved = D20121203
+        release.data[1].type = '1'
+        release.data[1].started = D20121201
+        release.data[1].resolved = D20121208
+        release.data[2].type = '1'
+        release.data[2].started = D20121201
+        release.data[2].resolved = D20121208
+        release.data[3].type = '72'
+        release.data[3].started = D20121201
+        release.data[3].resolved = D20121208
+        kanban = release.kanban()
+        self.assertEqual(kanban.average_cycle_time(type='1'), 5.3)
+
+    def testMedianCycleTime(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].type = '72'
+        release.data[0].started = D20121201
+        release.data[0].resolved = D20121203
+        release.data[1].type = '72'
+        release.data[1].started = D20121201
+        release.data[1].resolved = D20121208
+        release.data[2].type = '72'
+        release.data[2].started = D20121201
+        release.data[2].resolved = D20121213
+        kanban = release.kanban()
+        self.assertEqual(kanban.median_cycle_time(), 7.0)
+
     def testAverageCycleTimeOnlyBugs(self):
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
@@ -412,6 +457,18 @@ class ReleaseTests(unittest.TestCase):
         release.data[0].type = '72'
         release.data[2].type = '72'
         self.assertEqual(len(release.stories()), 2)
+
+    def testOnlyBugs(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].type = '72'
+        release.data[2].type = '72'
+        self.assertEqual(len(release.stories(type='1')), 1)
 
     def testOnlyStartedStories(self):
         release = Release()

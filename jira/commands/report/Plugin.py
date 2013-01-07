@@ -10,6 +10,8 @@ class Command(BaseCommand):
         kanban = self.release.kanban()
         print 'Stories          :', release.total_stories()
         print 'Bugs             :', len(release.bugs())
+        print '  Avg Cycle Time :', kanban.average_cycle_time(type='1')
+        print '  M Cycle Time   :', kanban.median_cycle_time(type='1')
         print 'Average Size     :', round(release.average_story_size(), 1)
         print 'Std Dev          :', round(release.std_story_size(), 1)
         print 'Smallest Story   :', release.sort_by_size()[-1].points
