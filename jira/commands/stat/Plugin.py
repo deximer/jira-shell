@@ -21,7 +21,8 @@ class Command(BaseCommand):
         print 'Team: ', story.scrum_team
         print 'Points: ', story.points
         print 'Status: ', story.status
-        print 'Started:', story.started, 'Resolved:', story.resolved
+        print 'Started:', story.started
+        print 'Resolved:', story.resolved
         print 'Cycle Time:', story.cycle_time
         print 'Contingincy:'
         print '    Inside:', kanban.contingency_inside(story.key)

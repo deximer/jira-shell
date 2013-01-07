@@ -4,15 +4,23 @@ from ..base import BaseCommand
 
 class Command(BaseCommand):
     help = 'List issues in a release'
-    usage = 'ls'
-    options_help = '    -s : Show only issues with the specified status'
-    examples = '    ls -s 3'
+    usage = 'ls [team] [-s status [status...]] [-t issue_type [issue_type...]]'
+    options_help = '''    -s : Show only issues with the specified status
+    -t : Show only issues of the specified type
+    '''
+    examples = '''    ls
+    ls App
+    ls Math -s 3 -t 72'''
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
-        parser.add_argument('-s', type=int)
-        parser.add_argument('-t')
-        args = parser.parse_args(args)
+        parser.add_argument('-s', nargs='*', type=int, required=False)
+        parser.add_argument('-t', nargs='*', required=False)
+        parser.add_argument('team', nargs='?')
+        try:
+            args = parser.parse_args(args)
+        except:
+            return
         self.refresh_data(jira, False)
         print 'Team:'.ljust(18), \
               'Pts:'.ljust(5), \
@@ -23,10 +31,14 @@ class Command(BaseCommand):
         issues = 0
         points = 0
         for story in sorted(self.release.data, key=lambda x: x.scrum_team):
-            if args.s and story.status != args.s:
+            if args.s and story.status not in args.s:
                 continue
-            if args.t and story.type != args.t:
+            if args.t and story.type not in args.t:
                 continue
+            if args.team and story.scrum_team and \
+                story.scrum_team[:len(args.team)] != args.team:
+                continue
+            
             team = story.scrum_team
             if not team:
                 team = 'Everything Else'

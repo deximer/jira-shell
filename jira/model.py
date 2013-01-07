@@ -228,6 +228,8 @@ class Kanban(object):
         for story in grid[estimate]:
             if story.cycle_time:
                 days.append(story.cycle_time)
+        if not days:
+            return None
         return numpy.average(numpy.array(days))
 
     def stdev_cycle_time_for_estimate(self, estimate):
@@ -245,6 +247,8 @@ class Kanban(object):
     def contingency_average(self, key):
         story = self.release.get(key)
         average = self.average_cycle_time_for_estimate(str(story.points))
+        if not average:
+            return None
         if story.cycle_time:
             return average - story.cycle_time
         return round(average, 1)
@@ -252,10 +256,10 @@ class Kanban(object):
     def contingency_inside(self, key):
         story = self.release.get(key)
         average = self.average_cycle_time_for_estimate(str(story.points))
-        std2 = self.stdev_cycle_time_for_estimate(str(story.points)) * 2
+        std2 = self.stdev_cycle_time_for_estimate(str(story.points))
         if not std2:
             return None
-        inside = average - std2
+        inside = average - (std2 * 2)
         if story.cycle_time:
             return round(inside - story.cycle_time, 1)
         return round(inside, 1)

@@ -14,7 +14,10 @@ class Command(BaseCommand):
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
         parser.add_argument('chart')
-        args = parser.parse_args(args)
+        try:
+            args = parser.parse_args(args)
+        except:
+            return
         self.refresh_data(jira, False)
         kanban = self.release.kanban()
         stories = self.release.stories()
