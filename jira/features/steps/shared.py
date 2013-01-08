@@ -31,6 +31,10 @@ def step(context):
 def step(context, value):
     assert value in context.stdout_capture.getvalue()
 
+@then('I do not see "{value}" in the output')
+def step(context, value):
+    assert value not in context.stdout_capture.getvalue()
+
 def make_story(row):
     story = model.Story()
     story.key = row['key']

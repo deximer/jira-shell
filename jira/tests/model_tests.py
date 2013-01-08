@@ -4,12 +4,12 @@ from ..model import Story, Release, Projects, Project, Root, Kanban
 from ..dao import Jira
 from  xml.etree import ElementTree as ET
 
-D20121201 = datetime.date(2012, 12, 1)
-D20121202 = datetime.date(2012, 12, 2)
-D20121203 = datetime.date(2012, 12, 3)
-D20121205 = datetime.date(2012, 12, 5)
-D20121208 = datetime.date(2012, 12, 8)
-D20121213 = datetime.date(2012, 12, 13)
+D20121201 = datetime.datetime(2012, 12, 1)
+D20121202 = datetime.datetime(2012, 12, 2)
+D20121203 = datetime.datetime(2012, 12, 3)
+D20121205 = datetime.datetime(2012, 12, 5)
+D20121208 = datetime.datetime(2012, 12, 8)
+D20121213 = datetime.datetime(2012, 12, 13)
 
 class RootTest(unittest.TestCase):
     ''' Unit tests for the Root object class
@@ -852,6 +852,38 @@ class ReleaseTests(unittest.TestCase):
         jira.request_page = mock_request_page
         release = jira.get_release()
         self.assertEqual(release.graph_kanban('Core and Builder'), '.O.')
+
+    def TestUpperPercentile(self):
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release = Release()
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].type = '1'
+        release.data[0].started = D20121201
+        release.data[0].resolved = D20121203
+        release.data[1].type = '1'
+        release.data[1].started = D20121201
+        release.data[1].resolved = D20121205
+        release.data[2].key = 'NG-1'
+        release.data[2].type = '1'
+        release.data[2].started = D20121205
+        release.data[2].resolved = D20121213
+        release.data[3].key = 'NG-2'
+        release.data[3].type = '1'
+        release.data[3].started = D20121201
+        release.data[3].resolved = D20121213
+        upper85 = release.upper_percentiles(0.85, ['1'])
+        self.assertEqual(len(upper85), 1)
+        self.assertEqual(upper85[0].key, 'NG-2')
+        upper50 = release.upper_percentiles(0.50, ['1'])
+        self.assertEqual(len(upper50), 2)
+        self.assertEqual(upper50[0].key, 'NG-1')
+        self.assertEqual(upper50[1].key, 'NG-2')
+
 
 class ProjectTest(unittest.TestCase):
     def testObjectCreate(self):

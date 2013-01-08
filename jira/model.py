@@ -557,6 +557,17 @@ class Release(object):
                 points.append('O')
         return ''.join(points)
 
+    def upper_percentiles(self, percentile, type):
+        stories = self.stories(type)
+        if not stories:
+            return
+        stories.sort(key=lambda x:x.cycle_time if x.type != '1' else x.cycle_time_life)
+        index = int(round(percentile * len(stories) + 0.5))
+        if index > 1:
+            return [ct for ct in stories[index-1:]]
+        return None
+
+
 class Project(object):
     def __init__(self, name=None, key=None, owner=None):
         self.name = name
