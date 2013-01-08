@@ -18,6 +18,7 @@ class Command(BaseCommand):
         story = self.release.get(args.key)
         print 'ID: ', story.key
         print 'Title: ', story.title
+        print 'Type: ', story.type
         print 'Team: ', story.scrum_team
         print 'Points: ', story.points
         print 'Status: ', story.status
