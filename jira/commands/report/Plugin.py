@@ -62,6 +62,12 @@ class Command(BaseCommand):
             print key.ljust(16), ':', str(wip[key]['wip']).ljust(6), \
                 wip[key]['stories']
         print
+        print 'WIP by Swim Lane:'
+        wip = release.wip_by_component()
+        for key in wip:
+            print key.ljust(16), ':',  str(wip[key]['wip']).ljust(6), \
+                str(wip[key]['stories']).ljust(3), wip[key]['largest']
+        print
         bugs = release.upper_percentiles(0.85, ['1'])
         if bugs:
             print 'Development Bug Cycle Time 85th Percentile:'
