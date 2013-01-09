@@ -86,8 +86,8 @@ class Command(BaseCommand):
         pyplot.plot(count[1:], wip, '^', color='r')
         pyplot.plot(count[1:], nsul, 'o', linestyle='-', color='r')
         pyplot.plot(count[1:], nsuw, '.', linestyle=':', color='y')
-        pyplot.plot(count[1:], nslw, '.', linestyle='-', color='y')
-        pyplot.plot(count[1:], nsll, 'o', linestyle=':', color='r')
+        pyplot.plot(count[1:], nslw, '.', linestyle=':', color='y')
+        pyplot.plot(count[1:], nsll, 'o', linestyle='-', color='r')
         pyplot.plot(count[1:], avg, '',linestyle='-.',  markerfacecolor='None')
         for label, x, y in zip(labels, count[1:], alldata):
             pyplot.annotate(
