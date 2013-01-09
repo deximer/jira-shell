@@ -65,16 +65,18 @@ class Command(BaseCommand):
         print 'WIP by Team:'
         wip = release.wip_by_component()
         for key in wip:
-            print key.ljust(16), ':',  str(wip[key]['wip']).ljust(6), \
+            print key[:16].ljust(16), ':',  str(wip[key]['wip']).ljust(6), \
                 str(wip[key]['stories']).ljust(3), wip[key]['largest']
         print
         bugs = release.upper_percentiles(0.85, ['1'])
+        bugs = []
         if bugs:
             print 'Development Bug Cycle Time 85th Percentile:'
             for bug in bugs:
                 print '  ', bug.key, bug.cycle_time_life, bug.scrum_team
             print
         stories = release.upper_percentiles(0.85, ['72'])
+        stories = []
         if stories:
             print 'Story Cycle Time 85th Percentile:'
             for story in stories:
