@@ -1,9 +1,16 @@
 #!/usr/bin/env python2.7
 import optparse
+import sys
 from BeautifulSoup import BeautifulSoup as BS
 from model import Release, Story, Projects, Project
 from dao import Jira
 import commands
+
+class NullWriter:
+    def write(self, s):
+        pass
+
+sys.stderr = NullWriter()
 
 cmds = {'top': commands.top.Plugin.Command(),
             'ls': commands.ls.Plugin.Command(),

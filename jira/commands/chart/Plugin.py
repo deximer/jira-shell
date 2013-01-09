@@ -1,34 +1,48 @@
 import spc
 import argparse
 import numpy
-from matplotlib import pyplot, gridspec
+import warnings
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from matplotlib import pyplot, gridspec
 from ..base import BaseCommand
 
 class Command(BaseCommand):
     help = 'Render various charts based on the data'
-    usage = 'chart [chart_type]'
-    options_help = '''    ratios : chart ratio of estimates to cycle time
-    cycles : chart cycle time
+    usage = 'chart [team] [-t chart_type]'
+    options_help = '''    -t : specify chart type (default is cycle times)
     '''
-    examples = '    chart ratios'
+    examples = '''    chart
+    chart App'''
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
-        parser.add_argument('chart')
+        parser.add_argument('team', nargs='?')
+        parser.add_argument('-t', nargs='*', required=False)
+        parser.add_argument('-d', nargs='*', required=False)
         try:
             args = parser.parse_args(args)
         except:
             return
         self.refresh_data(jira, False)
+        if args.team:
+            self.release.data = [s for s in self.release.data
+                if s.scrum_team and s.scrum_team[:len(args.team)] == args.team]
+        if args.d:
+            self.release.data = [s for s in self.release.data
+                if s.developer and s.developer[:len(args.d[0])] == args.d[0]]
+        if not self.release.data:
+            print 'No data to report'
+            return
         kanban = self.release.kanban()
         stories = self.release.stories(type='72')
         stories.sort(key=lambda i:i.key)
-        if not args.chart or args.chart == 'cycles':
+        if not args.t or args.t == 'cycles':
             self.cycles(stories)
-        elif args.chart == 'ratios':
+        elif args.t == 'ratios':
             self.ratios(stories)
         else:
-            print 'Unknown chart type: %s' % args[0]
+            print 'Unknown chart type: %s' % args.t[0]
 
     def cycles(self, stories):
         data = []
@@ -53,8 +67,8 @@ class Command(BaseCommand):
             labels.append(story.key)
             count.append(count[-1] + 1)
 
-        std = numpy.std([d for d in data if d])
-        average = numpy.average([d for d in data if d])
+        std = numpy.std([d for d in alldata if d])
+        average = numpy.average([d for d in alldata if d])
         nsul = []
         nsuw = []
         nsll = []
