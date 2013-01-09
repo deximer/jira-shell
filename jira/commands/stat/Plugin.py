@@ -16,6 +16,9 @@ class Command(BaseCommand):
         self.refresh_data(jira, False)
         kanban = self.release.kanban()
         story = self.release.get(args.key)
+        if not story:
+            print 'No story matching key: %s' % args.key
+            return
         print 'ID: ', story.key
         print 'Title: ', story.title
         print 'Type: ', story.type
@@ -25,7 +28,7 @@ class Command(BaseCommand):
         print 'Started:', story.started
         print 'Resolved:', story.resolved
         print 'Cycle Time:', story.cycle_time
-        print 'Contingincy:'
+        print 'Contingency:'
         print '    Inside:', kanban.contingency_inside(story.key)
         print '    Average:', kanban.contingency_average(story.key)
         print '    Outside:', kanban.contingency_outside(story.key)

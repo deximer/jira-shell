@@ -467,6 +467,16 @@ class ReleaseTests(unittest.TestCase):
         story = release.get(key)
         self.assertEqual(story.key, key)
 
+    def testGetStoryNoStory(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        key = 'NOKEY'
+        story = release.get(key)
+        self.assertEqual(story, None)
+
     def testTaskedTeams(self):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()
