@@ -9,20 +9,23 @@ from ..base import BaseCommand
 
 class Command(BaseCommand):
     help = 'Render various charts based on the data'
-    usage = 'chart [team] [-t chart_type] [-d developer] [-s sort_by]'
+    usage = 'chart [team] [-t chart_type] [-d developer] [-s sort_by]' \
+        ' [-p point]'
     options_help = '''    -t : specify chart type (default is cycle times)
     -d : chart for developer
-    -s : sorting criteria (estimate (default), team, developer)
+    -p : chart for estimate value 
+    -s : sorting criteria
     '''
     examples = '''    chart
     chart App
-    chart -s team'''
+    chart -s scrum_team points'''
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
         parser.add_argument('team', nargs='?')
         parser.add_argument('-t', nargs='*', required=False)
         parser.add_argument('-d', nargs='*', required=False)
+        parser.add_argument('-p', nargs='*', required=False)
         parser.add_argument('-s', nargs='*', required=False)
         try:
             args = parser.parse_args(args)
@@ -35,6 +38,9 @@ class Command(BaseCommand):
         if args.d:
             self.release.data = [s for s in self.release.data
                 if s.developer and s.developer[:len(args.d[0])] == args.d[0]]
+        if args.p:
+            self.release.data = [s for s in self.release.data
+                if s.points and s.points == float(args.p[0])]
         if not self.release.data:
             print 'No data to report'
             return
