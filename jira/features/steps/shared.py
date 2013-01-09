@@ -42,6 +42,10 @@ def make_story(row):
         story.scrum_team = row['team']
     else:
         story.scrum_team = 'unspecified'
+    if 'dev' in row.headings:
+        story.developer = row['dev']
+    else:
+        story.developer = 'unspecified'
     if 'points' in row.headings:
         story.points = float(row['points'])
     else:

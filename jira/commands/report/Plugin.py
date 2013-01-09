@@ -4,12 +4,14 @@ from ..base import BaseCommand
 class Command(BaseCommand):
     help = 'Report on the current release'
     usage = 'report [team]'
+    options_help = '''    -d : report on a specific developer'''
     exmamples = '''    report
     report App'''
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
         parser.add_argument('team', nargs='?')
+        parser.add_argument('-d', nargs='*', required=False)
         try:
             args = parser.parse_args(args)
         except:
@@ -18,6 +20,12 @@ class Command(BaseCommand):
         if args.team:
             self.release.data = [s for s in self.release.data
                 if s.scrum_team and s.scrum_team[:len(args.team)] == args.team]
+        if args.d:
+            self.release.data = [s for s in self.release.data
+                if s.developer and s.developer[:len(args.d[0])] == args.d[0]]
+        if not self.release.data:
+            print 'No data to report'
+            return
         release = self.release
         kanban = self.release.kanban()
         print 'Points in scope  :', round(release.total_points(), 1)
