@@ -54,13 +54,17 @@ class Command(BaseCommand):
             print key.ljust(16), ':', str(wip[key]['wip']).ljust(6), \
                 wip[key]['stories']
         print
-        print 'Development Bug Cycle Time 85th percentile'
-        for bug in release.upper_percentiles(0.85, ['1']):
-            print '  ', bug.key, bug.cycle_time_life, bug.scrum_team
-        print
-        print 'Story Cycle Time 85th percentile'
-        for story in release.upper_percentiles(0.85, ['72']):
-            print '  ', story.key, story.cycle_time, story.scrum_team
+        bugs = release.upper_percentiles(0.85, ['1'])
+        if bugs:
+            print 'Development Bug Cycle Time 85th Percentile:'
+            for bug in bugs:
+                print '  ', bug.key, bug.cycle_time_life, bug.scrum_team
+            print
+        stories = release.upper_percentiles(0.85, ['72'])
+        if stories:
+            print 'Story Cycle Time 85th Percentile:'
+            for story in stories:
+                print '  ', story.key, story.cycle_time, story.scrum_team
 
     def refresh_data(self, jira, refresh):
         self.release = jira.get_release(refresh)
