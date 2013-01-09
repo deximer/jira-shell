@@ -395,6 +395,15 @@ class Release(object):
                 teams[team] += 1
         return teams
 
+    def developers(self):
+        developers = {}
+        for story in self.stories():
+            if story.developer not in developers:
+                developers[story.developer] = 1
+            else:
+                developers[story.developer] += 1
+        return developers
+
     def stories(self, type=['72']):
         return [story for story in self.data if story.type in type]
 

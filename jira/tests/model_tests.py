@@ -489,6 +489,27 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(release.tasked_teams()['Bar'], 1)
         self.assertEqual(release.tasked_teams()['Everything Else'], 1)
 
+    def testDevelopers(self):
+        release = Release()
+        xml = open('jira/tests/data/rss.xml').read()
+        tree = ET.fromstring(xml)
+        item = tree.find('.//*/item')
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.add(Story(item))
+        release.data[0].type = '72'
+        release.data[0].developer = 'joe'
+        release.data[1].type = '72'
+        release.data[1].developer = 'joe'
+        release.data[2].type = '72'
+        release.data[2].developer = 'ann'
+        release.data[3].type = '72'
+        release.data[3].developer = 'joe'
+        self.assertEqual(len(release.developers().keys()), 2)
+        self.assertEqual(release.developers()['joe'], 3)
+        self.assertEqual(release.developers()['ann'], 1)
+
     def testOnlyStories(self):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()

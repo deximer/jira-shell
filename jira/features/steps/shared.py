@@ -38,6 +38,8 @@ def step(context, value):
 def make_story(row):
     story = model.Story()
     story.key = row['key']
+    story.title = row['title']
+    story.components = []
     if 'team' in row.headings:
         story.scrum_team = row['team']
     else:
@@ -65,8 +67,6 @@ def make_story(row):
         story.resolved = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
     else:
         story.resolved = None
-    story.components = []
-    story.title = row['title']
     if 'status' in row.headings:
         story.status = int(row['status'])
     else:

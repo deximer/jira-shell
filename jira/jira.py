@@ -6,12 +6,6 @@ from model import Release, Story, Projects, Project
 from dao import Jira
 import commands
 
-class NullWriter:
-    def write(self, s):
-        pass
-
-sys.stderr = NullWriter()
-
 cmds = {'top': commands.top.Plugin.Command(),
             'ls': commands.ls.Plugin.Command(),
             'chart': commands.chart.Plugin.Command(),
@@ -19,6 +13,7 @@ cmds = {'top': commands.top.Plugin.Command(),
             'report': commands.report.Plugin.Command(),
             'stat': commands.stat.Plugin.Command(),
             'teams': commands.teams.Plugin.Command(),
+            'developers': commands.developers.Plugin.Command(),
             'refresh': commands.refresh.Plugin.Command(),
            }
 
@@ -53,6 +48,7 @@ def shell():
 def dispatch(command):
     table = {'report': cmds['report'].run,
              'teams': cmds['teams'].run,
+             'developers': cmds['developers'].run,
              'ls': cmds['ls'].run,
              'stat': cmds['stat'].run,
              'top': cmds['top'].run,
