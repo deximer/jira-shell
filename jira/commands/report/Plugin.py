@@ -1,11 +1,23 @@
+import argparse
 from ..base import BaseCommand
 
 class Command(BaseCommand):
     help = 'Report on the current release'
-    usage = 'report'
+    usage = 'report [team]'
+    exmamples = '''    report
+    report App'''
 
     def run(self, jira, args):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('team', nargs='?')
+        try:
+            args = parser.parse_args(args)
+        except:
+            return
         self.refresh_data(jira, False)
+        if args.team:
+            self.release.data = [s for s in self.release.data
+                if s.scrum_team and s.scrum_team[:len(args.team)] == args.team]
         release = self.release
         kanban = self.release.kanban()
         print 'Points in scope  :', round(release.total_points(), 1)
@@ -41,12 +53,6 @@ class Command(BaseCommand):
         for key in wip:
             print key.ljust(16), ':', str(wip[key]['wip']).ljust(6), \
                 wip[key]['stories']
-        print
-        print 'WIP by Swim Lane:'
-        wip = release.wip_by_component()
-        for key in wip:
-            print key.ljust(16), ':',  str(wip[key]['wip']).ljust(6), \
-                str(wip[key]['stories']).ljust(3), wip[key]['largest']
         print
         print 'Development Bug Cycle Time 85th percentile'
         for bug in release.upper_percentiles(0.85, ['1']):

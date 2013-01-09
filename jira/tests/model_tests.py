@@ -884,6 +884,11 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(upper50[0].key, 'NG-1')
         self.assertEqual(upper50[1].key, 'NG-2')
 
+    def TestUpperPercentileNoStories(self):
+        release = Release()
+        upper50 = release.upper_percentiles(0.50, ['1'])
+        self.assertEqual(upper50, [])
+
 
 class ProjectTest(unittest.TestCase):
     def testObjectCreate(self):

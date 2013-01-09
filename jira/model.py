@@ -560,12 +560,12 @@ class Release(object):
     def upper_percentiles(self, percentile, type):
         stories = self.stories(type)
         if not stories:
-            return
+            []
         stories.sort(key=lambda x:x.cycle_time if x.type != '1' else x.cycle_time_life)
         index = int(round(percentile * len(stories) + 0.5))
         if index > 1:
-            return [ct for ct in stories[index-1:]]
-        return None
+            return [s for s in stories[index-1:]]
+        return []
 
 
 class Project(object):

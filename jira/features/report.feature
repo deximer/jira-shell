@@ -38,3 +38,16 @@ Feature: Report data required by the ExecReport.xls
         And I see "NG-3 20" in the output
         And I do not see "NG-1" in the output
         And I do not see "NG-2" in the output
+
+    Scenario: A user views a specific team stats for the release
+        Given I have the following issues in the release
+| key  | title | type | status | points | created |started | resolved | team |
+| NG-1 | Foo1  | 72   | 6      | 2.0    | 13/8/20 | 13/9/1 | 13/9/15  | foo  |
+| NG-2 | Bar2  | 72   | 3      | 3.0    | 13/8/20 | 13/9/1 | 13/9/7   | foo  |
+| NG-3 | Baz3  | 72   | 3      | 6.0    | 13/8/20 | 13/9/1 | 13/9/21  | bar  |
+| NG-4 | Bug1  | 1    | 3      | 0.499  | 13/9/1  | 13/9/2 | 13/9/3   | foo  |
+| NG-5 | Bug2  | 1    | 6      | 0.499  | 13/9/1  | 13/9/3 | 13/9/5   | bar  |
+| NG-6 | Bug3  | 78   | 6      | 0.499  | 13/9/1  | 13/9/9 | 13/9/16  | foo  |
+        When I enter the command "report -t foo"
+        Then I see "Stories          : 2" in the output
+        And I see "  Avg Size       : 2.5" in the output
