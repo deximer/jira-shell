@@ -62,7 +62,7 @@ class Command(BaseCommand):
             print key.ljust(16), ':', str(wip[key]['wip']).ljust(6), \
                 wip[key]['stories']
         print
-        print 'WIP by Swim Lane:'
+        print 'WIP by Team:'
         wip = release.wip_by_component()
         for key in wip:
             print key.ljust(16), ':',  str(wip[key]['wip']).ljust(6), \
