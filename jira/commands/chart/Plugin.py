@@ -9,17 +9,21 @@ from ..base import BaseCommand
 
 class Command(BaseCommand):
     help = 'Render various charts based on the data'
-    usage = 'chart [team] [-t chart_type]'
+    usage = 'chart [team] [-t chart_type] [-d developer] [-s sort_by]'
     options_help = '''    -t : specify chart type (default is cycle times)
+    -d : chart for developer
+    -s : sorting criteria (estimate (default), team, developer)
     '''
     examples = '''    chart
-    chart App'''
+    chart App
+    chart -s team'''
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
         parser.add_argument('team', nargs='?')
         parser.add_argument('-t', nargs='*', required=False)
         parser.add_argument('-d', nargs='*', required=False)
+        parser.add_argument('-s', nargs='*', required=False)
         try:
             args = parser.parse_args(args)
         except:
@@ -37,24 +41,31 @@ class Command(BaseCommand):
         kanban = self.release.kanban()
         stories = self.release.stories(type='72')
         stories.sort(key=lambda i:i.key)
+        if args.s:
+            sorting = args.s
+            if 'cycle_time' not in sorting:
+                sorting.append('cycle_time')
+        else:
+            sorting = ['points', 'scrum_team', 'cycle_time']
         if not args.t or args.t == 'cycles':
-            self.cycles(stories)
+            self.cycles(stories, sorting)
         elif args.t == 'ratios':
-            self.ratios(stories)
+            self.ratios(stories, sorting)
         else:
             print 'Unknown chart type: %s' % args.t[0]
 
-    def cycles(self, stories):
+    def cycles(self, stories, sorting):
         data = []
         wip = []
         estimates = []
+        estimate_labels = []
         alldata = []
         labels = []
         ratios = []
         count = [0]
         stories = [s for s in stories if s.started and s.scrum_team
            and s.scrum_team != 'Continuous Improvement ']
-        stories.sort(key=lambda x:(x.points, x.cycle_time))
+        stories.sort(key=lambda x:tuple([getattr(x, key) for key in sorting]))
         for story in stories:
             alldata.append(story.cycle_time)
             if not story.resolved:
@@ -65,6 +76,7 @@ class Command(BaseCommand):
                 wip.append(None)
             estimates.append(story.points)
             labels.append(story.key)
+            estimate_labels.append(story.scrum_team)
             count.append(count[-1] + 1)
 
         std = numpy.std([d for d in alldata if d])
@@ -98,7 +110,18 @@ class Command(BaseCommand):
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
         pyplot.grid(True)
         pyplot.subplot(gs[1])
-        pyplot.plot(count[1:], estimates, '*', linestyle='-', color='b')
+        pyplot.plot(count[1:], estimates, 'o', linestyle='-', color='b')
+        previous_label = ''
+        for label, x, y in zip(estimate_labels, count[1:], estimates):
+            if label == previous_label:
+                continue
+            previous_label = label
+            pyplot.annotate(
+            label,
+            xy=(x, y), xytext=(-10,10),
+            textcoords = 'offset points', ha='right', va='bottom', fontsize=7,
+            bbox = dict(boxstyle = 'round,pad=0.3', fc='yellow', alpha=0.5),
+                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
         pyplot.show()
 
     def ratios(self, stories):
