@@ -44,3 +44,14 @@ class JiraTest(unittest.TestCase):
         jira.request_page = mock_request_page
         release = jira.get_release()
         self.assertEqual(release.data[0].key, 'NG-12459')
+
+    def testGetChangeLog(self):
+        jira = Jira()
+        import json
+        def mock_call_rest(key, expand=[]):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        jira.call_rest = mock_call_rest
+        data = jira.get_changelog('NG-13332')
+        print data
+        self.assertEqual(data['key'], 'NG-13332')

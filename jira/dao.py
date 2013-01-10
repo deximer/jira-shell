@@ -1,7 +1,13 @@
 import urllib
+import json
 from xml.etree import ElementTree as ET
 from BeautifulSoup import BeautifulSoup as BS
 from model import Projects, Project, Release, Story
+
+MT_USER = 'mindtap.user'
+MT_PASS = 'm1ndtap'
+
+JIRA_API = 'http://%s:%s@jira.cengage.com/rest/api/2/issue/%s'
 
 class Jira(object):
     def __init__(self, server=None, auth=None):
@@ -51,3 +57,15 @@ class Jira(object):
         for item in tree.findall('.//*/item'):
             release.add(Story(item))
         return release
+
+    def call_rest(self, key, expand=[]):
+        URL = JIRA_API % (MT_USER, MT_PASS, key)
+        if expand:
+            URL += '?expand='
+            for item in expand:
+                URL += item + ','
+            URL = URL[:-1]
+        return json.loads(urllib.urlopen(URL).read())
+
+    def get_changelog(self, key):
+        return self.call_rest(key, ['changelog'])

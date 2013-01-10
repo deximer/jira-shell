@@ -3,7 +3,7 @@ import optparse
 import sys
 from BeautifulSoup import BeautifulSoup as BS
 from model import Release, Story, Projects, Project
-from dao import Jira
+from dao import Jira, MT_USER, MT_PASS
 import commands
 
 cmds = {'top': commands.top.Plugin.Command(),
@@ -17,9 +17,9 @@ cmds = {'top': commands.top.Plugin.Command(),
             'refresh': commands.refresh.Plugin.Command(),
            }
 
-NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
+NG_CURRENT_RELEASE = 'http://%s:%s@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
-    'tempMax=10000'
+    'tempMax=10000' % (MT_USER, MT_PASS)
 NG_NEXT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?tempMax=10000'
 ISSUE='http://mindtap.user:m1ndtap@jira.cengage.com/si/jira.issueviews:issue-xml/%s/%s.xml'
 ITEMS = './/*/item'
