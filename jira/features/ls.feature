@@ -90,3 +90,16 @@ Feature: list issues in a release
         And I do not see "NG-2" in the output
         And I do not see "NG-3" in the output
         And I do not see "NG-4" in the output
+
+    Scenario: A user lists issues with an estimate of 2
+        Given I have the following issues in the release
+        | key  | title | points |
+        | NG-1 | Foo 1 | 2.0    |
+        | NG-2 | Bar 2 | 1.0    |
+        | NG-3 | Baz 3 | 0.499  |
+        When I enter the command "ls -p 2"
+        Then I see these issues listed
+        | key  | title |
+        | NG-1 | Foo 1 |
+        And I do not see "NG-2" in the output
+        And I do not see "NG-3" in the output

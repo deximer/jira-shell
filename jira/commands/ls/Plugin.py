@@ -4,9 +4,10 @@ from ..base import BaseCommand
 
 class Command(BaseCommand):
     help = 'List issues in a release'
-    usage = 'ls [team] [-s status [status...]] [-t issue_type [issue_type...]]'
+    usage = 'ls [team] [-s status [status...]] [-t issue_type [issue_type...]] [-p [point]]'
     options_help = '''    -s : Show only issues with the specified status
     -t : Show only issues of the specified type
+    -p : Show issues with the specified point estimates
     '''
     examples = '''    ls
     ls App
@@ -16,6 +17,7 @@ class Command(BaseCommand):
         parser = argparse.ArgumentParser()
         parser.add_argument('-s', nargs='*', type=int, required=False)
         parser.add_argument('-t', nargs='*', required=False)
+        parser.add_argument('-p', nargs='*', required=False)
         parser.add_argument('team', nargs='?')
         try:
             args = parser.parse_args(args)
@@ -30,10 +32,15 @@ class Command(BaseCommand):
               'Title:'
         issues = 0
         points = 0
+        query_points = []
+        if args.p:
+            query_points = [int(p) for p in args.p]
         for story in sorted(self.release.data, key=lambda x: x.scrum_team):
             if args.s and story.status not in args.s:
                 continue
             if args.t and story.type not in args.t:
+                continue
+            if args.p and story.points not in query_points:
                 continue
             if not story.scrum_team:
                 story.scrum_team = 'Everything Else'
