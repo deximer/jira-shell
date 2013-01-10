@@ -103,3 +103,29 @@ Feature: list issues in a release
         | NG-1 | Foo 1 |
         And I do not see "NG-2" in the output
         And I do not see "NG-3" in the output
+
+    Scenario: A user lists issues that are not in state 6
+        Given I have the following issues in the release
+        | key  | title | status |
+        | NG-1 | Foo 1 | 6      |
+        | NG-2 | Bar 2 | 6      |
+        | NG-3 | Baz 3 | 3      |
+        When I enter the command "ls -s !6"
+        Then I see these issues listed
+        | key  | title |
+        | NG-3 | Baz 3 |
+        And I do not see "NG-1" in the output
+        And I do not see "NG-2" in the output
+
+    Scenario: A user lists issues that are not of type 78
+        Given I have the following issues in the release
+        | key  | title | type |
+        | NG-1 | Foo 1 | 72   |
+        | NG-2 | Bar 2 | 78   |
+        | NG-3 | Baz 3 | 1    |
+        When I enter the command "ls -t !78"
+        Then I see these issues listed
+        | key  | title |
+        | NG-1 | Foo 1 |
+        | NG-3 | Baz 3 |
+        And I do not see "NG-2" in the output

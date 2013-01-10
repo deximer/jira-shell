@@ -15,7 +15,7 @@ class Command(BaseCommand):
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
-        parser.add_argument('-s', nargs='*', type=int, required=False)
+        parser.add_argument('-s', nargs='*', required=False)
         parser.add_argument('-t', nargs='*', required=False)
         parser.add_argument('-p', nargs='*', required=False)
         parser.add_argument('team', nargs='?')
@@ -35,10 +35,30 @@ class Command(BaseCommand):
         query_points = []
         if args.p:
             query_points = [int(p) for p in args.p]
+        hide_status = []
+        show_status = []
+        if args.s:
+            for arg in args.s:
+                if arg[:1] == '!':
+                    hide_status.append(int(arg[1:]))
+                else:
+                    show_status.append(int(arg))
+        hide_type = []
+        show_type = []
+        if args.t:
+            for arg in args.t:
+                if arg[:1] == '!':
+                    hide_type.append(arg[1:])
+                else:
+                    show_type.append(arg)
         for story in sorted(self.release.data, key=lambda x: x.scrum_team):
-            if args.s and story.status not in args.s:
+            if show_status and story.status not in show_status:
                 continue
-            if args.t and story.type not in args.t:
+            if hide_status and story.status in hide_status:
+                continue
+            if show_type and story.type not in show_type:
+                continue
+            if hide_type and story.type in hide_type:
                 continue
             if args.p and story.points not in query_points:
                 continue
@@ -46,7 +66,7 @@ class Command(BaseCommand):
                 story.scrum_team = 'Everything Else'
             if args.team and story.scrum_team[:len(args.team)] != args.team:
                 continue
-            
+
             team = story.scrum_team
             if not team:
                 team = 'Everything Else'
