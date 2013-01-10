@@ -50,10 +50,16 @@ class Command(BaseCommand):
             team = story.scrum_team
             if not team:
                 team = 'Everything Else'
+            if not story.cycle_time:
+                cycle_time = 'None'
+            elif not story.resolved:
+                cycle_time = str(story.cycle_time) + '>'
+            else:
+                cycle_time = str(story.cycle_time)
             print team[:18].ljust(18), \
                   str(story.points).ljust(5), \
                   str(story.status).ljust(5), \
-                  str(story.cycle_time).ljust(5), str(story.type).ljust(5), \
+                  cycle_time.ljust(5), str(story.type).ljust(5), \
                   story.title[:37]
             issues += 1
             if story.points:
