@@ -34,10 +34,6 @@ Feature: Report data required by the ExecReport.xls
         And I see "Points in scope  : 11.0" in the output
         And I see "Points completed : 2.0" in the output
         And I see "Total WIP        : 9" in the output
-        And I see "NG-5 4" in the output
-        And I see "NG-3 20" in the output
-        And I do not see "NG-1" in the output
-        And I do not see "NG-2" in the output
 
     Scenario: A user views a specific team stats for the release
         Given I have the following issues in the release

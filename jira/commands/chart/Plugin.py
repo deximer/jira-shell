@@ -118,13 +118,23 @@ class Command(BaseCommand):
         pyplot.subplot(gs[1])
         pyplot.plot(count[1:], estimates, 'o', linestyle='-', color='b')
         previous_label = ''
+        label_count = 0
+        elevated = True
         for label, x, y in zip(estimate_labels, count[1:], estimates):
             if label == previous_label:
+                label_count += 1
                 continue
+            if label_count <=1 and not elevated:
+                elevated = True
+                yoffset = 25
+            else:
+                elevated = False
+                yoffset = 10
+            label_count = 0
             previous_label = label
             pyplot.annotate(
             label,
-            xy=(x, y), xytext=(-10,10),
+            xy=(x, y), xytext=(-10,yoffset),
             textcoords = 'offset points', ha='right', va='bottom', fontsize=7,
             bbox = dict(boxstyle = 'round,pad=0.3', fc='yellow', alpha=0.5),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
