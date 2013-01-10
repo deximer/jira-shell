@@ -61,7 +61,6 @@ Feature: list issues in a release
         | NG-4 | Baz 3 |
         And I do not see "NG-2" in the output
 
-
     Scenario: A user lists issues for a the MathML team
         Given I have the following issues in the release
         | key  | title | team   |

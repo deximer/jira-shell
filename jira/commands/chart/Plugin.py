@@ -65,6 +65,7 @@ class Command(BaseCommand):
         wip = []
         estimates = []
         estimate_labels = []
+        developer_labels = []
         alldata = []
         labels = []
         ratios = []
@@ -83,6 +84,7 @@ class Command(BaseCommand):
             estimates.append(story.points)
             labels.append(story.key)
             estimate_labels.append(story.scrum_team)
+            developer_labels.append(story.developer)
             count.append(count[-1] + 1)
 
         std = numpy.std([d for d in alldata if d])
@@ -95,8 +97,8 @@ class Command(BaseCommand):
         for x in data:
             nsul.append(average + (std * 3))
             nsuw.append(average + (std * 2))
-            nsll.append(average - (std * 3))
             nslw.append(average - (std * 2))
+            nsll.append(average - (std * 3))
             avg.append(average)
         gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1]) 
         pyplot.subplot(gs[0])
@@ -114,6 +116,44 @@ class Command(BaseCommand):
             textcoords = 'offset points', ha='right', va='bottom', fontsize=7,
             bbox = dict(boxstyle = 'round,pad=0.3', fc='yellow', alpha=0.5),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
+        yoffset = -10
+        odd = True
+        for label, x, y in zip(developer_labels, count[1:], nsll):
+            if odd:
+                odd = False
+            else:
+                odd = True
+                continue
+            if not label:
+                continue
+            if yoffset < -30:
+                yoffset = -10
+            pyplot.annotate(
+            label,
+            xy=(x, y), xytext=(10, yoffset),
+            textcoords = 'offset points', ha='right', va='bottom', fontsize=7,
+            bbox = dict(boxstyle = 'round,pad=0.3', fc='yellow', alpha=0.5),
+                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
+            yoffset -= 10
+        odd = True
+        yoffset = 10
+        for label, x, y in zip(developer_labels, count[1:], nsul):
+            if odd:
+                odd = False
+                continue
+            else:
+                odd = True
+            if not label:
+                continue
+            if yoffset > 30:
+                yoffset = 10
+            pyplot.annotate(
+            label,
+            xy=(x, y), xytext=(10, yoffset),
+            textcoords = 'offset points', ha='right', va='bottom', fontsize=7,
+            bbox = dict(boxstyle = 'round,pad=0.3', fc='yellow', alpha=0.5),
+                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
+            yoffset += 10
         pyplot.grid(True)
         pyplot.subplot(gs[1])
         pyplot.plot(count[1:], estimates, 'o', linestyle='-', color='b')
