@@ -40,9 +40,20 @@ class Root(object):
     pass
 
 class Story(object):
-    def __init__(self, item=None):
+    def __init__(self, item=None, key=None):
         if item is None:
             return
+        if key:
+            data = jira.get_changelog(key)
+            if not data:
+                return
+            self.points = data['customfield_10792']
+            self.started = data['customfield_13434']
+            if self.started:
+                self.started = datetime.datetime.fromtimestamp(time.mktime(
+                    time.strptime(started.text[:-6], '%a, %d %b %Y %H:%M:%S')))
+
+            self.key = key
         points = item.find(STORY_POINTS)
         if points is not None:
             self.points = float(points.text)

@@ -4,12 +4,15 @@ from ..base import BaseCommand
 
 class Command(BaseCommand):
     help = 'Print details of specified issues'
-    usage = 'stat [issue_id]'
+    usage = 'stat <issue_id>'
     examples = '''    stat 12345
     stat NG-12345
     '''
 
     def run(self, jira, args):
+        if not args:
+            print 'Error: you must specify an issue key'
+            return
         parser = argparse.ArgumentParser()
         parser.add_argument('key')
         args = parser.parse_args(args)

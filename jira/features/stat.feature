@@ -24,3 +24,8 @@ Feature: List critial information about a specific issue
         Then I see critical data for the specific issue
         | key  | title | status | type |
         | NG-2 | Bar2  | 2      | 72   |
+
+    Scenario: A user does not supply an issue id
+        Given The user is at the command line
+        When I enter the command "stat"
+        Then I see "Error: you must specify an issue key" in the output

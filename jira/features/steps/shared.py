@@ -4,6 +4,10 @@ import jira
 import dao
 from datetime import datetime
 
+@given('The user is at the command line')
+def step(context):
+    pass
+
 @given('I have the following issues in the release')
 def step(context):
     context.release = model.Release()
