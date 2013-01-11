@@ -34,7 +34,7 @@ class Command(BaseCommand):
         points = 0
         query_points = []
         if args.p:
-            query_points = [int(p) for p in args.p]
+            query_points = [float(p) for p in args.p]
         hide_status = []
         show_status = []
         if args.s:
