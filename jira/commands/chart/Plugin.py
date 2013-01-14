@@ -15,9 +15,11 @@ class Command(BaseCommand):
     -d : chart for developer
     -p : chart for estimate value 
     -s : sorting criteria
+    -k : chart using or surpressing specific issue keys
     '''
     examples = '''    chart
     chart App
+    chart -k !1234
     chart -s scrum_team points'''
 
     def run(self, jira, args):
@@ -27,6 +29,7 @@ class Command(BaseCommand):
         parser.add_argument('-d', nargs='*', required=False)
         parser.add_argument('-p', nargs='*', required=False)
         parser.add_argument('-s', nargs='*', required=False)
+        parser.add_argument('-k', nargs='*', required=False)
         try:
             args = parser.parse_args(args)
         except:
@@ -41,6 +44,20 @@ class Command(BaseCommand):
         if args.p:
             self.release.data = [s for s in self.release.data
                 if s.points and s.points == float(args.p[0])]
+        if args.k:
+            hide_keys = []
+            show_keys = []
+            for k in args.k:
+                if k[0] == '!':
+                    hide_keys.append('NG-' + k[1:])
+                else:
+                    show_keys.append('NG-' + k)
+            if show_keys:
+                self.release.data = [s for s in self.release.data if s.points
+                    and s.key in show_keys]
+            if hide_keys:
+                self.release.data = [s for s in self.release.data if s.points
+                    and s.key not in hide_keys]
         if not self.release.data:
             print 'No data to report'
             return
