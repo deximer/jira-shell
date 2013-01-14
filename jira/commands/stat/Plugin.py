@@ -22,12 +22,13 @@ class Command(BaseCommand):
         if not story:
             print 'No story matching key: %s' % args.key
             return
-        print 'ID: ', story.key
-        print 'Title: ', story.title
-        print 'Type: ', story.type
-        print 'Team: ', story.scrum_team
-        print 'Points: ', story.points
-        print 'Status: ', story.status
+        print 'ID:', story.key
+        print 'Title:', story.title
+        print 'Type:', story.type
+        print 'Team:', story.scrum_team
+        print 'Developer:', story.developer
+        print 'Points:', story.points
+        print 'Status:', story.status
         print 'Started:', story.started
         print 'Resolved:', story.resolved
         print 'Cycle Time:', story.cycle_time

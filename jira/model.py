@@ -48,8 +48,8 @@ class Story(object):
             if not data:
                 return
             self.points = data['customfield_10792']
-            self.started = data['customfield_13434']
-            if self.started:
+            started = data['customfield_13434']
+            if started:
                 self.started = datetime.datetime.fromtimestamp(time.mktime(
                     time.strptime(started.text[:-6], '%a, %d %b %Y %H:%M:%S')))
 
