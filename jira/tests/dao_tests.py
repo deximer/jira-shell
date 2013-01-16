@@ -45,6 +45,14 @@ class JiraTest(unittest.TestCase):
         release = jira.get_release()
         self.assertEqual(release.data[0].key, 'NG-12459')
 
+    def testGetReleaseKeys(self):
+        jira = Jira()
+        def mock_request_page(url, refresh=False):
+            return open('jira/tests/data/rss.xml').read()
+        jira.request_page = mock_request_page
+        release = jira.get_release_keys()
+        self.assertEqual(release.data[0], 'NG-12459')
+
     def testGetChangeLog(self):
         jira = Jira()
         import json

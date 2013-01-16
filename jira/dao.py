@@ -58,6 +58,15 @@ class Jira(object):
             release.add(Story(item))
         return release
 
+    def get_release_keys(self, refresh=False):
+        page = self.request_page('sr/jira.issueviews:searchrequest-xml/24619/' \
+            'SearchRequest-24619.xml?tempMax=10000', refresh)
+        tree = ET.fromstring(page)
+        release = Release()
+        for item in tree.findall('.//*/item'):
+            release.add(Story(item).key)
+        return release
+
     def call_rest(self, key, expand=[]):
         URL = JIRA_API % (MT_USER, MT_PASS, key)
         if expand:
