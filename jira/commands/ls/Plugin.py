@@ -3,15 +3,15 @@ import argparse
 from ..base import BaseCommand
 
 class Command(BaseCommand):
-    help = 'List issues in a release'
+    help = 'List issues in a release.'
     usage = 'ls [team] [-s status [status...]] [-t issue_type [issue_type...]] [-p [point]]'
     options_help = '''    -s : Show only issues with the specified status
-    -t : Show only issues of the specified type
-    -p : Show issues with the specified point estimates
+    -t : Show only issues of the specified type ("!" for exclusion)
+    -p : Show issues with the specified point estimates ("!" for exclusion)
     '''
     examples = '''    ls
     ls App
-    ls Math -s 3 -t 72'''
+    ls Math -s !3 -t 72'''
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
