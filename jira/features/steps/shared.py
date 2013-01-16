@@ -6,7 +6,11 @@ from datetime import datetime
 
 @given('The user is at the command line')
 def step(context):
-    pass
+    context.release = model.Release()
+    if not hasattr(context, 'table'):
+        return
+    for row in context.table:
+        context.release.add(make_story(row))
 
 @given('I have the following issues in the release')
 def step(context):

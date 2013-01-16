@@ -1,6 +1,7 @@
 import chart
 import developers
 import export
+import legend
 import ls
 import refresh
 import report

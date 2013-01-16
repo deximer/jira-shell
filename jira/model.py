@@ -35,6 +35,23 @@ STATUS_QA_READY = 10104
 KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_IN_PROGRESS, STATUS_REOPENED,
     STATUS_QA_READY, STATUS_QA_ACTIVE, STATUS_COMPLETED, STATUS_VERIFIED,
     STATUS_CLOSED]
+STATUS_CODES = {
+    '1': 'Open',
+    '3': 'In Progress',
+    '4': 'Reopened',
+    '6': 'Closed',
+    '10036': 'Verified',
+    '10089': 'Ready',
+    '10090': 'Completed',
+    '10092': 'QA Active',
+    '10104': 'QA Ready'
+}
+
+ISSUE_TYPES = {
+    '1' : 'Development Bug',
+    '72': 'Story',
+    '78': 'Production Bug'
+}
 
 class Root(object):
     pass
