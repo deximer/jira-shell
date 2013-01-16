@@ -5,9 +5,9 @@ from ..base import BaseCommand
 class Command(BaseCommand):
     help = 'List issues in a release.'
     usage = 'ls [team] [-s status [status...]] [-t issue_type [issue_type...]] [-p [point]]'
-    options_help = '''    -s : Show only issues with the specified status
+    options_help = '''    -s : Show only issues with the specified status ("!" for exclusion)
     -t : Show only issues of the specified type ("!" for exclusion)
-    -p : Show issues with the specified point estimates ("!" for exclusion)
+    -p : Show issues with the specified point estimates
     '''
     examples = '''    ls
     ls App
