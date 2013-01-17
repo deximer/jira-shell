@@ -1,6 +1,6 @@
 import unittest
 import datetime
-from ..model import Story, Release, Projects, Project, Root, Kanban
+from ..model import Story, Release, Projects, Project, Kanban
 from ..dao import Jira
 from  xml.etree import ElementTree as ET
 
@@ -10,15 +10,6 @@ D20121203 = datetime.datetime(2012, 12, 3)
 D20121205 = datetime.datetime(2012, 12, 5)
 D20121208 = datetime.datetime(2012, 12, 8)
 D20121213 = datetime.datetime(2012, 12, 13)
-
-class RootTest(unittest.TestCase):
-    ''' Unit tests for the Root object class
-    '''
-    def testObjectCreation(self):
-        ''' Verify a Root object can be created
-        '''
-        obj = Root()
-        self.assertTrue(obj is not None)
 
 class StoryTest(unittest.TestCase):
     ''' Unit tests for the Story class
