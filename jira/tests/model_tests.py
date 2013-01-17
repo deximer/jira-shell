@@ -15,6 +15,15 @@ D20121213 = datetime.datetime(2012, 12, 13)
 class StoryTest(unittest.TestCase):
     ''' Unit tests for the Story class
     '''
+    def setUp(self):
+        self.jira = Jira()
+        def mock_request_page(url, refresh=False):
+            return open('jira/tests/data/rss.xml').read()
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        self.jira.call_rest = mock_call_rest
+        self.jira.request_page = mock_request_page
 
     def testObjectCreation(self):
         ''' Verify we can create a Story object
@@ -24,14 +33,11 @@ class StoryTest(unittest.TestCase):
 
     def testObjectInitialized(self):
         import time
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.findall('.//*/item/key')
-        obj = Story(item[3].text)
+        obj = self.jira.get_story('NG-12391')
         self.assertEqual(obj.key, 'NG-12391')
         self.assertEqual(obj.type, '72')
-        self.assertEqual(obj.started.isoformat(), '2012-12-13T11:17:19')
-        self.assertEqual(obj.created.isoformat(), '2012-10-22T15:34:26')
+        self.assertEqual(obj.started.isoformat(), '2013-01-01T15:31:39')
+        self.assertEqual(obj.created.isoformat(), '2012-12-21T15:05:23')
 
     def testCycleTime(self):
         story = Story()
@@ -40,17 +46,16 @@ class StoryTest(unittest.TestCase):
         self.assertEqual(story.cycle_time, 4)
 
     def testCycleTimeNullDates(self):
-        story = Story()
+        story = self.jira.get_story('NG-12345')
         story.started = None
         story.resolved = None
         self.assertEqual(story.cycle_time, None)
 
     def testCycleTimeLife(self):
-        story = Story()
-        story.created = D20121201
-        story.started = D20121203
+        story = self.jira.get_story('NG-12345')
+        story.created = D20121203
         story.resolved = D20121205
-        self.assertEqual(story.cycle_time_life, 4)
+        self.assertEqual(story.cycle_time_life, 2)
 
 
 class KanbanTest(unittest.TestCase):
@@ -665,14 +670,14 @@ class ReleaseTests(unittest.TestCase):
         release.data[2].type = '72'
         self.assertEqual(release.std_story_size(), 3.0550504633038931)
 
-    def test_sort_by_size(self):
+    def testSortBySize(self):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        item = tree.find('.//*/item/key').text
+        release.add(jira.get_story(item))
+        release.add(jira.get_story(item))
+        release.add(jira.get_story(item))
         release.data[0].points = 2.0
         release.data[1].points = 1.0
         release.data[2].points = 3.0

@@ -58,23 +58,6 @@ class Story(object):
             return delta.days
         return None
 
-    def _get_created(self):
-        return datetime.datetime.fromtimestamp(time.mktime(time.strptime(
-            self.data['fields']['created'][:23], '%Y-%m-%dT%H:%M:%S.%f')))
-
-    def _get_history(self):
-        return self.data['histories']
-
-    def _get_assignee(self):
-        return self.data['fields']['assignee']
-
-    def _get_scrum_team(self):
-        return data['fields']['customfield_11261']
-
-    created = property(_get_created)
-    assignee = property(_get_assignee)
-    scrum_team = property(_get_scrum_team)
-    history = property(_get_history)
     cycle_time = property(_get_cycle_time)
     cycle_time_life = property(_get_cycle_time_life)
 

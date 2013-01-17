@@ -72,7 +72,29 @@ class Jira(object):
     def get_story(self, key):
         story = Story(key)
         data = self.call_rest(key, expand=['changelog'])
-        story.data = data
+        story.created = datetime.datetime.fromtimestamp(time.mktime(
+            time.strptime(data['fields']['created'][:23],
+            '%Y-%m-%dT%H:%M:%S.%f')))
+        story.started = None
+        story.resolved = None
+        for history in data['changelog']['histories']:
+            for item in history['items']:
+                if item['to'] == '3':
+                    story.started = datetime.datetime.fromtimestamp(time.mktime(
+                        time.strptime(history['created'][:23],
+                        '%Y-%m-%dT%H:%M:%S.%f')))
+                    break
+        for history in data['changelog']['histories']:
+            for item in history['items']:
+                if item['to'] == '6':
+                    story.resolved =datetime.datetime.fromtimestamp(time.mktime(
+                        time.strptime(history['created'][:23],
+                        '%Y-%m-%dT%H:%M:%S.%f')))
+                    break
+        story.type = data['fields']['issuetype']['id']
+        story.assignee = data['fields']['assignee']
+        story.scrum_team = data['fields']['customfield_11261']
+        story.history = data['changelog']['histories']
         return story
 
     def call_rest(self, key, expand=[]):
