@@ -1,5 +1,6 @@
 import unittest
 import datetime
+import json
 from ..model import Story, Release, Projects, Project, Kanban
 from ..dao import Jira
 from  xml.etree import ElementTree as ET
@@ -70,6 +71,10 @@ class KanbanTest(unittest.TestCase):
         jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        jira.call_rest = mock_call_rest
         jira.request_page = mock_request_page
         release = jira.get_release()
         kanban = Kanban()
@@ -81,6 +86,10 @@ class KanbanTest(unittest.TestCase):
         jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        jira.call_rest = mock_call_rest
         jira.request_page = mock_request_page
         release = jira.get_release()
         kanban = release.kanban()
@@ -90,6 +99,10 @@ class KanbanTest(unittest.TestCase):
         jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        jira.call_rest = mock_call_rest
         jira.request_page = mock_request_page
         release = jira.get_release()
         kanban = release.kanban()
@@ -303,6 +316,10 @@ class KanbanTest(unittest.TestCase):
         jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        jira.call_rest = mock_call_rest
         jira.request_page = mock_request_page
         release = jira.get_release()
         kanban = release.kanban()
@@ -863,6 +880,10 @@ class ReleaseTests(unittest.TestCase):
         jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        jira.call_rest = mock_call_rest
         jira.request_page = mock_request_page
         release = jira.get_release()
         self.assertEqual(release.graph_kanban(), '.O.')
@@ -871,6 +892,10 @@ class ReleaseTests(unittest.TestCase):
         jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        jira.call_rest = mock_call_rest
         jira.request_page = mock_request_page
         release = jira.get_release()
         self.assertEqual(release.graph_kanban('Core and Builder'), '.O.')

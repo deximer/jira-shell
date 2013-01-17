@@ -1,5 +1,7 @@
 import urllib
 import json
+import datetime
+import time
 from xml.etree import ElementTree as ET
 from BeautifulSoup import BeautifulSoup as BS
 from model import Projects, Project, Release, Story
@@ -54,8 +56,8 @@ class Jira(object):
             'SearchRequest-24619.xml?tempMax=10000', refresh)
         tree = ET.fromstring(page)
         release = Release()
-        for item in tree.findall('.//*/item'):
-            release.add(Story(item))
+        for key in self.get_release_keys():
+            release.add(self.get_story(key))
         return release
 
     def get_release_keys(self, refresh=False):
@@ -63,9 +65,15 @@ class Jira(object):
             'SearchRequest-24619.xml?tempMax=10000', refresh)
         tree = ET.fromstring(page)
         keys = []
-        for item in tree.findall('.//*/item'):
-            keys.append(Story(item).key)
+        for key in tree.findall('.//*/item/key'):
+            keys.append(key.text)
         return keys
+
+    def get_story(self, key):
+        story = Story(key)
+        data = self.call_rest(key, expand=['changelog'])
+        story.data = data
+        return story
 
     def call_rest(self, key, expand=[]):
         URL = JIRA_API % (MT_USER, MT_PASS, key)

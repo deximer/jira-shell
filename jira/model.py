@@ -37,86 +37,8 @@ KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_IN_PROGRESS, STATUS_REOPENED,
     STATUS_CLOSED]
 
 class Story(object):
-    def __init__(self, item=None, key=None):
-        if not item and not key:
-            return
-        if key:
-            self.key = key
-            jira = Jira()
-            data = jira.get_changelog(key)
-            if not data:
-                return
-            self.points = data['fields']['customfield_10792']
-            self.status = int(data['fields']['status']['id'])
-            self.history = data['changelog']['histories']
-            return
-        points = item.find(STORY_POINTS)
-        if points is not None:
-            self.points = float(points.text)
-        else:
-            self.points = None
-        status = item.find(STATUS)
-        if status is not None:
-            self.status = int(status.attrib['id'])
-        else:
-            self.status = None
-        self.components = []
-        components = item.findall(COMPONENTS)
-        for component in components:
-            self.components.append(component.text)
-        key = item.find(KEY)
-        if key is not None:
-            self.key = key.text
-        else:
-            self.key = None
-        title = item.find(TITLE)
-        if title is not None:
-            self.title = title.text
-        else:
-            self.title = None
-        issue_type = item.find(TYPE)
-        if issue_type is not None:
-            self.type = issue_type.attrib['id']
-        else:
-            self.type = None
-        description = item.find(DESCRIPTION)
-        if description is not None:
-            self.description = description.text
-        else:
-            self.description = None
-        created = item.find(CREATED)
-        if created is not None:
-            self.created = datetime.datetime.fromtimestamp(time.mktime(
-                time.strptime(created.text[:-6], '%a, %d %b %Y %H:%M:%S')))
-        else:
-            self.created = None
-        resolved = item.find(RESOLVED)
-        if resolved is not None:
-            self.resolved = datetime.datetime.fromtimestamp(time.mktime(
-                time.strptime(resolved.text[:-6], '%a, %d %b %Y %H:%M:%S')))
-        else:
-            self.resolved = None
-        started = item.find(IN_PROGRESS)
-        if started is not None:
-            self.started = datetime.datetime.fromtimestamp(time.mktime(
-                time.strptime(started.text[:-6], '%a, %d %b %Y %H:%M:%S')))
-        else:
-            self.started = None
-        assignee = item.find(ASSIGNEE)
-        if assignee is not None:
-            self.assignee = assignee.text
-        else:
-            self.assignee = None
-        scrum_team = item.find(SCRUM_TEAM)
-        if scrum_team is not None:
-            self.scrum_team = scrum_team.text
-        else:
-            self.scrum_team = None
-        developer = item.find(DEVELOPER)
-        if developer is not None:
-            self.developer = developer.text
-        else:
-            self.developer = None
+    def __init__(self, key=None):
+        self.key = key
 
     def _get_cycle_time(self):
         if self.started and self.resolved:
@@ -136,6 +58,23 @@ class Story(object):
             return delta.days
         return None
 
+    def _get_created(self):
+        return datetime.datetime.fromtimestamp(time.mktime(time.strptime(
+            self.data['fields']['created'][:23], '%Y-%m-%dT%H:%M:%S.%f')))
+
+    def _get_history(self):
+        return self.data['histories']
+
+    def _get_assignee(self):
+        return self.data['fields']['assignee']
+
+    def _get_scrum_team(self):
+        return data['fields']['customfield_11261']
+
+    created = property(_get_created)
+    assignee = property(_get_assignee)
+    scrum_team = property(_get_scrum_team)
+    history = property(_get_history)
     cycle_time = property(_get_cycle_time)
     cycle_time_life = property(_get_cycle_time_life)
 

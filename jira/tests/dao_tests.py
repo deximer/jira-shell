@@ -1,4 +1,5 @@
 import unittest
+import json
 from ..dao import Jira
 
 
@@ -41,6 +42,10 @@ class JiraTest(unittest.TestCase):
         jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        jira.call_rest = mock_call_rest
         jira.request_page = mock_request_page
         release = jira.get_release()
         self.assertEqual(release.data[0].key, 'NG-12459')
@@ -53,9 +58,24 @@ class JiraTest(unittest.TestCase):
         keys = jira.get_release_keys()
         self.assertEqual(keys[0], 'NG-12459')
 
+    def testGetStory(self):
+        jira = Jira()
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        jira.call_rest = mock_call_rest
+        story = jira.get_story('NG-12345')
+        self.assertEqual(story.key, 'NG-12345')
+        import datetime
+        import time
+        creation_date = datetime.datetime.fromtimestamp(time.mktime(
+            time.strptime('2012-12-21T15:05:23.000-0500'[:23]
+            , '%Y-%m-%dT%H:%M:%S.%f')))
+        self.assertEqual(story.created, creation_date)
+        self.assertEqual(story.assignee['displayName'], 'Abdul Habra')
+
     def testGetChangeLog(self):
         jira = Jira()
-        import json
         def mock_call_rest(key, expand=[]):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
