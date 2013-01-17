@@ -26,8 +26,8 @@ class StoryTest(unittest.TestCase):
         import time
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
-        item = tree.findall('.//*/item')
-        obj = Story(item[3])
+        item = tree.findall('.//*/item/key')
+        obj = Story(item[3].text)
         self.assertEqual(obj.key, 'NG-12391')
         self.assertEqual(obj.type, '72')
         self.assertEqual(obj.started.isoformat(), '2012-12-13T11:17:19')
@@ -461,8 +461,8 @@ class ReleaseTests(unittest.TestCase):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
+        key = tree.find('.//*/item/key')
+        release.add(Story(key.text))
         self.assertEqual(release.data[0].key, 'NG-12459')
 
     def testGetStory(self):
