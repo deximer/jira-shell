@@ -59,16 +59,24 @@ class StoryTest(unittest.TestCase):
 
 
 class KanbanTest(unittest.TestCase):
+    def setUp(self):
+        self.jira = Jira()
+        def mock_request_page(url, refresh=False):
+            return open('jira/tests/data/rss.xml').read()
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        self.jira.call_rest = mock_call_rest
+        self.jira.request_page = mock_request_page
+
     def testObjectCreation(self):
         obj = Kanban()
         self.assertTrue(obj is not None)
 
     def testAddStory(self):
-        kanban = Kanban()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        kanban.add(Story(item))
+        release = Release()
+        release.add(self.jira.get_story(''))
+        kanban = release.kanban()
         self.assertEqual(len(kanban.stories), 1)
         self.assertEqual(len(kanban.grid.keys()), 1)
 
@@ -85,7 +93,7 @@ class KanbanTest(unittest.TestCase):
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(len(kanban.stories), 125)
-        self.assertEqual(len(kanban.grid['Core and Builder']), 6)
+        self.assertEqual(len(kanban.grid['Continuous Improvement']), 1)
 
     def testAverageCycleTimeLife(self):
         jira = Jira()
@@ -98,7 +106,7 @@ class KanbanTest(unittest.TestCase):
         jira.request_page = mock_request_page
         release = jira.get_release()
         kanban = release.kanban()
-        self.assertEqual(kanban.average_cycle_time_life(), 16.0)
+        self.assertEqual(kanban.average_cycle_time_life(), 17.0)
 
     def testAverageCycleTime(self):
         jira = Jira()
@@ -111,17 +119,14 @@ class KanbanTest(unittest.TestCase):
         jira.request_page = mock_request_page
         release = jira.get_release()
         kanban = release.kanban()
-        self.assertEqual(kanban.average_cycle_time(), 8.0)
+        self.assertEqual(kanban.average_cycle_time(), 6.0)
 
     def testAverageCycleTimeBugs(self):
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
         release = Release()
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].type = '1'
         release.data[0].started = D20121201
         release.data[0].resolved = D20121203
@@ -138,14 +143,11 @@ class KanbanTest(unittest.TestCase):
         self.assertEqual(kanban.average_cycle_time(type=['1']), 5.3)
 
     def testMedianCycleTime(self):
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
         release = Release()
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].type = '72'
         release.data[0].started = D20121201
         release.data[0].resolved = D20121203
@@ -156,26 +158,22 @@ class KanbanTest(unittest.TestCase):
         release.data[2].started = D20121201
         release.data[2].resolved = D20121213
         kanban = release.kanban()
-        self.assertEqual(kanban.median_cycle_time(), 7.0)
+        self.assertEqual(kanban.median_cycle_time(), 6.5)
 
     def testAverageCycleTimeOnlyBugs(self):
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
         release = Release()
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
         release.data[0].started = D20121201
+        release.data[0].type = '1'
         release.data[0].resolved = D20121205
+        release.data[0].type = '78'
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.average_cycle_time(), None)
 
     def testAverageCycleTimeNoCompletedStories(self):
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
         release = Release()
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
         release.data[0].type = '72'
         release.data[0].started = D20121201
         release.data[0].resolved = None
@@ -184,14 +182,11 @@ class KanbanTest(unittest.TestCase):
         self.assertEqual(kanban.average_cycle_time(), None)
 
     def testAverageCycleTimeStrictBaked(self):
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
         release = Release()
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].started = D20121201
         release.data[0].resolved = D20121205
         release.data[0].type = '72'
@@ -213,10 +208,10 @@ class KanbanTest(unittest.TestCase):
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
         release = Release()
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].created = D20121201
         release.data[0].resolved = D20121205
         release.data[0].type = '72'
@@ -234,14 +229,11 @@ class KanbanTest(unittest.TestCase):
         self.assertEqual(kanban.stdev_cycle_time_life(), 3.7)
 
     def testStdevCycleTimeStrictBaked(self):
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
         release = Release()
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].started = D20121201
         release.data[0].resolved = D20121205
         release.data[0].type = '72'
@@ -259,14 +251,11 @@ class KanbanTest(unittest.TestCase):
         self.assertEqual(kanban.stdev_cycle_time(), 3.7)
 
     def testCycleTimePerPointStrictBaked(self):
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
         release = Release()
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].started = D20121201
         release.data[0].resolved = D20121205 # 4 days
         release.data[0].type = '72'
@@ -292,10 +281,10 @@ class KanbanTest(unittest.TestCase):
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
         release = Release()
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].started = D20121201
         release.data[0].resolved = D20121205 # 4 days
         release.data[0].type = '72'
@@ -328,17 +317,14 @@ class KanbanTest(unittest.TestCase):
         jira.request_page = mock_request_page
         release = jira.get_release()
         kanban = release.kanban()
-        self.assertEqual(kanban.average_cycle_time('Continuous Improvement '), 10.0)
+        self.assertEqual(kanban.average_cycle_time('Continuous Improvement'), 6.0)
 
     def testAverageCycleTimeForEstimate(self):
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
         release = Release()
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].started = D20121201
         release.data[0].resolved = D20121205 # 4 days
         release.data[0].type = '72'
@@ -362,14 +348,11 @@ class KanbanTest(unittest.TestCase):
         self.assertEqual(kanban.average_cycle_time_for_estimate('1.0'), 2.0)
 
     def testStdevCycleTimeForEstimate(self):
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
         release = Release()
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].started = D20121201
         release.data[0].resolved = D20121205 # 4 days
         release.data[0].type = '72'
@@ -393,14 +376,11 @@ class KanbanTest(unittest.TestCase):
         self.assertEqual(kanban.stdev_cycle_time_for_estimate('1.0'), 0.0)
 
     def testContingency(self):
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
         release = Release()
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].key = 'NG-TEST'
         release.data[0].started = D20121201
         release.data[0].resolved = D20121205 # 4 days
@@ -429,8 +409,8 @@ class KanbanTest(unittest.TestCase):
         item = tree.find('.//*/item')
         release = Release()
         kanban = release.kanban()
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].key = 'NG-TEST'
         release.data[0].started = None
         release.data[0].resolved = None
@@ -446,6 +426,15 @@ class KanbanTest(unittest.TestCase):
 class ReleaseTests(unittest.TestCase):
     ''' Unit tests for the Release class
     '''
+    def setUp(self):
+        self.jira = Jira()
+        def mock_request_page(url, refresh=False):
+            return open('jira/tests/data/rss.xml').read()
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        self.jira.call_rest = mock_call_rest
+        self.jira.request_page = mock_request_page
 
     def testObjectCreation(self):
         obj = Release()
@@ -464,19 +453,13 @@ class ReleaseTests(unittest.TestCase):
 
     def testAddStory(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        key = tree.find('.//*/item/key')
-        release.add(Story(key.text))
+        release.add(self.jira.get_story('NG-12459'))
         self.assertEqual(release.data[0].key, 'NG-12459')
 
     def testGetStory(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        key = 'NG-12459'
+        release.add(self.jira.get_story('NG-12345'))
+        key = 'NG-12345'
         story = release.get(key)
         self.assertEqual(story.key, key)
 
@@ -485,20 +468,17 @@ class ReleaseTests(unittest.TestCase):
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
         key = 'NOKEY'
         story = release.get(key)
         self.assertEqual(story, None)
 
     def testTaskedTeams(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].type = '72'
         release.data[0].scrum_team = 'Foo'
         release.data[1].type = '72'
@@ -514,13 +494,10 @@ class ReleaseTests(unittest.TestCase):
 
     def testDevelopers(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].type = '72'
         release.data[0].developer = 'joe'
         release.data[1].type = '72'
@@ -535,38 +512,32 @@ class ReleaseTests(unittest.TestCase):
 
     def testOnlyStories(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].type = '72'
-        release.data[2].type = '72'
+        release.data[1].type = '72'
+        release.data[2].type = '78'
         self.assertEqual(len(release.stories()), 2)
 
     def testOnlyStartedStories(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].type = '72'
         release.data[0].started = D20121201
+        release.data[1].type = '78'
+        release.data[1].started = D20121201
         release.data[2].type = '72'
         release.data[2].started = None
         self.assertEqual(len(release.started_stories()), 1)
 
     def testStoriesByStatus(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].type = '72'
         release.data[0].status = 6
         release.data[1].type = '72'
@@ -577,12 +548,9 @@ class ReleaseTests(unittest.TestCase):
 
     def testOnlyBugs(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].type = '1'
         release.data[1].type = '72'
         release.data[2].type = '78'
@@ -590,13 +558,10 @@ class ReleaseTests(unittest.TestCase):
 
     def testTotalStories(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
         release.data[0].type = '72'
         self.assertTrue(release.total_stories() == 1)
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
         release.data[1].type = '72'
         self.assertTrue(release.total_stories() == 2)
 
@@ -605,31 +570,35 @@ class ReleaseTests(unittest.TestCase):
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(item))
+        release.add(self.jira.get_story(item))
+        release.add(self.jira.get_story(item))
         release.data[0].type = '72'
+        release.data[0].points = 1.5
         release.data[1].type = '72'
-        self.assertEqual(release.total_points(), 3.0)
+        release.data[1].points = 2.0
+        release.data[2].type = '1'
+        release.data[2].points = 5.0
+        self.assertEqual(release.total_points(), 3.5)
 
     def testPointsCompleted(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].type = '72'
+        release.data[0].points = 2.0
         release.data[1].type = '72'
+        release.data[1].points = 1.0
+        release.data[2].type = '1'
+        release.data[2].points = 0.5
         self.assertEqual(release.total_points(), 3.0)
 
     def testAverageStorySize(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].points = 2.0
         release.data[0].type = '72'
         release.data[1].points = 4.0
@@ -640,12 +609,9 @@ class ReleaseTests(unittest.TestCase):
 
     def testAverageStorySizeNullValues(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].points = 2.0
         release.data[0].type = '72'
         release.data[1].points = None
@@ -656,12 +622,9 @@ class ReleaseTests(unittest.TestCase):
 
     def testStdStorySize(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].points = 2.0
         release.data[0].type = '72'
         release.data[1].points = 4.0
@@ -672,12 +635,9 @@ class ReleaseTests(unittest.TestCase):
 
     def testSortBySize(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item/key').text
-        release.add(jira.get_story(item))
-        release.add(jira.get_story(item))
-        release.add(jira.get_story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].points = 2.0
         release.data[1].points = 1.0
         release.data[2].points = 3.0
@@ -688,12 +648,9 @@ class ReleaseTests(unittest.TestCase):
 
     def testOnlyGroomedStories(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].points = 2.0
         release.data[0].type = '72'
         release.data[1].points = None
@@ -704,12 +661,9 @@ class ReleaseTests(unittest.TestCase):
 
     def testStoriesByEstimate(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].points = 2.0
         release.data[0].type = '72'
         release.data[1].points = 2.0
@@ -723,34 +677,30 @@ class ReleaseTests(unittest.TestCase):
 
     def testStoriesInProcess(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item)) # Left as type=1, bug
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].status = 3
         release.data[0].type = '72'
         release.data[1].status = 10092
         release.data[1].type = '72'
         release.data[2].status = 6
         release.data[2].type = '72'
+        release.data[3].status = 3
+        release.data[3].type = '78'
         self.assertEqual(release.stories_in_process(), 2)
 
     def testWip(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].status = 1
         release.data[0].points = 1.0
         release.data[0].type = '72'
@@ -781,25 +731,31 @@ class ReleaseTests(unittest.TestCase):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
+        key = tree.find('.//*/item').text
+        release.add(self.jira.get_story(key))
+        release.add(self.jira.get_story(key))
+        release.add(self.jira.get_story(key))
         release.data[0].status = 3 # In Progress
+        release.data[0].points = 3.0
         release.data[0].type = '72'
         release.data[1].status = 6 # Closed
+        release.data[1].points = 5.0
         release.data[1].type = '72'
-        self.assertEqual(release.wip_by_status()['3']['wip'], 1.5)
+        release.data[2].status = 3 # In Progress
+        release.data[2].points = 1.5
+        release.data[2].type = '72'
+        self.assertEqual(release.wip_by_status()['3']['wip'], 4.5)
         self.assertEqual(sum([v['wip'] for v in release.wip_by_status().values()
-            ]), 1.5)
+            ]), 4.5)
 
     def testWipByComponent(self):
         release = Release()
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        key = tree.find('.//*/item/key').text
+        release.add(self.jira.get_story(key))
+        release.add(self.jira.get_story(key))
+        release.add(self.jira.get_story(key))
         release.data[0].status = 3 # In Progress
         release.data[0].points = 5.0
         release.data[0].type = '72'
@@ -809,19 +765,17 @@ class ReleaseTests(unittest.TestCase):
         release.data[2].status = 6 # Closed
         release.data[2].points = 0.499
         release.data[2].type = '72'
-        self.assertEqual(release.wip_by_component()['Core and Builder'][
+        print release.data[2].scrum_team
+        self.assertEqual(release.wip_by_component()['Continuous Improvement'][
             'wip'], 7.0)
-        self.assertEqual(release.wip_by_component()['Core and Builder'][
+        self.assertEqual(release.wip_by_component()['Continuous Improvement'][
             'largest'], 5.0)
         self.assertEqual(len(release.wip_by_component()), 1)
 
     def testWipByTeamNullTeam(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].status = 3 # In Progress
         release.data[0].points = 5.0
         release.data[0].type = '72'
@@ -838,12 +792,9 @@ class ReleaseTests(unittest.TestCase):
 
     def testKanban(self):
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].status = 3 # In Progress
         release.data[0].points = 2.0
         release.data[0].type = '72'
@@ -853,22 +804,19 @@ class ReleaseTests(unittest.TestCase):
         release.data[2].status = 6 # Closed
         release.data[2].points = 2.0
         release.data[2].type = '72'
-        self.assertEqual(release.kanban().grid['Core and Builder'][
+        self.assertEqual(release.kanban().grid['Continuous Improvement'][
             '3']['wip'], 4.0)
-        self.assertEqual(release.kanban().grid['Core and Builder'][
+        self.assertEqual(release.kanban().grid['Continuous Improvement'][
             '6']['wip'], 2.0)
-        self.assertEqual(len(release.kanban().grid['Core and Builder'][
+        self.assertEqual(len(release.kanban().grid['Continuous Improvement'][
             '3']['stories']),2)
 
     def testCycleTimeByComponent(self):
         # Not implemented yet
         release = Release()
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].status = 3 # In Progress
         release.data[0].points = 2.0
         release.data[0].type = '72'
@@ -906,14 +854,11 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(release.graph_kanban('Core and Builder'), '.O.')
 
     def TestUpperPercentile(self):
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
         release = Release()
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
-        release.add(Story(item))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
+        release.add(self.jira.get_story(''))
         release.data[0].type = '1'
         release.data[0].started = D20121201
         release.data[0].resolved = D20121203

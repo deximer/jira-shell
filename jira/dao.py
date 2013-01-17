@@ -93,8 +93,11 @@ class Jira(object):
                     break
         story.type = data['fields']['issuetype']['id']
         story.assignee = data['fields']['assignee']
-        story.scrum_team = data['fields']['customfield_11261']
+        story.scrum_team = data['fields']['customfield_11261']['value'].strip()
+        story.points = int(data['fields']['customfield_10792'])
+        story.status = data['fields']['status']['id']
         story.history = data['changelog']['histories']
+        story.data = data
         return story
 
     def call_rest(self, key, expand=[]):
