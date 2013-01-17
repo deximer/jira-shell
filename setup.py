@@ -31,8 +31,6 @@ Command line tools for Jira.""",
           'numpy',
           'matplotlib',
           'ZODB3',
-          'ez_setup',
-          'spc',
       ],
       entry_points="""
       # -*- Entry points: -*-

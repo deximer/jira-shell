@@ -1,4 +1,3 @@
-import spc
 import argparse
 import numpy
 import warnings
@@ -72,8 +71,6 @@ class Command(BaseCommand):
             sorting = ['points', 'scrum_team', 'cycle_time']
         if not args.t or args.t == 'cycles':
             self.cycles(stories, sorting)
-        elif args.t == 'ratios':
-            self.ratios(stories, sorting)
         else:
             print 'Unknown chart type: %s' % args.t[0]
 
@@ -195,14 +192,4 @@ class Command(BaseCommand):
             textcoords = 'offset points', ha='right', va='bottom', fontsize=7,
             bbox = dict(boxstyle = 'round,pad=0.3', fc='yellow', alpha=0.5),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
-        pyplot.show()
-
-    def ratios(self, stories):
-        data = []
-        for story in stories:
-            if not story.started or not story.resolved:
-                continue
-            data.append(story.cycle_time/story.points if story.points else 0)
-        chart = spc.Spc(data, spc.CHART_X_MR_X)
-        chart.get_chart()
         pyplot.show()
