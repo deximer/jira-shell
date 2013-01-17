@@ -58,19 +58,18 @@ class Root(object):
 
 class Story(object):
     def __init__(self, item=None, key=None):
-        if item is None:
+        if not item and not key:
             return
         if key:
+            self.key = key
+            jira = Jira()
             data = jira.get_changelog(key)
             if not data:
                 return
-            self.points = data['customfield_10792']
-            started = data['customfield_13434']
-            if started:
-                self.started = datetime.datetime.fromtimestamp(time.mktime(
-                    time.strptime(started.text[:-6], '%a, %d %b %Y %H:%M:%S')))
-
-            self.key = key
+            self.points = data['fields']['customfield_10792']
+            self.status = int(data['fields']['status']['id'])
+            self.history = data['changelog']['histories']
+            return
         points = item.find(STORY_POINTS)
         if points is not None:
             self.points = float(points.text)

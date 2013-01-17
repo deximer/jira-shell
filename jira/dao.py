@@ -62,10 +62,10 @@ class Jira(object):
         page = self.request_page('sr/jira.issueviews:searchrequest-xml/24619/' \
             'SearchRequest-24619.xml?tempMax=10000', refresh)
         tree = ET.fromstring(page)
-        release = Release()
+        keys = []
         for item in tree.findall('.//*/item'):
-            release.add(Story(item).key)
-        return release
+            keys.append(Story(item).key)
+        return keys
 
     def call_rest(self, key, expand=[]):
         URL = JIRA_API % (MT_USER, MT_PASS, key)
