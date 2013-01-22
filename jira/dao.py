@@ -3,6 +3,9 @@ import json
 import datetime
 import time
 from xml.etree import ElementTree as ET
+import transaction
+from ZODB.FileStorage import FileStorage
+from ZODB.DB import DB
 from BeautifulSoup import BeautifulSoup as BS
 from model import Projects, Project, Release, Story
 
@@ -16,6 +19,7 @@ class Jira(object):
         self.server = server
         self.auth = auth
         self.cwd = [['/'], ['/']]
+        self.cache = DB(FileStorage('cache.fs')).open().root()
 
     def format_request(self, path):
         return 'http://%s@%s/%s' % (self.auth, self.server, path)
@@ -57,7 +61,7 @@ class Jira(object):
         tree = ET.fromstring(page)
         release = Release()
         for key in self.get_release_keys():
-            release.add(self.get_story(key))
+            release.add(self.get_story(key, refresh))
         return release
 
     def get_release_keys(self, refresh=False):
@@ -69,7 +73,9 @@ class Jira(object):
             keys.append(key.text)
         return keys
 
-    def get_story(self, key):
+    def get_story(self, key, refresh=False):
+        if not refresh and key in self.cache.keys():
+            return self.cache[key]
         story = Story(key)
         data = self.call_rest(key, expand=['changelog'])
         story.created = datetime.datetime.fromtimestamp(time.mktime(
@@ -83,21 +89,34 @@ class Jira(object):
                     story.started = datetime.datetime.fromtimestamp(time.mktime(
                         time.strptime(history['created'][:23],
                         '%Y-%m-%dT%H:%M:%S.%f')))
+                else:
+                    story.started = None
                     break
         for history in data['changelog']['histories']:
             for item in history['items']:
                 if item['to'] == '6':
-                    story.resolved =datetime.datetime.fromtimestamp(time.mktime(
-                        time.strptime(history['created'][:23],
-                        '%Y-%m-%dT%H:%M:%S.%f')))
+                    if history['created']:
+                        story.resolved =datetime.datetime.fromtimestamp(
+                            time.mktime( time.strptime(history['created'][:23],
+                            '%Y-%m-%dT%H:%M:%S.%f')))
+                    else:
+                        story.resolved = None
                     break
         story.type = data['fields']['issuetype']['id']
         story.assignee = data['fields']['assignee']
-        story.scrum_team = data['fields']['customfield_11261']['value'].strip()
-        story.points = int(data['fields']['customfield_10792'])
+        if data['fields']['customfield_11261']:
+            story.scrum_team = data['fields']['customfield_11261'][
+                'value'].strip()
+        else:
+            story.scrum_team = None
+        story.points = data['fields']['customfield_10792']
+        if story.points:
+            story.points = int(story.points)
         story.status = data['fields']['status']['id']
         story.history = data['changelog']['histories']
         story.data = data
+        self.cache[key] = story
+        transaction.commit()
         return story
 
     def call_rest(self, key, expand=[]):
