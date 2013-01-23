@@ -109,6 +109,7 @@ class Jira(object):
                     break
         story.type = data['fields']['issuetype']['id']
         story.assignee = data['fields']['assignee']
+        story.developer = data['fields']['customfield_13435']
         if data['fields']['customfield_11261']:
             story.scrum_team = data['fields']['customfield_11261'][
                 'value'].strip()

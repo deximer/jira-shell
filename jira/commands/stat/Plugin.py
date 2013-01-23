@@ -32,6 +32,9 @@ class Command(BaseCommand):
         print 'Started:', story.started
         print 'Resolved:', story.resolved
         print 'Cycle Time:', story.cycle_time
+        print 'Fix Versions:'
+        for version in story.fix_versions:
+            print version
         print 'Contingency:'
         print '    Inside:', kanban.contingency_inside(story.key)
         print '    Average:', kanban.contingency_average(story.key)

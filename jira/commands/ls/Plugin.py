@@ -24,7 +24,8 @@ class Command(BaseCommand):
         except:
             return
         self.refresh_data(jira, False)
-        print 'Team:'.ljust(18), \
+        print 'Key'.ljust(9), \
+              'Team:'.ljust(18), \
               'Pts:'.ljust(5), \
               'Stat:'.ljust(5), \
               'CT:'.ljust(5), \
@@ -76,11 +77,12 @@ class Command(BaseCommand):
                 cycle_time = str(story.cycle_time) + '>'
             else:
                 cycle_time = str(story.cycle_time)
-            print team[:18].ljust(18), \
+            print story.key.ljust(9), \
+                  team[:18].ljust(18), \
                   str(story.points).ljust(5), \
                   str(story.status).ljust(5), \
                   cycle_time.ljust(5), str(story.type).ljust(5), \
-                  story.title[:37]
+                  story.title[:27]
             issues += 1
             if story.points:
                 points += story.points
