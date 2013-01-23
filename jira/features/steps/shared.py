@@ -83,4 +83,8 @@ def make_story(row):
         story.type = row['type']
     else:
         story.type = '72'
+    if 'fix' in row.headings:
+        story.fix_versions = row['fix'].split(',')
+    else:
+        story.fix_versions = []
     return story

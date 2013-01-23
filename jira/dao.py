@@ -17,7 +17,13 @@ class Jira(object):
         self.server = server
         self.auth = auth
         self.cwd = [['/'], ['/']]
-        self.cache = cache
+        self._cache = cache
+
+    def _get_cache(self):
+        if self._cache:
+            return self._cache
+        return {}
+    cache = property(_get_cache)
 
     def format_request(self, path):
         return 'http://%s@%s/%s' % (self.auth, self.server, path)
@@ -112,12 +118,16 @@ class Jira(object):
         story.points = data['fields']['customfield_10792']
         if story.points:
             story.points = int(story.points)
-        story.status = data['fields']['status']['id']
+        story.status = int(data['fields']['status']['id'])
         story.history = data['changelog']['histories']
         story.data = data
         self.cache[key] = story
-        transaction.commit()
+        self.commit()
         return story
+
+    def commit(self):
+        if self.cache:
+            transaction.commit()
 
     def call_rest(self, key, expand=[]):
         URL = JIRA_API % (MT_USER, MT_PASS, key)
