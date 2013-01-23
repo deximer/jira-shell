@@ -78,6 +78,7 @@ class Jira(object):
             return self.cache[key]
         story = Story(key)
         data = self.call_rest(key, expand=['changelog'])
+        story.title = data['fields']['summary']
         story.created = datetime.datetime.fromtimestamp(time.mktime(
             time.strptime(data['fields']['created'][:23],
             '%Y-%m-%dT%H:%M:%S.%f')))
