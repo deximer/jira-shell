@@ -79,6 +79,10 @@ class Jira(object):
         story = Story(key)
         data = self.call_rest(key, expand=['changelog'])
         story.title = data['fields']['summary']
+        story.fix_versions = []
+        for version in data['fields']['fixVersions']:
+            story.fix_versions.append(version['name'])
+        story.fix_version = data['fields']['fixVersions']
         story.created = datetime.datetime.fromtimestamp(time.mktime(
             time.strptime(data['fields']['created'][:23],
             '%Y-%m-%dT%H:%M:%S.%f')))
