@@ -1,6 +1,8 @@
 #!/usr/bin/env python2.7
 import optparse
 import sys
+from ZODB.FileStorage import FileStorage
+from ZODB.DB import DB
 from BeautifulSoup import BeautifulSoup as BS
 from model import Release, Story, Projects, Project
 from dao import Jira, MT_USER, MT_PASS
@@ -40,8 +42,10 @@ def request_projects():
             owner[count].text))
     return projects
 
+cache = DB(FileStorage('cache.fs')).open().root()
+
 def connect_to_jira():
-    return Jira('jira.cengage.com', 'mindtap.user:m1ndtap')
+    return Jira('jira.cengage.com', 'mindtap.user:m1ndtap', cache)
 
 def shell():
     return raw_input('%s > ' % '/'.join(cwd))

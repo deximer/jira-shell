@@ -32,16 +32,11 @@ class Command(BaseCommand):
         print 'Started:', story.started
         print 'Resolved:', story.resolved
         print 'Cycle Time:', story.cycle_time
-        print 'Fix Versions:'
-        for version in story.fix_versions:
-            print version
+        print 'Fix Versions:', ', '.join(story.fix_versions)
         print 'Contingency:'
         print '    Inside:', kanban.contingency_inside(story.key)
         print '    Average:', kanban.contingency_average(story.key)
         print '    Outside:', kanban.contingency_outside(story.key)
-        print 'Components:'
-        for component in story.components:
-            print '   ', component
 
     def refresh_data(self, jira, refresh):
         self.release = jira.get_release(refresh)

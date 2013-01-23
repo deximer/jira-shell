@@ -2,10 +2,8 @@ import urllib
 import json
 import datetime
 import time
-from xml.etree import ElementTree as ET
 import transaction
-from ZODB.FileStorage import FileStorage
-from ZODB.DB import DB
+from xml.etree import ElementTree as ET
 from BeautifulSoup import BeautifulSoup as BS
 from model import Projects, Project, Release, Story
 
@@ -15,11 +13,11 @@ MT_PASS = 'm1ndtap'
 JIRA_API = 'http://%s:%s@jira.cengage.com/rest/api/2/issue/%s'
 
 class Jira(object):
-    def __init__(self, server=None, auth=None):
+    def __init__(self, server=None, auth=None, cache=None):
         self.server = server
         self.auth = auth
         self.cwd = [['/'], ['/']]
-        self.cache = DB(FileStorage('cache.fs')).open().root()
+        self.cache = cache
 
     def format_request(self, path):
         return 'http://%s@%s/%s' % (self.auth, self.server, path)
@@ -87,16 +85,14 @@ class Jira(object):
             time.strptime(data['fields']['created'][:23],
             '%Y-%m-%dT%H:%M:%S.%f')))
         story.started = None
-        story.resolved = None
         for history in data['changelog']['histories']:
             for item in history['items']:
-                if item['to'] == '3':
+                if item['field'] == 'status' and item['to'] == '3':
                     story.started = datetime.datetime.fromtimestamp(time.mktime(
                         time.strptime(history['created'][:23],
                         '%Y-%m-%dT%H:%M:%S.%f')))
-                else:
-                    story.started = None
                     break
+        story.resolved = None
         for history in data['changelog']['histories']:
             for item in history['items']:
                 if item['to'] == '6':
@@ -104,8 +100,6 @@ class Jira(object):
                         story.resolved =datetime.datetime.fromtimestamp(
                             time.mktime( time.strptime(history['created'][:23],
                             '%Y-%m-%dT%H:%M:%S.%f')))
-                    else:
-                        story.resolved = None
                     break
         story.type = data['fields']['issuetype']['id']
         story.assignee = data['fields']['assignee']

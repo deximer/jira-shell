@@ -1,6 +1,9 @@
 import numpy
 import time
 import datetime
+from persistent import Persistent
+from ZODB.PersistentList import PersistentList
+from ZODB.PersistentMapping import PersistentMapping
 
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
@@ -36,7 +39,7 @@ KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_IN_PROGRESS, STATUS_REOPENED,
     STATUS_QA_READY, STATUS_QA_ACTIVE, STATUS_COMPLETED, STATUS_VERIFIED,
     STATUS_CLOSED]
 
-class Story(object):
+class Story(Persistent):
     def __init__(self, key=None):
         self.key = key
 
