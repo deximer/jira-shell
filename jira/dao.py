@@ -21,7 +21,7 @@ connection = DB(FileStorage('db/cache.fs')).open()
 class LocalDB(object):
     def __init__(self, connection):
         self.data = connection
-        self.cwd = ['']
+        self.cwd = ['/']
 
     def keys(self, obj=None, results=[]):
         if not obj:
@@ -34,7 +34,7 @@ class LocalDB(object):
         return results
 
     def cwd_contents(self):
-        if self.cwd[-1] == '':
+        if self.cwd[-1] == '/':
             return tuple(sorted([key for key in self.data.root()]))
         contents = []
         obj = self.get_by_path(self.cwd)

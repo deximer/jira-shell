@@ -45,7 +45,7 @@ def connect_to_jira():
     return Jira('jira.cengage.com', 'mindtap.user:m1ndtap')
 
 def shell():
-    return raw_input('%s > ' % '/'.join(cwd))
+    return raw_input('/%s > ' % '/'.join(Jira.cache.cwd[1:]))
 
 def dispatch(command):
     table = {'report': cmds['report'].run,
