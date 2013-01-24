@@ -23,10 +23,7 @@ class StoryTest(unittest.TestCase):
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
-        self.fs = FileStorage('testing_cache.fs')
-        self.db = DB(self.fs)
-        self.connection = self.db.open()
-        self.jira = Jira('jira.cengage.com', 'user:pass', self.connection)
+        self.jira = Jira('jira.cengage.com', 'user:pass')
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
         self.jira.call_rest = mock_call_rest
@@ -35,9 +32,6 @@ class StoryTest(unittest.TestCase):
     def tearDown(self):
         import transaction
         transaction.abort()
-        self.connection.close()
-        self.db.close()
-        self.fs.close()
 
     def testObjectCreation(self):
         ''' Verify we can create a Story object
@@ -79,19 +73,13 @@ class KanbanTest(unittest.TestCase):
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
-        self.fs = FileStorage('testing_cache.fs')
-        self.db = DB(self.fs)
-        self.connection = self.db.open()
-        self.jira = Jira('jira.cengage.com', 'user:pass', self.connection)
+        self.jira = Jira('jira.cengage.com', 'user:pass')
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
 
     def tearDown(self):
         import transaction
         transaction.abort()
-        self.connection.close()
-        self.db.close()
-        self.fs.close()
 
     def testObjectCreation(self):
         obj = Kanban()
@@ -452,19 +440,13 @@ class ReleaseTests(unittest.TestCase):
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
-        self.fs = FileStorage('testing_cache.fs')
-        self.db = DB(self.fs)
-        self.connection = self.db.open()
-        self.jira = Jira('jira.cengage.com', 'user:pass', self.connection)
+        self.jira = Jira('jira.cengage.com', 'user:pass')
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
 
     def tearDown(self):
         import transaction
         transaction.abort()
-        self.connection.close()
-        self.db.close()
-        self.fs.close()
 
     def testObjectCreation(self):
         obj = Release()
@@ -922,19 +904,13 @@ class ProjectTest(unittest.TestCase):
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
-        self.fs = FileStorage('testing_cache.fs')
-        self.db = DB(self.fs)
-        self.connection = self.db.open()
-        self.jira = Jira('jira.cengage.com', 'user:pass', self.connection)
+        self.jira = Jira('jira.cengage.com', 'user:pass')
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
 
     def tearDown(self):
         import transaction
         transaction.abort()
-        self.connection.close()
-        self.db.close()
-        self.fs.close()
 
     def testObjectCreate(self):
         obj = Project()

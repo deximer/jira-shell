@@ -3,6 +3,8 @@ import json
 import datetime
 import time
 import transaction
+from ZODB.DB import DB
+from ZODB.FileStorage import FileStorage
 from persistent.list import PersistentList
 from persistent.mapping import PersistentMapping
 from xml.etree import ElementTree as ET
@@ -15,10 +17,33 @@ MT_PASS = 'm1ndtap'
 JIRA_API = 'http://%s:%s@jira.cengage.com/rest/api/2/issue/%s'
 
 class LocalDB(object):
-    pass
+    def __init__(self, connection):
+        self.data = connection
+        self.cwd = ['/']
+
+    def cwd_contents(self):
+        if self.cwd[-1] == '/':
+            return tuple(sorted([key for key in self.data.root()]))
+        contents = []
+        obj = self.get_by_path(self.cwd)
+
+    def get_by_path(self, path):
+        if isinstance(path, type('')):
+            path = path.split('/')
+        if path[0] == '':
+            obj = self.data.root()
+            del path[0]
+        else:
+            obj = self.get_by_path(self.cwd)
+        for dir in path:
+            obj = obj[dir]
+        return obj
+
+connection = DB(FileStorage('db/cache.fs')).open()
+cache = LocalDB(connection)
 
 class Jira(object):
-    def __init__(self, server=None, auth=None, cache=None):
+    def __init__(self, server=None, auth=None):
         self.server = server
         self.auth = auth
         self.cwd = ['/']
@@ -84,8 +109,8 @@ class Jira(object):
         return keys
 
     def get_story(self, key, refresh=False):
-        if not refresh and key in self.cache.root().keys():
-            return self.cache.root()[key]
+        if not refresh and key in self.cache.data.root().keys():
+            return self.cache.data.root()[key]
         story = Story(key)
         data = self.call_rest(key, expand=['changelog'])
         story.title = data['fields']['summary']
@@ -128,17 +153,16 @@ class Jira(object):
         story.history = data['changelog']['histories']
         story.data = data
         for version in story.fix_versions:
-            if version in self.cache.root():
-                self.cache.root()[version][story.key] = story
+            if version in self.cache.data.root():
+                self.cache.data.root()[version][story.key] = story
             else:
-                self.cache.root()[version] = PersistentMapping()
-                self.cache.root()[version][story.key] = story
+                self.cache.data.root()[version] = PersistentMapping()
+                self.cache.data.root()[version][story.key] = story
         self.commit()
         return story
 
     def commit(self):
-        if self.cache:
-            transaction.commit()
+        transaction.commit()
 
     def call_rest(self, key, expand=[]):
         URL = JIRA_API % (MT_USER, MT_PASS, key)

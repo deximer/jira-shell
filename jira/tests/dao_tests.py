@@ -1,13 +1,45 @@
 import unittest
 import json
+import transaction
 from ZODB.FileStorage import FileStorage
 from ZODB.DB import DB
-from ..dao import Jira, LocalDB
+from ..dao import Jira, LocalDB, connection
 
 class DBTest(unittest.TestCase):
+    def setUp(self):
+        self.db = LocalDB(connection)
+
+    def tearDown(self):
+        del self.db
+
     def testObjectCreation(self):
-        obj = LocalDB()
-        self.assertTrue(obj is not None)
+        self.assertTrue(self.db is not None)
+
+    def testCwdContents(self):
+        self.db.data.root()['1.0'] = 'Release 1'
+        self.db.data.root()['2.0'] = 'Release 2'
+        self.assertEqual(self.db.cwd_contents(), ('1.0', '2.0'))
+
+    def testGetByPath(self):
+        self.db.data.root()['1.0'] = {}
+        self.assertEqual(self.db.get_by_path('/1.0'), {})
+
+    def testGetByPathNested(self):
+        self.db.data.root()['1.0'] = {}
+        self.db.data.root()['1.0']['NG-2'] = 'Issue 2'
+        self.assertEqual(self.db.get_by_path('/1.0/NG-2'), 'Issue 2')
+
+    def testGetByPathNestedByList(self):
+        self.db.data.root()['1.0'] = {}
+        self.db.data.root()['1.0']['NG-2'] = 'Issue 2'
+        self.assertEqual(self.db.get_by_path(['', '1.0', 'NG-2']), 'Issue 2')
+
+    def testGetByPathRelative(self):
+        self.db.data.root()['1.0'] = {}
+        self.db.data.root()['1.0']['NG-1'] = 'Issue 1'
+        self.db.cwd = ['', '1.0']
+        self.assertEqual(self.db.get_by_path('NG-1'), 'Issue 1')
+
 
 class JiraTest(unittest.TestCase):
     ''' Unit tests for the Jira DAO class
@@ -16,22 +48,18 @@ class JiraTest(unittest.TestCase):
     AUTH = 'user:pass'
 
     def setUp(self):
-        self.fs = FileStorage('testing_cache.fs')
-        self.db = DB(self.fs)
-        self.connection = self.db.open()
-        self.jira = Jira('jira.cengage.com', 'user:pass',self.connection)
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
+        self.jira = Jira('jira.cengage.com', 'user:pass')
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
 
     def tearDown(self):
-        self.connection.close()
-        self.db.close()
-        self.fs.close()
+        import transaction
+        transaction.abort()
 
     def testObjectCreation(self):
         ''' Verify we can create a Story object

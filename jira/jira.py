@@ -1,8 +1,6 @@
 #!/usr/bin/env python2.7
 import optparse
 import sys
-from ZODB.FileStorage import FileStorage
-from ZODB.DB import DB
 from BeautifulSoup import BeautifulSoup as BS
 from model import Release, Story, Projects, Project
 from dao import Jira, MT_USER, MT_PASS
@@ -10,6 +8,7 @@ import commands
 
 cmds = {'top': commands.top.Plugin.Command(),
         'ls': commands.ls.Plugin.Command(),
+        'cp': commands.cp.Plugin.Command(),
         'chart': commands.chart.Plugin.Command(),
         'export': commands.export.Plugin.Command(),
         'report': commands.report.Plugin.Command(),
@@ -42,10 +41,8 @@ def request_projects():
             owner[count].text))
     return projects
 
-cache = DB(FileStorage('cache.fs')).open()
-
 def connect_to_jira():
-    return Jira('jira.cengage.com', 'mindtap.user:m1ndtap', cache)
+    return Jira('jira.cengage.com', 'mindtap.user:m1ndtap')
 
 def shell():
     return raw_input('%s > ' % '/'.join(cwd))
@@ -54,7 +51,7 @@ def dispatch(command):
     table = {'report': cmds['report'].run,
              'teams': cmds['teams'].run,
              'developers': cmds['developers'].run,
-             'ls': cmds['ls'].run,
+             'cp': cmds['cp'].run,
              'stat': cmds['stat'].run,
              'top': cmds['top'].run,
              'legend': cmds['legend'].run,
