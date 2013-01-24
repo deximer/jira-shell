@@ -3,6 +3,8 @@ import json
 import datetime
 import time
 import transaction
+from persistent.list import PersistentList
+from persistent.mapping import PersistentMapping
 from xml.etree import ElementTree as ET
 from BeautifulSoup import BeautifulSoup as BS
 from model import Projects, Project, Release, Story
@@ -12,18 +14,22 @@ MT_PASS = 'm1ndtap'
 
 JIRA_API = 'http://%s:%s@jira.cengage.com/rest/api/2/issue/%s'
 
+class LocalDB(object):
+    pass
+
 class Jira(object):
     def __init__(self, server=None, auth=None, cache=None):
         self.server = server
         self.auth = auth
-        self.cwd = [['/'], ['/']]
-        self._cache = cache
+        self.cwd = ['/']
+        self.cache = cache
 
-    def _get_cache(self):
-        if self._cache:
-            return self._cache
-        return {}
-    cache = property(_get_cache)
+    def cwd_contents(self):
+        if self.cwd[-1] == '/':
+            contents = []
+            for key in self.cache.root().keys():
+                contents.append(self.cache.root()[key])
+            return {'releases': contents}
 
     def format_request(self, path):
         return 'http://%s@%s/%s' % (self.auth, self.server, path)
@@ -78,12 +84,12 @@ class Jira(object):
         return keys
 
     def get_story(self, key, refresh=False):
-        if not refresh and key in self.cache.keys():
-            return self.cache[key]
+        if not refresh and key in self.cache.root().keys():
+            return self.cache.root()[key]
         story = Story(key)
         data = self.call_rest(key, expand=['changelog'])
         story.title = data['fields']['summary']
-        story.fix_versions = []
+        story.fix_versions = PersistentList()
         for version in data['fields']['fixVersions']:
             story.fix_versions.append(version['name'])
         story.fix_version = data['fields']['fixVersions']
@@ -121,7 +127,12 @@ class Jira(object):
         story.status = int(data['fields']['status']['id'])
         story.history = data['changelog']['histories']
         story.data = data
-        self.cache[key] = story
+        for version in story.fix_versions:
+            if version in self.cache.root():
+                self.cache.root()[version][story.key] = story
+            else:
+                self.cache.root()[version] = PersistentMapping()
+                self.cache.root()[version][story.key] = story
         self.commit()
         return story
 

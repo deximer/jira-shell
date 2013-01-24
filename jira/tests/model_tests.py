@@ -1,6 +1,8 @@
 import unittest
 import datetime
 import json
+from ZODB.FileStorage import FileStorage
+from ZODB.DB import DB
 from ..model import Story, Release, Projects, Project, Kanban
 from ..dao import Jira
 from  xml.etree import ElementTree as ET
@@ -16,14 +18,26 @@ class StoryTest(unittest.TestCase):
     ''' Unit tests for the Story class
     '''
     def setUp(self):
-        self.jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
+        self.fs = FileStorage('testing_cache.fs')
+        self.db = DB(self.fs)
+        self.connection = self.db.open()
+        self.jira = Jira('jira.cengage.com', 'user:pass', self.connection)
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
+        self.jira.call_rest = mock_call_rest
+        self.jira.request_page = mock_request_page
+
+    def tearDown(self):
+        import transaction
+        transaction.abort()
+        self.connection.close()
+        self.db.close()
+        self.fs.close()
 
     def testObjectCreation(self):
         ''' Verify we can create a Story object
@@ -60,14 +74,24 @@ class StoryTest(unittest.TestCase):
 
 class KanbanTest(unittest.TestCase):
     def setUp(self):
-        self.jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
+        self.fs = FileStorage('testing_cache.fs')
+        self.db = DB(self.fs)
+        self.connection = self.db.open()
+        self.jira = Jira('jira.cengage.com', 'user:pass', self.connection)
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
+
+    def tearDown(self):
+        import transaction
+        transaction.abort()
+        self.connection.close()
+        self.db.close()
+        self.fs.close()
 
     def testObjectCreation(self):
         obj = Kanban()
@@ -81,43 +105,40 @@ class KanbanTest(unittest.TestCase):
         self.assertEqual(len(kanban.grid.keys()), 1)
 
     def testAddRelease(self):
-        jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
-        jira.call_rest = mock_call_rest
-        jira.request_page = mock_request_page
-        release = jira.get_release()
+        self.jira.call_rest = mock_call_rest
+        self.jira.request_page = mock_request_page
+        release = self.jira.get_release()
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(len(kanban.stories), 125)
         self.assertEqual(len(kanban.grid['Continuous Improvement']), 1)
 
     def testAverageCycleTimeLife(self):
-        jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
-        jira.call_rest = mock_call_rest
-        jira.request_page = mock_request_page
-        release = jira.get_release()
+        self.jira.call_rest = mock_call_rest
+        self.jira.request_page = mock_request_page
+        release = self.jira.get_release()
         kanban = release.kanban()
         self.assertEqual(kanban.average_cycle_time_life(), 17.0)
 
     def testAverageCycleTime(self):
-        jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
-        jira.call_rest = mock_call_rest
-        jira.request_page = mock_request_page
-        release = jira.get_release()
+        self.jira.call_rest = mock_call_rest
+        self.jira.request_page = mock_request_page
+        release = self.jira.get_release()
         kanban = release.kanban()
         self.assertEqual(kanban.average_cycle_time(), 6.0)
 
@@ -307,15 +328,14 @@ class KanbanTest(unittest.TestCase):
             0.6382847385042254)
 
     def testCycleTimeForComponent(self):
-        jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
-        jira.call_rest = mock_call_rest
-        jira.request_page = mock_request_page
-        release = jira.get_release()
+        self.jira.call_rest = mock_call_rest
+        self.jira.request_page = mock_request_page
+        release = self.jira.get_release()
         kanban = release.kanban()
         self.assertEqual(kanban.average_cycle_time('Continuous Improvement'), 6.0)
 
@@ -427,14 +447,24 @@ class ReleaseTests(unittest.TestCase):
     ''' Unit tests for the Release class
     '''
     def setUp(self):
-        self.jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
+        self.fs = FileStorage('testing_cache.fs')
+        self.db = DB(self.fs)
+        self.connection = self.db.open()
+        self.jira = Jira('jira.cengage.com', 'user:pass', self.connection)
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
+
+    def tearDown(self):
+        import transaction
+        transaction.abort()
+        self.connection.close()
+        self.db.close()
+        self.fs.close()
 
     def testObjectCreation(self):
         obj = Release()
@@ -830,27 +860,25 @@ class ReleaseTests(unittest.TestCase):
         # self.assertEqual(cycle_times['Reader'], 1)
 
     def testGraphKanban(self):
-        jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
-        jira.call_rest = mock_call_rest
-        jira.request_page = mock_request_page
-        release = jira.get_release()
+        self.jira.call_rest = mock_call_rest
+        self.jira.request_page = mock_request_page
+        release = self.jira.get_release()
         self.assertEqual(release.graph_kanban(), '.O.')
 
     def testGraphKanbanByComponent(self):
-        jira = Jira()
         def mock_request_page(url, refresh=False):
             return open('jira/tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
-        jira.call_rest = mock_call_rest
-        jira.request_page = mock_request_page
-        release = jira.get_release()
+        self.jira.call_rest = mock_call_rest
+        self.jira.request_page = mock_request_page
+        release = self.jira.get_release()
         self.assertEqual(release.graph_kanban('Core and Builder'), '.O.')
 
     def TestUpperPercentile(self):
@@ -888,6 +916,26 @@ class ReleaseTests(unittest.TestCase):
 
 
 class ProjectTest(unittest.TestCase):
+    def setUp(self):
+        def mock_request_page(url, refresh=False):
+            return open('jira/tests/data/rss.xml').read()
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        self.fs = FileStorage('testing_cache.fs')
+        self.db = DB(self.fs)
+        self.connection = self.db.open()
+        self.jira = Jira('jira.cengage.com', 'user:pass', self.connection)
+        self.jira.call_rest = mock_call_rest
+        self.jira.request_page = mock_request_page
+
+    def tearDown(self):
+        import transaction
+        transaction.abort()
+        self.connection.close()
+        self.db.close()
+        self.fs.close()
+
     def testObjectCreate(self):
         obj = Project()
         self.assertTrue(obj is not None)

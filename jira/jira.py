@@ -9,16 +9,16 @@ from dao import Jira, MT_USER, MT_PASS
 import commands
 
 cmds = {'top': commands.top.Plugin.Command(),
-            'ls': commands.ls.Plugin.Command(),
-            'chart': commands.chart.Plugin.Command(),
-            'export': commands.export.Plugin.Command(),
-            'report': commands.report.Plugin.Command(),
-            'stat': commands.stat.Plugin.Command(),
-            'teams': commands.teams.Plugin.Command(),
-            'legend': commands.legend.Plugin.Command(),
-            'developers': commands.developers.Plugin.Command(),
-            'refresh': commands.refresh.Plugin.Command(),
-           }
+        'ls': commands.ls.Plugin.Command(),
+        'chart': commands.chart.Plugin.Command(),
+        'export': commands.export.Plugin.Command(),
+        'report': commands.report.Plugin.Command(),
+        'stat': commands.stat.Plugin.Command(),
+        'teams': commands.teams.Plugin.Command(),
+        'legend': commands.legend.Plugin.Command(),
+        'developers': commands.developers.Plugin.Command(),
+        'refresh': commands.refresh.Plugin.Command(),
+       }
 
 NG_CURRENT_RELEASE = 'http://%s:%s@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
@@ -42,7 +42,7 @@ def request_projects():
             owner[count].text))
     return projects
 
-cache = DB(FileStorage('cache.fs')).open().root()
+cache = DB(FileStorage('cache.fs')).open()
 
 def connect_to_jira():
     return Jira('jira.cengage.com', 'mindtap.user:m1ndtap', cache)

@@ -2,8 +2,6 @@ import numpy
 import time
 import datetime
 from persistent import Persistent
-from ZODB.PersistentList import PersistentList
-from ZODB.PersistentMapping import PersistentMapping
 
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
