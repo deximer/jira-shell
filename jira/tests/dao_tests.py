@@ -24,6 +24,12 @@ class DBTest(unittest.TestCase):
         self.db.data.root()['2.0'] = 'Release 2'
         self.assertEqual(self.db.cwd_contents(), ('1.0', '2.0'))
 
+    def testCwdContentsNested(self):
+        self.db.data.root()['1.0'] = {}
+        self.db.data.root()['1.0']['NG-1'] = 'Issue 1'
+        self.db.cwd = ['', '1.0']
+        self.assertEqual(self.db.cwd_contents(), ('NG-1',))
+
     def testGetByPath(self):
         self.db.data.root()['1.0'] = {}
         self.assertEqual(self.db.get_by_path('/1.0'), {})
@@ -51,7 +57,15 @@ class DBTest(unittest.TestCase):
     def testKeysNested(self):
         self.db.data.root()['1.0'] = {}
         self.db.data.root()['1.0']['NG-1'] = 'Issue 1'
-        self.assertEqual(len(self.db.keys()), 1)
+        self.assertEqual(len(self.db.keys()), 2)
+
+    def testKeysDeepNested(self):
+        self.db.data.root()['1.0'] = {}
+        self.db.data.root()['1.0']['NG-1'] = 'Issue 1'
+        self.db.data.root()['1.0']['NG-2'] = 'Issue 2'
+        self.db.data.root()['1.0']['Nest'] = {}
+        self.db.data.root()['1.0']['Nest']['NG-3'] = 'Issue 3'
+        self.assertEqual(len(self.db.keys()), 5)
 
 
 class JiraTest(unittest.TestCase):

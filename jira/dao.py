@@ -21,22 +21,26 @@ connection = DB(FileStorage('db/cache.fs')).open()
 class LocalDB(object):
     def __init__(self, connection):
         self.data = connection
-        self.cwd = ['/']
+        self.cwd = ['']
 
     def keys(self, obj=None, results=[]):
         if not obj:
             obj = self.data.root()
         for key in obj:
-            results.append(key)
-            if hasattr(self.data.root()[key], 'has_key'):
+            if not key in results:
+                results.append(key)
+            if hasattr(obj[key], 'has_key'):
                 self.keys(obj[key], results)
         return results
 
     def cwd_contents(self):
-        if self.cwd[-1] == '/':
+        if self.cwd[-1] == '':
             return tuple(sorted([key for key in self.data.root()]))
         contents = []
         obj = self.get_by_path(self.cwd)
+        for key in obj:
+            contents.append(key)
+        return tuple(contents)
 
     def get_by_path(self, path):
         if isinstance(path, type('')):
