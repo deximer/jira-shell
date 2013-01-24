@@ -32,6 +32,10 @@ class StoryTest(unittest.TestCase):
     def tearDown(self):
         import transaction
         transaction.abort()
+        for key in self.jira.cache.data.root().keys():
+            transaction.begin()
+            del self.jira.cache.data.root()[key]
+        transaction.commit()
 
     def testObjectCreation(self):
         ''' Verify we can create a Story object
@@ -80,6 +84,9 @@ class KanbanTest(unittest.TestCase):
     def tearDown(self):
         import transaction
         transaction.abort()
+        for key in self.jira.cache.data.root().keys():
+            del self.jira.cache.data.root()[key]
+        transaction.commit()
 
     def testObjectCreation(self):
         obj = Kanban()
@@ -447,6 +454,9 @@ class ReleaseTests(unittest.TestCase):
     def tearDown(self):
         import transaction
         transaction.abort()
+        for key in self.jira.cache.data.root().keys():
+            del self.jira.cache.data.root()[key]
+        transaction.commit()
 
     def testObjectCreation(self):
         obj = Release()
@@ -850,7 +860,7 @@ class ReleaseTests(unittest.TestCase):
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
         release = self.jira.get_release()
-        self.assertEqual(release.graph_kanban(), '.O.')
+        self.assertEqual(release.graph_kanban(), '__O')
 
     def testGraphKanbanByComponent(self):
         def mock_request_page(url, refresh=False):
@@ -861,7 +871,7 @@ class ReleaseTests(unittest.TestCase):
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
         release = self.jira.get_release()
-        self.assertEqual(release.graph_kanban('Core and Builder'), '.O.')
+        self.assertEqual(release.graph_kanban('Core and Builder'), '___')
 
     def TestUpperPercentile(self):
         release = Release()
@@ -911,6 +921,9 @@ class ProjectTest(unittest.TestCase):
     def tearDown(self):
         import transaction
         transaction.abort()
+        for key in self.jira.cache.data.root().keys():
+            del self.jira.cache.data.root()[key]
+        transaction.commit()
 
     def testObjectCreate(self):
         obj = Project()

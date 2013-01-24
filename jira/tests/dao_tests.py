@@ -10,6 +10,10 @@ class DBTest(unittest.TestCase):
         self.db = LocalDB(connection)
 
     def tearDown(self):
+        transaction.abort()
+        for key in self.db.data.root().keys():
+            del self.db.data.root()[key]
+            transaction.commit()
         del self.db
 
     def testObjectCreation(self):
@@ -40,6 +44,15 @@ class DBTest(unittest.TestCase):
         self.db.cwd = ['', '1.0']
         self.assertEqual(self.db.get_by_path('NG-1'), 'Issue 1')
 
+    def testKeys(self):
+        self.db.data.root()['1.0'] = 'Foo'
+        self.assertEqual(len(self.db.keys()), 1)
+
+    def testKeysNested(self):
+        self.db.data.root()['1.0'] = {}
+        self.db.data.root()['1.0']['NG-1'] = 'Issue 1'
+        self.assertEqual(len(self.db.keys()), 1)
+
 
 class JiraTest(unittest.TestCase):
     ''' Unit tests for the Jira DAO class
@@ -60,6 +73,9 @@ class JiraTest(unittest.TestCase):
     def tearDown(self):
         import transaction
         transaction.abort()
+        for key in self.jira.cache.data.root().keys():
+            del self.jira.cache.data.root()[key]
+        transaction.commit()
 
     def testObjectCreation(self):
         ''' Verify we can create a Story object

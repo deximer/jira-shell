@@ -16,10 +16,21 @@ MT_PASS = 'm1ndtap'
 
 JIRA_API = 'http://%s:%s@jira.cengage.com/rest/api/2/issue/%s'
 
+connection = DB(FileStorage('db/cache.fs')).open()
+
 class LocalDB(object):
     def __init__(self, connection):
         self.data = connection
         self.cwd = ['/']
+
+    def keys(self, obj=None, results=[]):
+        if not obj:
+            obj = self.data.root()
+        for key in obj:
+            results.append(key)
+            if hasattr(self.data.root()[key], 'has_key'):
+                self.keys(obj[key], results)
+        return results
 
     def cwd_contents(self):
         if self.cwd[-1] == '/':
@@ -39,15 +50,14 @@ class LocalDB(object):
             obj = obj[dir]
         return obj
 
-connection = DB(FileStorage('db/cache.fs')).open()
-cache = LocalDB(connection)
 
 class Jira(object):
+    cache = LocalDB(connection)
+
     def __init__(self, server=None, auth=None):
         self.server = server
         self.auth = auth
         self.cwd = ['/']
-        self.cache = cache
 
     def cwd_contents(self):
         if self.cwd[-1] == '/':
