@@ -16,7 +16,6 @@ class Command(BaseCommand):
         parser = argparse.ArgumentParser()
         parser.add_argument('key')
         args = parser.parse_args(args)
-        self.refresh_data(jira, False)
         kanban = self.release.kanban()
         story = self.release.get(args.key)
         if not story:

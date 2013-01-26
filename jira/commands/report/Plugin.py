@@ -16,7 +16,7 @@ class Command(BaseCommand):
             args = parser.parse_args(args)
         except:
             return
-        self.refresh_data(jira, False)
+        self.release = jira.cache.get_by_path(jira.cache.cwd)
         if args.team:
             self.release.data = [s for s in self.release.data
                 if s.scrum_team and s.scrum_team[:len(args.team)] == args.team]
