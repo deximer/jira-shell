@@ -1,9 +1,11 @@
 import unittest
 import json
 import transaction
+import datetime
 from ZODB.FileStorage import FileStorage
 from ZODB.DB import DB
 from ..dao import Jira, LocalDB, connection
+from ..model import Release, Story
 
 class DBTest(unittest.TestCase):
     def setUp(self):
@@ -28,7 +30,7 @@ class DBTest(unittest.TestCase):
     def testCwdContentsNested(self):
         self.db.data.root()['1.0'] = {}
         self.db.data.root()['1.0']['NG-1'] = 'Issue 1'
-        self.db.cwd = ['', '1.0']
+        self.db.cwd = ['/', '1.0']
         self.assertEqual(self.db.cwd_contents(), ('NG-1',))
 
     def testGetByPath(self):
@@ -42,13 +44,13 @@ class DBTest(unittest.TestCase):
 
     def testGetByPathNestedByList(self):
         self.db.data.root()['1.0'] = {}
-        self.db.data.root()['1.0']['NG-2'] = 'Issue 2'
-        self.assertEqual(self.db.get_by_path(['', '1.0', 'NG-2']), 'Issue 2')
+        self.db.data.root()['1.0']['NG-1'] = 'NG-1'
+        self.assertEqual(self.db.get_by_path(['/', '1.0', 'NG-1']), 'NG-1')
 
     def testGetByPathRelative(self):
         self.db.data.root()['1.0'] = {}
         self.db.data.root()['1.0']['NG-1'] = 'Issue 1'
-        self.db.cwd = ['', '1.0']
+        self.db.cwd = ['/', '1.0']
         self.assertEqual(self.db.get_by_path('NG-1'), 'Issue 1')
 
     def testKeys(self):
@@ -123,8 +125,24 @@ class JiraTest(unittest.TestCase):
             count += 1
 
     def testGetRelease(self):
-        release = self.jira.get_release()
-        self.assertEqual(release[0].key, 'NG-12459')
+        release = Release()
+        release.version = '1.0'
+        self.jira.cache.data.root()['1.0'] = release
+        release = self.jira.get_release('1.0')
+        self.assertEqual(release.version, '1.0')
+
+    def testGetReleaseFromMultiple(self):
+        release = Release()
+        release.version = '1.0'
+        self.jira.cache.data.root()['1.0'] = release
+        release = Release()
+        release.version = '2.0'
+        self.jira.cache.data.root()['2.0'] = release
+        release = self.jira.get_release('2.0')
+        self.assertEqual(release.version, '2.0')
+        release = self.jira.get_release('1.0')
+        self.assertEqual(release.version, '1.0')
+
 
     def testGetReleaseKeys(self):
         keys = self.jira.get_release_keys()

@@ -118,28 +118,22 @@ class KanbanTest(unittest.TestCase):
         self.assertEqual(len(release.kanban().stories), 1)
 
     def testAverageCycleTimeLife(self):
-        def mock_request_page(url, refresh=False):
-            return open('jira/tests/data/rss.xml').read()
-        def mock_call_rest(key, expand=['changelog']):
-            return json.loads(open(
-                'jira/tests/data/rest_changelog.json').read())
-        self.jira.call_rest = mock_call_rest
-        self.jira.request_page = mock_request_page
-        release = self.jira.get_release()
+        release = Release()
+        release.add(make_story('NG-1', created=D20121201, resolved=D20121202))
+        release.add(make_story('NG-2', created=D20121201, resolved=D20121205))
+        release.add(make_story('NG-3', created=D20121201, resolved=D20121208))
+        release.add(make_story('NG-4', created=D20121201, resolved=D20121205))
         kanban = release.kanban()
-        self.assertEqual(kanban.average_cycle_time_life(), 17.0)
+        self.assertEqual(kanban.average_cycle_time_life(), 4.0)
 
     def testAverageCycleTime(self):
-        def mock_request_page(url, refresh=False):
-            return open('jira/tests/data/rss.xml').read()
-        def mock_call_rest(key, expand=['changelog']):
-            return json.loads(open(
-                'jira/tests/data/rest_changelog.json').read())
-        self.jira.call_rest = mock_call_rest
-        self.jira.request_page = mock_request_page
-        release = self.jira.get_release()
+        release = Release()
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121202))
+        release.add(make_story('NG-2', started=D20121201, resolved=D20121205))
+        release.add(make_story('NG-3', started=D20121201, resolved=D20121208))
+        release.add(make_story('NG-4', started=D20121201, resolved=D20121205))
         kanban = release.kanban()
-        self.assertEqual(kanban.average_cycle_time(), 6.0)
+        self.assertEqual(kanban.average_cycle_time(), 4.0)
 
     def testAverageCycleTimeBugs(self):
         release = Release()
@@ -245,16 +239,17 @@ class KanbanTest(unittest.TestCase):
             0.6382847385042254)
 
     def testCycleTimeForComponent(self):
-        def mock_request_page(url, refresh=False):
-            return open('jira/tests/data/rss.xml').read()
-        def mock_call_rest(key, expand=['changelog']):
-            return json.loads(open(
-                'jira/tests/data/rest_changelog.json').read())
-        self.jira.call_rest = mock_call_rest
-        self.jira.request_page = mock_request_page
-        release = self.jira.get_release()
+        release = Release()
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121202,
+            scrum_team='Foo'))
+        release.add(make_story('NG-2', started=D20121201, resolved=D20121213,
+            scrum_team='Bar'))
+        release.add(make_story('NG-3', started=D20121201, resolved=D20121205,
+            scrum_team='Foo'))
+        release.add(make_story('NG-4', started=D20121201, resolved=D20121205,
+            scrum_team='Foo'))
         kanban = release.kanban()
-        self.assertEqual(kanban.average_cycle_time('Continuous Improvement'), 6.0)
+        self.assertEqual(kanban.average_cycle_time('Foo'), 3.0)
 
     def testAverageCycleTimeForEstimate(self):
         release = Release()
@@ -749,26 +744,20 @@ class ReleaseTests(unittest.TestCase):
         # self.assertEqual(cycle_times['Reader'], 1)
 
     def testGraphKanban(self):
-        def mock_request_page(url, refresh=False):
-            return open('jira/tests/data/rss.xml').read()
-        def mock_call_rest(key, expand=['changelog']):
-            return json.loads(open(
-                'jira/tests/data/rest_changelog.json').read())
-        self.jira.call_rest = mock_call_rest
-        self.jira.request_page = mock_request_page
-        release = self.jira.get_release()
-        self.assertEqual(release.graph_kanban(), '__O')
+        release = Release()
+        release.add(make_story('NG-1', status=1, points=1.0, scrum_team='Foo'))
+        release.add(make_story('NG-2', status=3, points=2.0, scrum_team='Bar'))
+        release.add(make_story('NG-3', status=3, points=4.0, scrum_team='Foo'))
+        release.add(make_story('NG-4', status=6, points=3.0, scrum_team='Foo'))
+        self.assertEqual(release.graph_kanban(), '.Oo')
 
     def testGraphKanbanByComponent(self):
-        def mock_request_page(url, refresh=False):
-            return open('jira/tests/data/rss.xml').read()
-        def mock_call_rest(key, expand=['changelog']):
-            return json.loads(open(
-                'jira/tests/data/rest_changelog.json').read())
-        self.jira.call_rest = mock_call_rest
-        self.jira.request_page = mock_request_page
-        release = self.jira.get_release()
-        self.assertEqual(release.graph_kanban('Core and Builder'), '___')
+        release = Release()
+        release.add(make_story('NG-1', status=1, points=1.0, scrum_team='Foo'))
+        release.add(make_story('NG-2', status=3, points=5.0, scrum_team='Bar'))
+        release.add(make_story('NG-3', status=3, points=4.0, scrum_team='Foo'))
+        release.add(make_story('NG-4', status=6, points=3.0, scrum_team='Foo'))
+        self.assertEqual(release.graph_kanban('Foo'), '.oo')
 
     def TestUpperPercentile(self):
         release = Release()

@@ -58,6 +58,8 @@ class LocalDB(object):
         path = copy.copy(path)
         if isinstance(path, type('')):
             path = path.split('/')
+            if not path[0]:
+                path[0] = '/'
         if path[0] == '/':
             obj = self.data.root()
             del path[0]
