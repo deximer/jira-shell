@@ -1,3 +1,4 @@
+import argparse
 from ..base import BaseCommand
 
 class Command(BaseCommand):
@@ -5,7 +6,16 @@ class Command(BaseCommand):
     usage = 'teams'
 
     def run(self, jira, args):
-        self.refresh_data(jira, False)
-        teams = self.release.tasked_teams()
+        parser = argparse.ArgumentParser()
+        parser.add_argument('dir', nargs='?')
+        try:
+            args = parser.parse_args(args)
+        except:
+            return
+        if args.dir:
+            container = jira.cache.get_by_path(args.dir)
+        else:
+            container = jira.cache.get_by_path(jira.cache.cwd)
+        teams = container.tasked_teams()
         for team in teams:
             print '%s: %d' % (team, teams[team])
