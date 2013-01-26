@@ -8,7 +8,7 @@ class Command(BaseCommand):
     def run(self, jira, args):
         window = curses.initscr()
         quit = False
-        self.refresh_data(jira, False)
+        self.release = jira.cache.get_by_path(jira.cache.cwd)
         command = 'wip'
         c = 0
         while not quit:
