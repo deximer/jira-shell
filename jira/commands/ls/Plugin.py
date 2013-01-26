@@ -1,6 +1,12 @@
 import getopt
 import argparse
+from zope.interface import Interface, implements
+from zope.component import adapts
+from zope.component import getGlobalSiteManager
 from ..base import BaseCommand
+from model import IRelease
+
+gsm = getGlobalSiteManager()
 
 class Command(BaseCommand):
     help = 'List issues in a release.'
@@ -23,7 +29,7 @@ class Command(BaseCommand):
             args = parser.parse_args(args)
         except:
             return
-        self.refresh_data(jira, False)
+        #self.refresh_data(jira, False)
         print 'Key'.ljust(9), \
               'Team:'.ljust(18), \
               'Pts:'.ljust(5), \
@@ -52,7 +58,12 @@ class Command(BaseCommand):
                     hide_type.append(arg[1:])
                 else:
                     show_type.append(arg)
-        for story in sorted(self.release.data, key=lambda x: x.scrum_team):
+        container = jira.cache.get_by_path(jira.cache.cwd)
+        for story in container.values():
+            try:
+                story = IDirectoryListItem(story)
+            except TypeError:
+                pass
             if show_status and story.status not in show_status:
                 continue
             if hide_status and story.status in hide_status:
@@ -88,5 +99,25 @@ class Command(BaseCommand):
                 points += story.points
         print 'Total Issues: %d, Total Points: %d' % (issues, points)
 
-    def refresh_data(self, jira, refresh):
-        self.release = jira.get_release(refresh)
+
+class IDirectoryListItem(Interface):
+    pass
+
+class ReleaseAdapter(object):
+    implements(IDirectoryListItem)
+    adapts(IRelease)
+
+    def __init__(self, release):
+        self.release = release
+        self.key = release.version
+        self.scrum_team = 'N/A'
+        self.cycle_time = self.release.kanban().average_cycle_time()
+        self.started = 'N/A'
+        self.resolved = 'N/A'
+        self.points = self.release.total_points()
+        self.status = 'N/A'
+        self.type = 'N/A'
+        self.title = 'N/A'
+
+
+gsm.registerAdapter(ReleaseAdapter)

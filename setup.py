@@ -30,6 +30,7 @@ Command line tools for Jira.""",
           'BeautifulSoup',
           'numpy',
           'matplotlib',
+          'zope.component',
           'ZODB3',
       ],
       entry_points="""

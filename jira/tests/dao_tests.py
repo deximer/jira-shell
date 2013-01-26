@@ -12,6 +12,7 @@ class DBTest(unittest.TestCase):
     def tearDown(self):
         transaction.abort()
         for key in self.db.data.root().keys():
+            transaction.begin()
             del self.db.data.root()[key]
             transaction.commit()
         del self.db
@@ -66,6 +67,11 @@ class DBTest(unittest.TestCase):
         self.db.data.root()['1.0']['Nest'] = {}
         self.db.data.root()['1.0']['Nest']['NG-3'] = 'Issue 3'
         self.assertEqual(len(self.db.keys()), 5)
+    
+    def testGet(self):
+        self.db.data.root()['1.0'] = {}
+        self.db.data.root()['1.0']['NG-1'] = 'Issue 1'
+        self.assertEqual(self.db.get('NG-1'), 'Issue 1')
 
 
 class JiraTest(unittest.TestCase):
@@ -118,7 +124,7 @@ class JiraTest(unittest.TestCase):
 
     def testGetRelease(self):
         release = self.jira.get_release()
-        self.assertEqual(release.data[0].key, 'NG-12459')
+        self.assertEqual(release[0].key, 'NG-12459')
 
     def testGetReleaseKeys(self):
         keys = self.jira.get_release_keys()

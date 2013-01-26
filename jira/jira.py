@@ -8,7 +8,7 @@ import commands
 
 cmds = {'top': commands.top.Plugin.Command(),
         'ls': commands.ls.Plugin.Command(),
-        'cp': commands.cp.Plugin.Command(),
+        'cd': commands.cd.Plugin.Command(),
         'chart': commands.chart.Plugin.Command(),
         'export': commands.export.Plugin.Command(),
         'report': commands.report.Plugin.Command(),
@@ -51,7 +51,8 @@ def dispatch(command):
     table = {'report': cmds['report'].run,
              'teams': cmds['teams'].run,
              'developers': cmds['developers'].run,
-             'cp': cmds['cp'].run,
+             'ls': cmds['ls'].run,
+             'cd': cmds['cd'].run,
              'stat': cmds['stat'].run,
              'top': cmds['top'].run,
              'legend': cmds['legend'].run,

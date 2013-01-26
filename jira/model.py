@@ -1,7 +1,9 @@
 import numpy
 import time
 import datetime
+from zope.interface import Interface, implements
 from persistent import Persistent
+from persistent.mapping import PersistentMapping
 
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
@@ -37,8 +39,21 @@ KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_IN_PROGRESS, STATUS_REOPENED,
     STATUS_QA_READY, STATUS_QA_ACTIVE, STATUS_COMPLETED, STATUS_VERIFIED,
     STATUS_CLOSED]
 
+class IStory(Interface):
+    pass
+
+class IKanban(Interface):
+    pass
+
+class IRelease(Interface):
+    pass
+
+
 class Story(Persistent):
+    implements(IStory)
+
     def __init__(self, key=None):
+        super(Story, self).__init__()
         self.key = key
 
     def _get_cycle_time(self):
@@ -64,6 +79,8 @@ class Story(Persistent):
 
 
 class Kanban(object):
+    implements(IKanban)
+
     def __init__(self):
         self.stories = []
         self.release = None
@@ -94,7 +111,7 @@ class Kanban(object):
 
     def add_release(self, release):
         self.release = release
-        for story in release.data:
+        for story in release.values():
             self.add(story)
 
     def average_cycle_time_life(self, component=None, type=['72']):
@@ -293,12 +310,24 @@ class Kanban(object):
         return round(outside, 1)
 
 
-class Release(object):
+class Release(PersistentMapping):
+    implements(IRelease)
+
     WIP = {'In Progress': 3, 'Complete': 10090, 'QA Active': 10092,
            'Ready for QA': 10104, 'Ready for PO': 10036}
 
-    def __init__(self):
-        self.data = []
+    def __init__(self, version=None):
+        PersistentMapping.__init__(self)
+        self.version = version
+
+    def __key(self):
+        return (self.version)
+
+    def __eq__(x, y):
+        return x.__key() == y.__key()
+
+    def __hash__(self):
+        return hash(self.__key())
 
     def process_raw_key(self, key):
         if key[:3] != 'NG-':
@@ -306,13 +335,12 @@ class Release(object):
         return key.strip()
 
     def add(self, story):
-        self.data.append(story)
+        self[story.key] = story
 
     def get(self, key):
         key = self.process_raw_key(key)
-        for story in self.data:
-            if story.key == key:
-                return story
+        if self.has_key(key):
+            return self[key]
         return None
 
     def tasked_teams(self):
@@ -335,18 +363,18 @@ class Release(object):
         return developers
 
     def stories(self, type=['72']):
-        return [story for story in self.data if story.type in type]
+        return [story for story in self.values() if story.type in type]
 
     def started_stories(self):
-        return [story for story in self.data if story.type == STORY_TYPE
+        return [story for story in self.values() if story.type == STORY_TYPE
             and story.started]
 
     def resolved_stories(self):
-        return [story for story in self.data if story.type == STORY_TYPE
+        return [story for story in self.values() if story.type == STORY_TYPE
             and story.resolved]
 
     def bugs(self):
-        return [story for story in self.data if story.type == BUG_TYPE or
+        return [story for story in self.values() if story.type == BUG_TYPE or
             story.type == PRODUCTION_BUG_TYPE]
 
     def only_groomed_stories(self):

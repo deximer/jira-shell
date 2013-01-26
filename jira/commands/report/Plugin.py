@@ -81,6 +81,3 @@ class Command(BaseCommand):
             print 'Story Cycle Time 85th Percentile:'
             for story in stories:
                 print '  ', story.key, story.cycle_time, story.scrum_team
-
-    def refresh_data(self, jira, refresh):
-        self.release = jira.get_release(refresh)

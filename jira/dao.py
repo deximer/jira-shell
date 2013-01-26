@@ -33,6 +33,17 @@ class LocalDB(object):
                 self.keys(obj[key], results)
         return results
 
+    def get(self, key, obj=None):
+        if not obj:
+            obj = self.data.root()
+        result = None
+        for k in obj:
+            if k == key:
+                return obj[k]
+            if hasattr(obj[k], 'has_key'):
+                result = self.get(key, obj[k])
+        return result
+
     def cwd_contents(self):
         if self.cwd[-1] == '/':
             return tuple(sorted([key for key in self.data.root()]))
@@ -43,9 +54,11 @@ class LocalDB(object):
         return tuple(contents)
 
     def get_by_path(self, path):
+        import copy
+        path = copy.copy(path)
         if isinstance(path, type('')):
             path = path.split('/')
-        if path[0] == '':
+        if path[0] == '/':
             obj = self.data.root()
             del path[0]
         else:
@@ -73,7 +86,7 @@ class Jira(object):
     def format_request(self, path):
         return 'http://%s@%s/%s' % (self.auth, self.server, path)
 
-    def request_page(self, path, refresh=False):
+    def request_page(self, path, refresh=True):
         try:
             if not refresh:
                 cache = open('cache.xml', 'r')
@@ -104,14 +117,20 @@ class Jira(object):
     def all_projects(self):
         return self.get_projects()
 
-    def get_release(self, refresh=False):
+    def get_release(self, version=None):
+        if not version:
+            version = self.cwd[-1]
+        for key in self.cache.data.root().keys():
+            if key == version:
+                return self.cache.data.root()[key]
+        return None
+
+    def refresh_cache(self):
         page = self.request_page('sr/jira.issueviews:searchrequest-xml/24619/' \
-            'SearchRequest-24619.xml?tempMax=10000', refresh)
+            'SearchRequest-24619.xml?tempMax=10000')
         tree = ET.fromstring(page)
-        release = Release()
         for key in self.get_release_keys():
-            release.add(self.get_story(key, refresh))
-        return release
+            self.get_story(key, True)
 
     def get_release_keys(self, refresh=False):
         page = self.request_page('sr/jira.issueviews:searchrequest-xml/24619/' \
@@ -123,8 +142,9 @@ class Jira(object):
         return keys
 
     def get_story(self, key, refresh=False):
-        if not refresh and key in self.cache.data.root().keys():
-            return self.cache.data.root()[key]
+        story = self.cache.get(key)
+        if not refresh and story:
+            return story
         story = Story(key)
         data = self.call_rest(key, expand=['changelog'])
         story.title = data['fields']['summary']
@@ -170,8 +190,10 @@ class Jira(object):
             if version in self.cache.data.root():
                 self.cache.data.root()[version][story.key] = story
             else:
-                self.cache.data.root()[version] = PersistentMapping()
-                self.cache.data.root()[version][story.key] = story
+                release = Release()
+                release.version = version
+                release[story.key] = story
+                self.cache.data.root()[version] = release
         self.commit()
         return story
 

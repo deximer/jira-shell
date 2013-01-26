@@ -37,6 +37,3 @@ class Command(BaseCommand):
         print '    Inside:', kanban.contingency_inside(story.key)
         print '    Average:', kanban.contingency_average(story.key)
         print '    Outside:', kanban.contingency_outside(story.key)
-
-    def refresh_data(self, jira, refresh):
-        self.release = jira.get_release(refresh)

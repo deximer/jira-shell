@@ -87,6 +87,3 @@ class Command(BaseCommand):
                     story.points or 0.0,
                     story.cycle_time,
                     story.key))
-
-    def refresh_data(self, jira, refresh):
-        self.release = jira.get_release(refresh)

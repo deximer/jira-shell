@@ -9,6 +9,3 @@ class Command(BaseCommand):
         developers = self.release.developers()
         for developer in developers:
             print '%s: %d' % (developer, developers[developer])
-
-    def refresh_data(self, jira, refresh):
-        self.release = jira.get_release(refresh)

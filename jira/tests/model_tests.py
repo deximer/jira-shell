@@ -14,6 +14,19 @@ D20121205 = datetime.datetime(2012, 12, 5)
 D20121208 = datetime.datetime(2012, 12, 8)
 D20121213 = datetime.datetime(2012, 12, 13)
 
+def make_story(key, points=1.0, status=3, scrum_team='foo', type='72',
+        created=D20121201, started=D20121202, resolved=D20121203):
+    story = Story(key)
+    story.points = points
+    story.status = status
+    story.scrum_team = scrum_team
+    story.type = type
+    story.created = created
+    story.started = started
+    story.resolved = resolved
+    return story
+
+
 class StoryTest(unittest.TestCase):
     ''' Unit tests for the Story class
     '''
@@ -35,7 +48,7 @@ class StoryTest(unittest.TestCase):
         for key in self.jira.cache.data.root().keys():
             transaction.begin()
             del self.jira.cache.data.root()[key]
-        transaction.commit()
+            transaction.commit()
 
     def testObjectCreation(self):
         ''' Verify we can create a Story object
@@ -100,18 +113,9 @@ class KanbanTest(unittest.TestCase):
         self.assertEqual(len(kanban.grid.keys()), 1)
 
     def testAddRelease(self):
-        def mock_request_page(url, refresh=False):
-            return open('jira/tests/data/rss.xml').read()
-        def mock_call_rest(key, expand=['changelog']):
-            return json.loads(open(
-                'jira/tests/data/rest_changelog.json').read())
-        self.jira.call_rest = mock_call_rest
-        self.jira.request_page = mock_request_page
-        release = self.jira.get_release()
-        kanban = Kanban()
-        kanban.add_release(release)
-        self.assertEqual(len(kanban.stories), 125)
-        self.assertEqual(len(kanban.grid['Continuous Improvement']), 1)
+        release = Release()
+        release.add(make_story('NG-1'))
+        self.assertEqual(len(release.kanban().stories), 1)
 
     def testAverageCycleTimeLife(self):
         def mock_request_page(url, refresh=False):
@@ -139,155 +143,85 @@ class KanbanTest(unittest.TestCase):
 
     def testAverageCycleTimeBugs(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].type = '1'
-        release.data[0].started = D20121201
-        release.data[0].resolved = D20121203
-        release.data[1].type = '1'
-        release.data[1].started = D20121201
-        release.data[1].resolved = D20121208
-        release.data[2].type = '1'
-        release.data[2].started = D20121201
-        release.data[2].resolved = D20121208
-        release.data[3].type = '72'
-        release.data[3].started = D20121201
-        release.data[3].resolved = D20121208
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121203,
+            type='1'))
+        release.add(make_story('NG-2', started=D20121201, resolved=D20121208,
+            type='1'))
+        release.add(make_story('NG-3', started=D20121201, resolved=D20121208,
+            type='72'))
         kanban = release.kanban()
-        self.assertEqual(kanban.average_cycle_time(type=['1']), 5.3)
+        self.assertEqual(kanban.average_cycle_time(type=['1']), 4.5)
 
     def testMedianCycleTime(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].type = '72'
-        release.data[0].started = D20121201
-        release.data[0].resolved = D20121203
-        release.data[1].type = '72'
-        release.data[1].started = D20121201
-        release.data[1].resolved = D20121208
-        release.data[2].type = '72'
-        release.data[2].started = D20121201
-        release.data[2].resolved = D20121213
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121203))
+        release.add(make_story('NG-2', started=D20121201, resolved=D20121208))
+        release.add(make_story('NG-3', started=D20121201, resolved=D20121213))
         kanban = release.kanban()
-        self.assertEqual(kanban.median_cycle_time(), 6.5)
+        self.assertEqual(kanban.median_cycle_time(), 7.0)
 
     def testAverageCycleTimeOnlyBugs(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.data[0].started = D20121201
-        release.data[0].type = '1'
-        release.data[0].resolved = D20121205
-        release.data[0].type = '78'
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121205,
+            type='1'))
+        release.add(make_story('NG-2', started=D20121201, resolved=D20121205,
+            type='78'))
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.average_cycle_time(), None)
 
     def testAverageCycleTimeNoCompletedStories(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.data[0].type = '72'
-        release.data[0].started = D20121201
-        release.data[0].resolved = None
+        release.add(make_story('NG-1', started=D20121201, resolved=None))
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.average_cycle_time(), None)
 
     def testAverageCycleTimeStrictBaked(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].started = D20121201
-        release.data[0].resolved = D20121205
-        release.data[0].type = '72'
-        release.data[1].started = D20121203
-        release.data[1].resolved = D20121205
-        release.data[1].type = '72'
-        release.data[2].started = D20121205
-        release.data[2].resolved = D20121213
-        release.data[2].type = '72'
-        release.data[3].started = D20121203
-        release.data[3].resolved = D20121213
-        release.data[3].type = '72'
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121202))
+        release.add(make_story('NG-2', started=D20121201, resolved=D20121203))
+        release.add(make_story('NG-3', started=D20121201, resolved=D20121208))
+        release.add(make_story('NG-4', started=D20121201, resolved=D20121213))
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.average_cycle_time(), 6)
+        self.assertEqual(kanban.average_cycle_time(), 5.5)
 
     def testStdevCycleTimeLife(self):
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].created = D20121201
-        release.data[0].resolved = D20121205
-        release.data[0].type = '72'
-        release.data[1].created = D20121203
-        release.data[1].resolved = D20121205
-        release.data[1].type = '72'
-        release.data[2].created = D20121205
-        release.data[2].resolved = D20121213
-        release.data[2].type = '72'
-        release.data[3].created = D20121203
-        release.data[3].resolved = D20121213
-        release.data[3].type = '72'
+        release.add(make_story('NG-1', created=D20121201, resolved=D20121205))
+        release.add(make_story('NG-2', created=D20121203, resolved=D20121205))
+        release.add(make_story('NG-3', created=D20121205, resolved=D20121213))
+        release.add(make_story('NG-4', created=D20121203, resolved=D20121213))
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.stdev_cycle_time_life(), 3.7)
 
     def testStdevCycleTimeStrictBaked(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].started = D20121201
-        release.data[0].resolved = D20121205
-        release.data[0].type = '72'
-        release.data[1].started = D20121203
-        release.data[1].resolved = D20121205
-        release.data[1].type = '72'
-        release.data[2].started = D20121205
-        release.data[2].resolved = D20121213
-        release.data[2].type = '72'
-        release.data[3].started = D20121203
-        release.data[3].resolved = D20121213
-        release.data[3].type = '72'
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121205))
+        release.add(make_story('NG-2', started=D20121203, resolved=D20121205))
+        release.add(make_story('NG-3', started=D20121205, resolved=D20121213))
+        release.add(make_story('NG-4', started=D20121203, resolved=D20121213))
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.stdev_cycle_time(), 3.7)
 
     def testCycleTimePerPointStrictBaked(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].started = D20121201
-        release.data[0].resolved = D20121205 # 4 days
-        release.data[0].type = '72'
-        release.data[0].points = 2.0
-        release.data[1].started = D20121203
-        release.data[1].resolved = D20121205 # 2 days
-        release.data[1].type = '72'
-        release.data[1].points = 1.0
-        release.data[2].started = D20121205
-        release.data[2].resolved = D20121213 # 8 days
-        release.data[2].type = '72'
-        release.data[2].points = 3.0
-        release.data[3].started = D20121203
-        release.data[3].resolved = D20121213 # 10 days
-        release.data[3].type = '72'
-        release.data[3].points = 3.0
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121205,
+            points=2.0))
+        release.add(make_story('NG-2', started=D20121203, resolved=D20121205,
+            points=1.0))
+        release.add(make_story('NG-3', started=D20121205, resolved=D20121213,
+            points=3.0))
+        release.add(make_story('NG-4', started=D20121203, resolved=None,
+            points=3.0))
+        release.add(make_story('NG-5', started=D20121203, resolved=D20121213,
+            points=3.0))
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.cycle_time_per_point(), 2.5)
@@ -297,26 +231,14 @@ class KanbanTest(unittest.TestCase):
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].started = D20121201
-        release.data[0].resolved = D20121205 # 4 days
-        release.data[0].type = '72'
-        release.data[0].points = 2.0
-        release.data[1].started = D20121203
-        release.data[1].resolved = D20121205 # 2 days
-        release.data[1].type = '72'
-        release.data[1].points = 1.0
-        release.data[2].started = D20121205
-        release.data[2].resolved = D20121213 # 8 days
-        release.data[2].type = '72'
-        release.data[2].points = 3.0
-        release.data[3].started = D20121203
-        release.data[3].resolved = D20121213 # 10 days
-        release.data[3].type = '72'
-        release.data[3].points = 3.0
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121205,
+            points=2.0))
+        release.add(make_story('NG-2', started=D20121203, resolved=D20121205,
+            points=1.0))
+        release.add(make_story('NG-3', started=D20121205, resolved=D20121213,
+            points=3.0))
+        release.add(make_story('NG-4', started=D20121203, resolved=D20121213,
+            points=3.0))
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.stdev_cycle_time_per_point(),
@@ -336,26 +258,14 @@ class KanbanTest(unittest.TestCase):
 
     def testAverageCycleTimeForEstimate(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].started = D20121201
-        release.data[0].resolved = D20121205 # 4 days
-        release.data[0].type = '72'
-        release.data[0].points = 2.0
-        release.data[1].started = D20121203
-        release.data[1].resolved = D20121205 # 2 days
-        release.data[1].type = '72'
-        release.data[1].points = 1.0
-        release.data[2].started = D20121205
-        release.data[2].resolved = D20121213 # 8 days
-        release.data[2].type = '72'
-        release.data[2].points = 3.0
-        release.data[3].started = D20121203
-        release.data[3].resolved = D20121213 # 10 days
-        release.data[3].type = '72'
-        release.data[3].points = 3.0
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121205,
+            points=2.0))
+        release.add(make_story('NG-2', started=D20121203, resolved=D20121205,
+            points=1.0))
+        release.add(make_story('NG-3', started=D20121205, resolved=D20121213,
+            points=3.0))
+        release.add(make_story('NG-4', started=D20121203, resolved=D20121213,
+            points=3.0))
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.average_cycle_time_for_estimate('3.0'), 9.0)
@@ -364,26 +274,14 @@ class KanbanTest(unittest.TestCase):
 
     def testStdevCycleTimeForEstimate(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].started = D20121201
-        release.data[0].resolved = D20121205 # 4 days
-        release.data[0].type = '72'
-        release.data[0].points = 2.0
-        release.data[1].started = D20121203
-        release.data[1].resolved = D20121205 # 2 days
-        release.data[1].type = '72'
-        release.data[1].points = 1.0
-        release.data[2].started = D20121205
-        release.data[2].resolved = D20121213 # 8 days
-        release.data[2].type = '72'
-        release.data[2].points = 3.0
-        release.data[3].started = D20121203
-        release.data[3].resolved = D20121213 # 10 days
-        release.data[3].type = '72'
-        release.data[3].points = 3.0
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121205,
+            points=2.0))
+        release.add(make_story('NG-2', started=D20121203, resolved=D20121205,
+            points=1.0))
+        release.add(make_story('NG-3', started=D20121205, resolved=D20121213,
+            points=3.0))
+        release.add(make_story('NG-4', started=D20121203, resolved=D20121213,
+            points=3.0))
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.stdev_cycle_time_for_estimate('3.0'), 1.0)
@@ -392,31 +290,18 @@ class KanbanTest(unittest.TestCase):
 
     def testContingency(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].key = 'NG-TEST'
-        release.data[0].started = D20121201
-        release.data[0].resolved = D20121205 # 4 days
-        release.data[0].type = '72'
-        release.data[0].points = 2.0
-        release.data[1].started = D20121203
-        release.data[1].resolved = D20121205 # 2 days
-        release.data[1].type = '72'
-        release.data[1].points = 2.0
-        release.data[2].started = D20121205
-        release.data[2].resolved = D20121213 # 8 days
-        release.data[2].type = '72'
-        release.data[2].points = 2.0
-        release.data[3].started = D20121203
-        release.data[3].resolved = D20121213 # 10 days
-        release.data[3].type = '72'
-        release.data[3].points = 2.0
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121205,
+            points=2.0))
+        release.add(make_story('NG-2', started=D20121203, resolved=D20121205,
+            points=2.0))
+        release.add(make_story('NG-3', started=D20121205, resolved=D20121213,
+            points=2.0))
+        release.add(make_story('NG-4', started=D20121203, resolved=D20121213,
+            points=2.0))
         kanban = release.kanban()
-        self.assertEqual(kanban.contingency_average('NG-TEST'), 2.0)
-        self.assertEqual(kanban.contingency_inside('NG-TEST'), -4.3)
-        self.assertEqual(kanban.contingency_outside('NG-TEST'), 8.3)
+        self.assertEqual(kanban.contingency_average('NG-1'), 2.0)
+        self.assertEqual(kanban.contingency_inside('NG-1'), -4.3)
+        self.assertEqual(kanban.contingency_outside('NG-1'), 8.3)
 
     def testContingencyNoCycleTimes(self):
         xml = open('jira/tests/data/rss.xml').read()
@@ -424,18 +309,17 @@ class KanbanTest(unittest.TestCase):
         item = tree.find('.//*/item')
         release = Release()
         kanban = release.kanban()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].key = 'NG-TEST'
-        release.data[0].started = None
-        release.data[0].resolved = None
-        release.data[0].type = '72'
-        release.data[0].points = 2.0
-        release.data[1].started = None
-        release.data[1].resolved = None
-        release.data[1].type = '72'
-        release.data[1].points = 2.0
-        self.assertEqual(kanban.contingency_average('NG-TEST'), None)
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release['NG-1'].started = None
+        release['NG-1'].resolved = None
+        release['NG-1'].type = '72'
+        release['NG-1'].points = 2.0
+        release['NG-2'].started = None
+        release['NG-2'].resolved = None
+        release['NG-2'].type = '72'
+        release['NG-2'].points = 2.0
+        self.assertEqual(kanban.contingency_average('NG-1'), None)
         
 
 class ReleaseTests(unittest.TestCase):
@@ -475,13 +359,14 @@ class ReleaseTests(unittest.TestCase):
 
     def testAddStory(self):
         release = Release()
-        release.add(self.jira.get_story('NG-12459'))
-        self.assertEqual(release.data[0].key, 'NG-12459')
+        key = 'NG-1'
+        release.add(Story(key))
+        self.assertEqual(release[key].key, key)
 
     def testGetStory(self):
         release = Release()
-        release.add(self.jira.get_story('NG-12345'))
-        key = 'NG-12345'
+        key = 'NG-1'
+        release.add(Story(key))
         story = release.get(key)
         self.assertEqual(story.key, key)
 
@@ -497,18 +382,18 @@ class ReleaseTests(unittest.TestCase):
 
     def testTaskedTeams(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].type = '72'
-        release.data[0].scrum_team = 'Foo'
-        release.data[1].type = '72'
-        release.data[1].scrum_team = 'Foo'
-        release.data[2].type = '72'
-        release.data[2].scrum_team = 'Bar'
-        release.data[3].type = '72'
-        release.data[3].scrum_team = None
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release.add(Story('NG-4'))
+        release['NG-1'].type = '72'
+        release['NG-1'].scrum_team = 'Foo'
+        release['NG-2'].type = '72'
+        release['NG-2'].scrum_team = 'Foo'
+        release['NG-3'].type = '72'
+        release['NG-3'].scrum_team = 'Bar'
+        release['NG-4'].type = '72'
+        release['NG-4'].scrum_team = None
         self.assertEqual(len(release.tasked_teams().keys()), 3)
         self.assertEqual(release.tasked_teams()['Foo'], 2)
         self.assertEqual(release.tasked_teams()['Bar'], 1)
@@ -516,75 +401,75 @@ class ReleaseTests(unittest.TestCase):
 
     def testDevelopers(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].type = '72'
-        release.data[0].developer = 'joe'
-        release.data[1].type = '72'
-        release.data[1].developer = 'joe'
-        release.data[2].type = '72'
-        release.data[2].developer = 'ann'
-        release.data[3].type = '72'
-        release.data[3].developer = 'joe'
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release.add(Story('NG-4'))
+        release['NG-1'].type = '72'
+        release['NG-1'].developer = 'joe'
+        release['NG-2'].type = '72'
+        release['NG-2'].developer = 'joe'
+        release['NG-3'].type = '72'
+        release['NG-3'].developer = 'ann'
+        release['NG-4'].type = '72'
+        release['NG-4'].developer = 'joe'
         self.assertEqual(len(release.developers().keys()), 2)
         self.assertEqual(release.developers()['joe'], 3)
         self.assertEqual(release.developers()['ann'], 1)
 
     def testOnlyStories(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].type = '72'
-        release.data[1].type = '72'
-        release.data[2].type = '78'
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].type = '72'
+        release['NG-2'].type = '72'
+        release['NG-3'].type = '78'
         self.assertEqual(len(release.stories()), 2)
 
     def testOnlyStartedStories(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].type = '72'
-        release.data[0].started = D20121201
-        release.data[1].type = '78'
-        release.data[1].started = D20121201
-        release.data[2].type = '72'
-        release.data[2].started = None
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].type = '72'
+        release['NG-1'].started = D20121201
+        release['NG-2'].type = '78'
+        release['NG-2'].started = D20121201
+        release['NG-3'].type = '72'
+        release['NG-3'].started = None
         self.assertEqual(len(release.started_stories()), 1)
 
     def testStoriesByStatus(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].type = '72'
-        release.data[0].status = 6
-        release.data[1].type = '72'
-        release.data[1].status = 3
-        release.data[2].type = '72'
-        release.data[2].status = 3
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].type = '72'
+        release['NG-1'].status = 6
+        release['NG-2'].type = '72'
+        release['NG-2'].status = 3
+        release['NG-3'].type = '72'
+        release['NG-3'].status = 3
         self.assertEqual(len(release.stories_by_status()['3']), 2)
 
     def testOnlyBugs(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].type = '1'
-        release.data[1].type = '72'
-        release.data[2].type = '78'
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].type = '1'
+        release['NG-2'].type = '72'
+        release['NG-3'].type = '78'
         self.assertEqual(len(release.bugs()), 2)
 
     def testTotalStories(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.data[0].type = '72'
+        release.add(Story('NG-1'))
+        release['NG-1'].type = '72'
         self.assertTrue(release.total_stories() == 1)
-        release.add(self.jira.get_story(''))
-        release.data[1].type = '72'
+        release.add(Story('NG-2'))
+        release['NG-2'].type = '72'
         self.assertTrue(release.total_stories() == 2)
 
     def testTotalPoints(self):
@@ -592,77 +477,80 @@ class ReleaseTests(unittest.TestCase):
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
-        release.add(self.jira.get_story(item))
-        release.add(self.jira.get_story(item))
-        release.add(self.jira.get_story(item))
-        release.data[0].type = '72'
-        release.data[0].points = 1.5
-        release.data[1].type = '72'
-        release.data[1].points = 2.0
-        release.data[2].type = '1'
-        release.data[2].points = 5.0
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].type = '72'
+        release['NG-1'].points = 1.5
+        release['NG-2'].type = '72'
+        release['NG-2'].points = 2.0
+        release['NG-3'].type = '1'
+        release['NG-3'].points = 5.0
         self.assertEqual(release.total_points(), 3.5)
 
     def testPointsCompleted(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].type = '72'
-        release.data[0].points = 2.0
-        release.data[1].type = '72'
-        release.data[1].points = 1.0
-        release.data[2].type = '1'
-        release.data[2].points = 0.5
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].type = '72'
+        release['NG-1'].points = 2.0
+        release['NG-2'].type = '72'
+        release['NG-2'].points = 1.0
+        release['NG-3'].type = '1'
+        release['NG-3'].points = 0.5
         self.assertEqual(release.total_points(), 3.0)
 
     def testAverageStorySize(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].points = 2.0
-        release.data[0].type = '72'
-        release.data[1].points = 4.0
-        release.data[1].type = '72'
-        release.data[2].points = 8.0
-        release.data[2].type = '72'
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].points = 2.0
+        release['NG-1'].type = '72'
+        release['NG-2'].points = 4.0
+        release['NG-2'].type = '72'
+        release['NG-3'].points = 8.0
+        release['NG-3'].type = '72'
         self.assertEqual(release.average_story_size(), 4.666666666666667)
 
     def testAverageStorySizeNullValues(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].points = 2.0
-        release.data[0].type = '72'
-        release.data[1].points = None
-        release.data[1].type = '72'
-        release.data[2].points = 8.0
-        release.data[2].type = '72'
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].points = 2.0
+        release['NG-1'].type = '72'
+        release['NG-2'].points = None
+        release['NG-2'].type = '72'
+        release['NG-3'].points = 8.0
+        release['NG-3'].type = '72'
         self.assertEqual(release.average_story_size(), 5.0)
 
     def testStdStorySize(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].points = 2.0
-        release.data[0].type = '72'
-        release.data[1].points = 4.0
-        release.data[1].type = '72'
-        release.data[2].points = 8.0
-        release.data[2].type = '72'
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].points = 2.0
+        release['NG-1'].type = '72'
+        release['NG-2'].points = 4.0
+        release['NG-2'].type = '72'
+        release['NG-3'].points = 8.0
+        release['NG-3'].type = '72'
         self.assertEqual(release.std_story_size(), 3.0550504633038931)
 
     def testSortBySize(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].points = 2.0
-        release.data[1].points = 1.0
-        release.data[2].points = 3.0
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].points = 2.0
+        release['NG-1'].type = '72'
+        release['NG-2'].points = 1.0
+        release['NG-2'].type = '72'
+        release['NG-3'].points = 3.0
+        release['NG-3'].type = '72'
         count = 3.0
         for story in release.sort_by_size():
             self.assertEqual(count, story.points)
@@ -670,28 +558,28 @@ class ReleaseTests(unittest.TestCase):
 
     def testOnlyGroomedStories(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].points = 2.0
-        release.data[0].type = '72'
-        release.data[1].points = None
-        release.data[1].type = '72'
-        release.data[2].points = 3.0
-        release.data[2].type = '72'
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].points = 2.0
+        release['NG-1'].type = '72'
+        release['NG-2'].points = None
+        release['NG-2'].type = '72'
+        release['NG-3'].points = 3.0
+        release['NG-3'].type = '72'
         self.assertEqual(len(release.only_groomed_stories()), 2)
 
     def testStoriesByEstimate(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].points = 2.0
-        release.data[0].type = '72'
-        release.data[1].points = 2.0
-        release.data[1].type = '72'
-        release.data[2].points = 3.0
-        release.data[2].type = '72'
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].points = 2.0
+        release['NG-1'].type = '72'
+        release['NG-2'].points = 2.0
+        release['NG-2'].type = '72'
+        release['NG-3'].points = 3.0
+        release['NG-3'].type = '72'
         self.assertEqual(len(release.stories_by_estimate().keys()), 2)
         self.assertEqual(len(release.stories_by_estimate()['2.0']), 2)
         self.assertEqual(len(release.stories_by_estimate()['3.0']), 1)
@@ -699,54 +587,58 @@ class ReleaseTests(unittest.TestCase):
 
     def testStoriesInProcess(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].status = 3
-        release.data[0].type = '72'
-        release.data[1].status = 10092
-        release.data[1].type = '72'
-        release.data[2].status = 6
-        release.data[2].type = '72'
-        release.data[3].status = 3
-        release.data[3].type = '78'
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release.add(Story('NG-4'))
+        release['NG-1'].status = 3
+        release['NG-1'].type = '72'
+        release['NG-1'].points = 1.0
+        release['NG-2'].status = 10092
+        release['NG-2'].type = '72'
+        release['NG-2'].points = 2.0
+        release['NG-3'].status = 6
+        release['NG-3'].type = '72'
+        release['NG-3'].points = 3.0
+        release['NG-4'].status = 3
+        release['NG-4'].type = '78'
+        release['NG-4'].points = 5.0
         self.assertEqual(release.stories_in_process(), 2)
 
     def testWip(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].status = 1
-        release.data[0].points = 1.0
-        release.data[0].type = '72'
-        release.data[1].status = 3 # WIP
-        release.data[1].points = 1.0
-        release.data[1].type = '72'
-        release.data[2].status = 4
-        release.data[2].points = 1.0
-        release.data[2].type = '72'
-        release.data[3].status = 10036
-        release.data[3].points = 1.0
-        release.data[3].type = '72'
-        release.data[4].status = 10089
-        release.data[4].points = 1.0
-        release.data[4].type = '72'
-        release.data[5].status = 10090
-        release.data[5].points = 1.0
-        release.data[5].type = '72'
-        release.data[6].status = 10092
-        release.data[6].points = 1.0
-        release.data[6].type = '72'
-        release.data[7].status = 10104
-        release.data[7].points = 1.0
-        release.data[7].type = '72'
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release.add(Story('NG-4'))
+        release.add(Story('NG-5'))
+        release.add(Story('NG-6'))
+        release.add(Story('NG-7'))
+        release.add(Story('NG-8'))
+        release['NG-1'].status = 1
+        release['NG-1'].points = 1.0
+        release['NG-1'].type = '72'
+        release['NG-2'].status = 3 # WIP
+        release['NG-2'].points = 1.0
+        release['NG-2'].type = '72'
+        release['NG-3'].status = 4
+        release['NG-3'].points = 1.0
+        release['NG-3'].type = '72'
+        release['NG-4'].status = 10036
+        release['NG-4'].points = 1.0
+        release['NG-4'].type = '72'
+        release['NG-5'].status = 10089
+        release['NG-5'].points = 1.0
+        release['NG-5'].type = '72'
+        release['NG-6'].status = 10090
+        release['NG-6'].points = 1.0
+        release['NG-6'].type = '72'
+        release['NG-7'].status = 10092
+        release['NG-7'].points = 1.0
+        release['NG-7'].type = '72'
+        release['NG-8'].status = 10104
+        release['NG-8'].points = 1.0
+        release['NG-8'].type = '72'
         self.assertEqual(release.wip(), 5.0)
 
     def testWipByStatus(self):
@@ -754,18 +646,18 @@ class ReleaseTests(unittest.TestCase):
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
         key = tree.find('.//*/item').text
-        release.add(self.jira.get_story(key))
-        release.add(self.jira.get_story(key))
-        release.add(self.jira.get_story(key))
-        release.data[0].status = 3 # In Progress
-        release.data[0].points = 3.0
-        release.data[0].type = '72'
-        release.data[1].status = 6 # Closed
-        release.data[1].points = 5.0
-        release.data[1].type = '72'
-        release.data[2].status = 3 # In Progress
-        release.data[2].points = 1.5
-        release.data[2].type = '72'
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].status = 3 # In Progress
+        release['NG-1'].points = 3.0
+        release['NG-1'].type = '72'
+        release['NG-2'].status = 6 # Closed
+        release['NG-2'].points = 5.0
+        release['NG-2'].type = '72'
+        release['NG-3'].status = 3 # In Progress
+        release['NG-3'].points = 1.5
+        release['NG-3'].type = '72'
         self.assertEqual(release.wip_by_status()['3']['wip'], 4.5)
         self.assertEqual(sum([v['wip'] for v in release.wip_by_status().values()
             ]), 4.5)
@@ -775,37 +667,39 @@ class ReleaseTests(unittest.TestCase):
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
         key = tree.find('.//*/item/key').text
-        release.add(self.jira.get_story(key))
-        release.add(self.jira.get_story(key))
-        release.add(self.jira.get_story(key))
-        release.data[0].status = 3 # In Progress
-        release.data[0].points = 5.0
-        release.data[0].type = '72'
-        release.data[1].status = 3 # In Progress
-        release.data[1].points = 2.0
-        release.data[1].type = '72'
-        release.data[2].status = 6 # Closed
-        release.data[2].points = 0.499
-        release.data[2].type = '72'
-        print release.data[2].scrum_team
-        self.assertEqual(release.wip_by_component()['Continuous Improvement'][
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].status = 3 # In Progress
+        release['NG-1'].points = 5.0
+        release['NG-1'].type = '72'
+        release['NG-1'].scrum_team = 'FooTeam'
+        release['NG-2'].status = 3 # In Progress
+        release['NG-2'].points = 2.0
+        release['NG-2'].type = '72'
+        release['NG-2'].scrum_team = 'FooTeam'
+        release['NG-3'].status = 6 # Closed
+        release['NG-3'].points = 0.499
+        release['NG-3'].type = '72'
+        release['NG-3'].scrum_team = 'BarTeam'
+        self.assertEqual(release.wip_by_component()['FooTeam'][
             'wip'], 7.0)
-        self.assertEqual(release.wip_by_component()['Continuous Improvement'][
+        self.assertEqual(release.wip_by_component()['FooTeam'][
             'largest'], 5.0)
         self.assertEqual(len(release.wip_by_component()), 1)
 
     def testWipByTeamNullTeam(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].status = 3 # In Progress
-        release.data[0].points = 5.0
-        release.data[0].type = '72'
-        release.data[0].scrum_team = 'Some Team'
-        release.data[1].status = 3 # In Progress
-        release.data[1].points = 2.0
-        release.data[1].type = '72'
-        release.data[1].scrum_team = None
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release['NG-1'].status = 3 # In Progress
+        release['NG-1'].points = 5.0
+        release['NG-1'].type = '72'
+        release['NG-1'].scrum_team = 'Some Team'
+        release['NG-2'].status = 3 # In Progress
+        release['NG-2'].points = 2.0
+        release['NG-2'].type = '72'
+        release['NG-2'].scrum_team = None
         for story in release.stories():
             print story.scrum_team
         self.assertEqual(release.wip_by_component()['Some Team']['wip'], 5.0)
@@ -814,40 +708,43 @@ class ReleaseTests(unittest.TestCase):
 
     def testKanban(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].status = 3 # In Progress
-        release.data[0].points = 2.0
-        release.data[0].type = '72'
-        release.data[1].status = 3 # In Progress
-        release.data[1].points = 2.0
-        release.data[1].type = '72'
-        release.data[2].status = 6 # Closed
-        release.data[2].points = 2.0
-        release.data[2].type = '72'
-        self.assertEqual(release.kanban().grid['Continuous Improvement'][
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].status = 3 # In Progress
+        release['NG-1'].points = 2.0
+        release['NG-1'].type = '72'
+        release['NG-1'].scrum_team = 'FooTeam'
+        release['NG-2'].status = 3 # In Progress
+        release['NG-2'].points = 2.0
+        release['NG-2'].type = '72'
+        release['NG-2'].scrum_team = 'FooTeam'
+        release['NG-3'].status = 6 # Closed
+        release['NG-3'].points = 2.0
+        release['NG-3'].type = '72'
+        release['NG-3'].scrum_team = 'FooTeam'
+        self.assertEqual(release.kanban().grid['FooTeam'][
             '3']['wip'], 4.0)
-        self.assertEqual(release.kanban().grid['Continuous Improvement'][
+        self.assertEqual(release.kanban().grid['FooTeam'][
             '6']['wip'], 2.0)
-        self.assertEqual(len(release.kanban().grid['Continuous Improvement'][
+        self.assertEqual(len(release.kanban().grid['FooTeam'][
             '3']['stories']),2)
 
     def testCycleTimeByComponent(self):
         # Not implemented yet
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].status = 3 # In Progress
-        release.data[0].points = 2.0
-        release.data[0].type = '72'
-        release.data[1].status = 3 # In Progress
-        release.data[1].points = 2.0
-        release.data[1].type = '72'
-        release.data[2].status = 6 # Closed
-        release.data[2].points = 2.0
-        release.data[2].type = '72'
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release['NG-1'].status = 3 # In Progress
+        release['NG-1'].points = 2.0
+        release['NG-1'].type = '72'
+        release['NG-2'].status = 3 # In Progress
+        release['NG-2'].points = 2.0
+        release['NG-2'].type = '72'
+        release['NG-3'].status = 6 # Closed
+        release['NG-3'].points = 2.0
+        release['NG-3'].type = '72'
         # cycle_times = release.cycle_times()
         # self.assertEqual(cycle_times['Reader'], 1)
 
@@ -875,31 +772,33 @@ class ReleaseTests(unittest.TestCase):
 
     def TestUpperPercentile(self):
         release = Release()
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.add(self.jira.get_story(''))
-        release.data[0].type = '1'
-        release.data[0].started = D20121201
-        release.data[0].resolved = D20121203
-        release.data[1].type = '1'
-        release.data[1].started = D20121201
-        release.data[1].resolved = D20121205
-        release.data[2].key = 'NG-1'
-        release.data[2].type = '1'
-        release.data[2].started = D20121205
-        release.data[2].resolved = D20121213
-        release.data[3].key = 'NG-2'
-        release.data[3].type = '1'
-        release.data[3].started = D20121201
-        release.data[3].resolved = D20121213
+        release.add(Story('NG-1'))
+        release.add(Story('NG-2'))
+        release.add(Story('NG-3'))
+        release.add(Story('NG-4'))
+        release['NG-1'].type = '1'
+        release['NG-1'].created = None
+        release['NG-1'].started = D20121201
+        release['NG-1'].resolved = D20121203
+        release['NG-2'].type = '1'
+        release['NG-2'].created = None
+        release['NG-2'].started = D20121201
+        release['NG-2'].resolved = D20121205
+        release['NG-3'].type = '1'
+        release['NG-3'].created = None
+        release['NG-3'].started = D20121205
+        release['NG-3'].resolved = D20121213
+        release['NG-4'].type = '1'
+        release['NG-4'].created = None
+        release['NG-4'].started = D20121201
+        release['NG-4'].resolved = D20121213
         upper85 = release.upper_percentiles(0.85, ['1'])
         self.assertEqual(len(upper85), 1)
-        self.assertEqual(upper85[0].key, 'NG-2')
+        self.assertEqual(upper85[0].key, 'NG-4')
         upper50 = release.upper_percentiles(0.50, ['1'])
         self.assertEqual(len(upper50), 2)
         self.assertEqual(upper50[0].key, 'NG-1')
-        self.assertEqual(upper50[1].key, 'NG-2')
+        self.assertEqual(upper50[1].key, 'NG-4')
 
     def TestUpperPercentileNoStories(self):
         release = Release()

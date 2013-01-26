@@ -10,4 +10,4 @@ class BaseCommand(object):
         pass # override in command
 
     def refresh_data(self, jira, refresh):
-        self.release = jira.get_release(refresh)
+        self.release = jira.refresh_cache()
