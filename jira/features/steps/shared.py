@@ -12,11 +12,21 @@ def step(context):
     for row in context.table:
         context.release.add(make_story(row))
 
+@given('I have the following release')
+def step(context):
+    for row in context.table:
+        dao.Jira.cache.data.root()[row['key']] = model.Release(row['key'])
+
 @given('I have the following issues in the release')
 def step(context):
-    context.release = model.Release()
+    context.release = dao.Jira.cache.data.root()['1.0']
     for row in context.table:
         context.release.add(make_story(row))
+
+@given('I am in the directory "{command}"')
+def step(context, command):
+    dao.Jira.cache.cwd = command.split('/')
+    dao.Jira.cache.cwd[0] = '/'
 
 @when('I enter the command "{command}"')
 def step(context, command):

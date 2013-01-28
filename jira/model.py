@@ -4,6 +4,7 @@ import datetime
 from zope.interface import Interface, implements
 from persistent import Persistent
 from persistent.mapping import PersistentMapping
+from interfaces import IRelease, IStory, IKanban
 
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
@@ -38,16 +39,6 @@ STATUS_QA_READY = 10104
 KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_IN_PROGRESS, STATUS_REOPENED,
     STATUS_QA_READY, STATUS_QA_ACTIVE, STATUS_COMPLETED, STATUS_VERIFIED,
     STATUS_CLOSED]
-
-class IStory(Interface):
-    pass
-
-class IKanban(Interface):
-    pass
-
-class IRelease(Interface):
-    pass
-
 
 class Story(Persistent):
     implements(IStory)

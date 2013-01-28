@@ -4,7 +4,7 @@ from zope.interface import Interface, implements
 from zope.component import adapts
 from zope.component import getGlobalSiteManager
 from ..base import BaseCommand
-from model import IRelease
+from interfaces import IRelease, IStory
 
 gsm = getGlobalSiteManager()
 
@@ -94,9 +94,10 @@ class Command(BaseCommand):
                   str(story.status).ljust(5), \
                   cycle_time.ljust(5), str(story.type).ljust(5), \
                   story.title[:27]
-            issues += 1
-            if story.points:
-                points += story.points
+            if IStory.providedBy(story):
+                issues += 1
+                if story.points:
+                    points += story.points
         print 'Total Issues: %d, Total Points: %d' % (issues, points)
 
 
@@ -117,7 +118,7 @@ class ReleaseAdapter(object):
         self.points = self.release.total_points()
         self.status = 'N/A'
         self.type = 'N/A'
-        self.title = 'N/A'
+        self.title = 'Release %s' % self.key
 
 
 gsm.registerAdapter(ReleaseAdapter)

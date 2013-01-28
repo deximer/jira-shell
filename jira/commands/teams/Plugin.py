@@ -16,6 +16,7 @@ class Command(BaseCommand):
             container = jira.cache.get_by_path(args.dir)
         else:
             container = jira.cache.get_by_path(jira.cache.cwd)
+        print container
         teams = container.tasked_teams()
         for team in teams:
             print '%s: %d' % (team, teams[team])
