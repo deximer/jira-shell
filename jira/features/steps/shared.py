@@ -27,6 +27,10 @@ def step(context):
 def step(context, some_file):
     pass
 
+@given('The file "{some_file}" is not in the import directory')
+def step(context, some_file):
+    pass
+
 @given('I am in the directory "{command}"')
 def step(context, command):
     dao.Jira.cache.cwd = command.split('/')
