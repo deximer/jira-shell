@@ -163,6 +163,24 @@ class JiraTest(unittest.TestCase):
         self.assertEqual(story.created, creation_date)
         self.assertEqual(story.assignee['displayName'], 'Abdul Habra')
 
+    def testMakeStory(self):
+        json_data = open('jira/tests/data/NG-13332.json').read()
+        json_obj = self.jira.json_to_object(json_data)
+        story = self.jira.make_story('NG-13332', json_obj)
+        import datetime
+        import time
+        creation_date = datetime.datetime.fromtimestamp(time.mktime(
+            time.strptime('2012-12-21T15:05:23.000-0500'[:23]
+            , '%Y-%m-%dT%H:%M:%S.%f')))
+        self.assertEqual(story.created, creation_date)
+        self.assertEqual(story.assignee['displayName'], 'Abdul Habra')
+        self.assertEqual(story.key, 'NG-13332')
+
+    def testJsonToObject(self):
+        obj = self.jira.json_to_object('{"foo": ["bar", "baz"]}')
+        self.assertEqual(obj['foo'][0], 'bar')
+        self.assertEqual(obj['foo'][1], 'baz')
+
     def testGetChangeLog(self):
         data = self.jira.get_changelog('NG-13332')
         self.assertEqual(data['key'], 'NG-13332')

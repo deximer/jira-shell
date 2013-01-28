@@ -147,8 +147,11 @@ class Jira(object):
         story = self.cache.get(key)
         if not refresh and story:
             return story
-        story = Story(key)
         data = self.call_rest(key, expand=['changelog'])
+        return self.make_story(key, data)
+
+    def make_story(self, key, data):
+        story = Story(key)
         story.title = data['fields']['summary']
         story.fix_versions = PersistentList()
         for version in data['fields']['fixVersions']:
@@ -209,7 +212,10 @@ class Jira(object):
             for item in expand:
                 URL += item + ','
             URL = URL[:-1]
-        return json.loads(urllib.urlopen(URL).read())
+        return self.json_to_object(urllib.urlopen(URL).read())
+
+    def json_to_object(self, json_data):
+        return json.loads(json_data)
 
     def get_changelog(self, key):
         return self.call_rest(key, ['changelog'])

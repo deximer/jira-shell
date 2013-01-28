@@ -23,6 +23,10 @@ def step(context):
     for row in context.table:
         context.release.add(make_story(row))
 
+@given('I have the json file "{some_file}" in the import directory')
+def step(context, some_file):
+    pass
+
 @given('I am in the directory "{command}"')
 def step(context, command):
     dao.Jira.cache.cwd = command.split('/')
