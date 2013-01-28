@@ -39,6 +39,12 @@ def step(context, command):
     jira.request_issue = mock_request_issue
     jira.dispatch(command)
 
+@then('The REPL displays "{command}"')
+def step(context, command):
+    output = context.stdout_capture.getvalue()
+    print output
+    assert command in output
+
 @then('I see these issues listed')
 def step(context):
     output = context.stdout_capture.getvalue()
