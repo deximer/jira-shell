@@ -40,6 +40,42 @@ KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_IN_PROGRESS, STATUS_REOPENED,
     STATUS_QA_READY, STATUS_QA_ACTIVE, STATUS_COMPLETED, STATUS_VERIFIED,
     STATUS_CLOSED]
 
+class History(Persistent):
+    def __init__(self, obj):
+        self.data = []
+        self.start_at = obj['startAt']
+        for transaction in obj['histories']:
+            for transition in transaction['items']:
+                if transition['field'] == 'status':
+                    created = datetime.datetime.fromtimestamp(time.mktime(
+                        time.strptime(transaction['created'][:23],
+                        '%Y-%m-%dT%H:%M:%S.%f')))
+                    self.data.append((created,
+                                      transition['from'],
+                                      transition['to']))
+
+    def get_transition(self, state):
+        results = []
+        for transition in self.data:
+            if transition[2] == state:
+                results.append(transition[0])
+        return results
+
+    def _get_started(self):
+        dates = self.get_transition('3')
+        if dates:
+            return dates[0]
+        return None
+
+    def _get_resolved(self):
+        dates = self.get_transition('6')
+        if dates:
+            return dates [-1]
+        return None
+
+    started = property(_get_started)
+    resolved = property(_get_resolved)
+
 class Story(Persistent):
     implements(IStory)
 
@@ -65,8 +101,16 @@ class Story(Persistent):
             return delta.days
         return None
 
+    def _get_started(self):
+        return self.history.started
+
+    def _get_resolved(self):
+        return self.history.resolved
+
     cycle_time = property(_get_cycle_time)
     cycle_time_life = property(_get_cycle_time_life)
+    started = property(_get_started)
+    resolved = property(_get_resolved)
 
 
 class Kanban(object):

@@ -9,7 +9,7 @@ from persistent.list import PersistentList
 from persistent.mapping import PersistentMapping
 from xml.etree import ElementTree as ET
 from BeautifulSoup import BeautifulSoup as BS
-from model import Projects, Project, Release, Story
+from model import Projects, Project, Release, Story, History
 
 MT_USER = 'mindtap.user'
 MT_PASS = 'm1ndtap'
@@ -152,6 +152,7 @@ class Jira(object):
 
     def make_story(self, key, data):
         story = Story(key)
+        story.history = History(data['changelog'])
         story.title = data['fields']['summary']
         story.fix_versions = PersistentList()
         for version in data['fields']['fixVersions']:
@@ -160,23 +161,6 @@ class Jira(object):
         story.created = datetime.datetime.fromtimestamp(time.mktime(
             time.strptime(data['fields']['created'][:23],
             '%Y-%m-%dT%H:%M:%S.%f')))
-        story.started = None
-        for history in data['changelog']['histories']:
-            for item in history['items']:
-                if item['field'] == 'status' and item['to'] == '3':
-                    story.started = datetime.datetime.fromtimestamp(time.mktime(
-                        time.strptime(history['created'][:23],
-                        '%Y-%m-%dT%H:%M:%S.%f')))
-                    break
-        story.resolved = None
-        for history in data['changelog']['histories']:
-            for item in history['items']:
-                if item['to'] == '6':
-                    if history['created']:
-                        story.resolved =datetime.datetime.fromtimestamp(
-                            time.mktime( time.strptime(history['created'][:23],
-                            '%Y-%m-%dT%H:%M:%S.%f')))
-                    break
         story.type = data['fields']['issuetype']['id']
         story.assignee = data['fields']['assignee']
         story.developer = data['fields']['customfield_13435']
@@ -189,7 +173,6 @@ class Jira(object):
         if story.points:
             story.points = int(story.points)
         story.status = int(data['fields']['status']['id'])
-        story.history = data['changelog']['histories']
         story.data = data
         for version in story.fix_versions:
             if version in self.cache.data.root():

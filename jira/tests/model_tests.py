@@ -1,9 +1,10 @@
 import unittest
+import time
 import datetime
 import json
 from ZODB.FileStorage import FileStorage
 from ZODB.DB import DB
-from ..model import Story, Release, Projects, Project, Kanban
+from ..model import Story, Release, Projects, Project, Kanban, History
 from ..dao import Jira
 from  xml.etree import ElementTree as ET
 
@@ -25,6 +26,49 @@ def make_story(key, points=1.0, status=3, scrum_team='foo', type='72',
     story.started = started
     story.resolved = resolved
     return story
+
+
+class HistoryTest(unittest.TestCase):
+    def setUp(self):
+        self.obj = Jira().json_to_object(
+            open('jira/tests/data/NG-13332.json').read())['changelog']
+        self.history = History(Jira().json_to_object(
+            open('jira/tests/data/NG-13332.json').read())['changelog'])
+
+    def tearDown(self):
+        pass
+
+    def testObjectCreation(self):
+        self.assertTrue(self.history is not None)
+
+    def testCorrectNumberOfTransitions(self):
+        self.assertEqual(len(self.history.data), 4)
+
+    def testGetTransition(self):
+        expected_date = datetime.datetime.fromtimestamp(time.mktime(
+            time.strptime('2013-01-04T09:36:22.000','%Y-%m-%dT%H:%M:%S.%f')))
+        self.assertEqual(self.history.get_transition('10090')[0], expected_date)
+
+    def testGetTransitionOutOfBounds(self):
+        self.assertEqual(self.history.get_transition('x'), [])
+
+    def testStarted(self):
+        started = datetime.datetime.fromtimestamp(time.mktime(
+            time.strptime('2013-01-01T15:31:39.000','%Y-%m-%dT%H:%M:%S.%f')))
+        self.assertEqual(self.history.started, started)
+
+    def testStartedNotStarted(self):
+        del self.history.data[1]
+        self.assertEqual(self.history.started, None)
+
+    def testResolvedNotResolved(self):
+        del self.history.data[3]
+        self.assertEqual(self.history.resolved, None)
+
+    def testResolved(self):
+        resolved = datetime.datetime.fromtimestamp(time.mktime(
+            time.strptime('2013-01-08T10:45:59.000','%Y-%m-%dT%H:%M:%S.%f')))
+        self.assertEqual(self.history.resolved, resolved)
 
 
 class StoryTest(unittest.TestCase):
