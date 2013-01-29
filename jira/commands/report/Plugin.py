@@ -1,5 +1,6 @@
 import argparse
 from ..base import BaseCommand
+from model import Release
 
 class Command(BaseCommand):
     help = 'Report on the current release'
@@ -17,6 +18,9 @@ class Command(BaseCommand):
         except:
             return
         self.release = jira.cache.get_by_path(jira.cache.cwd)
+        if not isinstance(self.release, Release):
+            print 'Error: Must navigate to a release. (hint: help cd)'
+            return
         if args.team:
             self.release.data = [s for s in self.release.data
                 if s.scrum_team and s.scrum_team[:len(args.team)] == args.team]

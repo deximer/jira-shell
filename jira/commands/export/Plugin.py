@@ -1,12 +1,16 @@
 import curses
 from ..base import BaseCommand
+from model import Release
 
 class Command(BaseCommand):
     help = 'Export release data to csv files'
     usage = 'export'
 
     def run(self, jira, args):
-        self.refresh_data(jira, False)
+        self.release = jira.cache.get_by_path(jira.cache.cwd)
+        if not isinstance(self.release, Release):
+            print 'Error: Must navigate to a release. (hint: help cd)'
+            return
         kanban = self.release.kanban()
         stories = self.release.stories()
         stories.sort(key=lambda i:i.key)

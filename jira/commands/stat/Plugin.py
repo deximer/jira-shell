@@ -1,6 +1,7 @@
 import curses
 import argparse
 from ..base import BaseCommand
+from model import Release
 
 class Command(BaseCommand):
     help = 'Print details of specified issues'
@@ -16,6 +17,10 @@ class Command(BaseCommand):
         parser = argparse.ArgumentParser()
         parser.add_argument('key')
         args = parser.parse_args(args)
+        self.release = jira.cache.get_by_path(jira.cache.cwd)
+        if not isinstance(self.release, Release):
+            print 'Error: Must navigate to a release. (hint: help cd)'
+            return
         kanban = self.release.kanban()
         story = self.release.get(args.key)
         if not story:
