@@ -96,8 +96,8 @@ class Command(BaseCommand):
                   story.title[:27]
             if IStory.providedBy(story):
                 issues += 1
-                if story.points:
-                    points += story.points
+            if story.points:
+                points += story.points
         print 'Total Issues: %d, Total Points: %d' % (issues, points)
 
 
@@ -116,7 +116,7 @@ class ReleaseAdapter(object):
         self.started = 'N/A'
         self.resolved = 'N/A'
         self.points = self.release.total_points()
-        self.status = 'N/A'
+        self.status = self.release.graph_kanban()
         self.type = 'N/A'
         self.title = 'Release %s' % self.key
 
