@@ -1,5 +1,6 @@
 import curses
 from ..base import BaseCommand
+from model import Release
 
 class Command(BaseCommand):
     help = 'Display control panel of critical release data'
@@ -9,6 +10,9 @@ class Command(BaseCommand):
         window = curses.initscr()
         quit = False
         self.release = jira.cache.get_by_path(jira.cache.cwd)
+        if not isinstance(self.release, Release):
+            print 'Error: Must navigate to a release. (hint: help cd)'
+            return
         command = 'wip'
         c = 0
         while not quit:
