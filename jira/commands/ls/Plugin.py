@@ -14,6 +14,7 @@ class Command(BaseCommand):
     options_help = '''    -s : Show only issues with the specified status ("!" for exclusion)
     -t : Show only issues of the specified type ("!" for exclusion)
     -p : Show issues with the specified point estimates
+    -b : Show issues with backflow
     '''
     examples = '''    ls
     ls App
@@ -24,6 +25,7 @@ class Command(BaseCommand):
         parser.add_argument('-s', nargs='*', required=False)
         parser.add_argument('-t', nargs='*', required=False)
         parser.add_argument('-p', nargs='*', required=False)
+        parser.add_argument('-b', action='store_true', required=False)
         parser.add_argument('team', nargs='?')
         try:
             args = parser.parse_args(args)
@@ -74,6 +76,8 @@ class Command(BaseCommand):
                 continue
             if args.p and story.points not in query_points:
                 continue
+            if args.b and not story.backflow:
+                continue
             if not story.scrum_team:
                 story.scrum_team = 'Everything Else'
             if args.team and story.scrum_team[:len(args.team)] != args.team:
@@ -88,6 +92,8 @@ class Command(BaseCommand):
                 cycle_time = str(story.cycle_time) + '>'
             else:
                 cycle_time = str(story.cycle_time)
+            if story.backflow:
+                cycle_time = '<' + cycle_time
             print story.key.ljust(9), \
                   team[:18].ljust(18), \
                   str(story.points).ljust(5), \

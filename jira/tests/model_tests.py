@@ -24,8 +24,8 @@ def make_story(key, points=1.0, status=3, scrum_team='foo', type='72',
     story.type = type
     story.created = created
     story.history = History()
-    story.history.data.append((started, '1', '3'))
-    story.history.data.append((resolved, '3', '6'))
+    story.history.data.append((started, 1, 3))
+    story.history.data.append((resolved, 3, 6))
     return story
 
 
@@ -48,7 +48,7 @@ class HistoryTest(unittest.TestCase):
     def testGetTransition(self):
         expected_date = datetime.datetime.fromtimestamp(time.mktime(
             time.strptime('2013-01-04T09:36:22.000','%Y-%m-%dT%H:%M:%S.%f')))
-        self.assertEqual(self.history.get_transition('10090')[0], expected_date)
+        self.assertEqual(self.history.get_transition(10090)[0], expected_date)
 
     def testGetTransitionOutOfBounds(self):
         self.assertEqual(self.history.get_transition('x'), [])
@@ -70,6 +70,22 @@ class HistoryTest(unittest.TestCase):
         resolved = datetime.datetime.fromtimestamp(time.mktime(
             time.strptime('2013-01-08T10:45:59.000','%Y-%m-%dT%H:%M:%S.%f')))
         self.assertEqual(self.history.resolved, resolved)
+
+    def testBackflowTrue(self):
+        self.history.data.append((D20121201, 1, 3))
+        self.history.data.append((D20121202, 3, 10090))
+        self.history.data.append((D20121203, 10090, 3))
+        self.assertTrue(self.history.backflow)
+
+    def testBackflowFalse(self):
+        self.history.data.append((D20121201, 1, 3))
+        self.history.data.append((D20121202, 3, 10090))
+        self.history.data.append((D20121203, 10090, 6))
+        self.assertFalse(self.history.backflow)
+
+    def testBackflowOneTransition(self):
+        self.history.data.append((D20121201, 1, 3))
+        self.assertFalse(self.history.backflow)
 
 
 class StoryTest(unittest.TestCase):
@@ -106,6 +122,13 @@ class StoryTest(unittest.TestCase):
         obj = make_story('NG-1', type='72')
         self.assertEqual(obj.key, 'NG-1')
         self.assertEqual(obj.type, '72')
+
+    def testBackflow(self):
+        story = make_story('NG-1')
+        story.history.data.append((D20121201, 1, 3))
+        story.history.data.append((D20121202, 3, 10090))
+        story.history.data.append((D20121203, 10090, 3))
+        self.assertTrue(story.backflow)
 
     def testCycleTime(self):
         story = make_story('NG-1', started=D20121201, resolved=D20121205)

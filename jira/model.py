@@ -1,4 +1,5 @@
 import numpy
+import transaction
 import time
 import datetime
 from zope.interface import Interface, implements
@@ -53,8 +54,8 @@ class History(Persistent):
                         time.strptime(transaction['created'][:23],
                         '%Y-%m-%dT%H:%M:%S.%f')))
                     self.data.append((created,
-                                      transition['from'],
-                                      transition['to']))
+                                      int(transition['from']),
+                                      int(transition['to'])))
 
     def get_transition(self, state):
         results = []
@@ -64,19 +65,34 @@ class History(Persistent):
         return results
 
     def _get_started(self):
-        dates = self.get_transition('3')
+        dates = self.get_transition(3)
         if dates:
             return dates[0]
         return None
 
     def _get_resolved(self):
-        dates = self.get_transition('6')
+        dates = self.get_transition(6)
         if dates:
             return dates [-1]
         return None
 
+    def _get_backflow(self):
+        fixed = []
+        transaction.begin()
+        for date, begin, end in self.data:
+            fixed.append((date, int(begin), int(end)))
+        self.data = fixed
+        transaction.commit()
+
+        for date, begin, end in self.data:
+            if KANBAN.index(begin) > KANBAN.index(end):
+                return True
+        return False
+
+
     started = property(_get_started)
     resolved = property(_get_resolved)
+    backflow = property(_get_backflow)
 
 class Story(Persistent):
     implements(IStory)
@@ -109,10 +125,14 @@ class Story(Persistent):
     def _get_resolved(self):
         return self.history.resolved
 
+    def _get_backflow(self):
+        return self.history.backflow
+
     cycle_time = property(_get_cycle_time)
     cycle_time_life = property(_get_cycle_time_life)
     started = property(_get_started)
     resolved = property(_get_resolved)
+    backflow = property(_get_backflow)
 
 
 class Kanban(object):

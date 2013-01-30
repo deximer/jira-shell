@@ -1,7 +1,7 @@
 import curses
 import argparse
 from ..base import BaseCommand
-from model import Release
+from model import Release, KANBAN
 
 class Command(BaseCommand):
     help = 'Print details of specified issues'
@@ -28,11 +28,12 @@ class Command(BaseCommand):
             return
         print 'ID:', story.key
         print 'Title:', story.title
-        print 'Type:', story.type
         print 'Team:', story.scrum_team
         print 'Developer:', story.developer
+        print 'Type:', story.type
         print 'Points:', story.points
         print 'Status:', story.status
+        print 'Created:', story.created
         print 'Started:', story.started
         print 'Resolved:', story.resolved
         print 'Cycle Time:', story.cycle_time
@@ -43,4 +44,7 @@ class Command(BaseCommand):
         print '    Outside:', kanban.contingency_outside(story.key)
         print 'Transition Log:'
         for t in story.history.data:
-            print '    %s, %s -> %s' % (t[0], t[1], t[2])
+            backflow = ''
+            if KANBAN.index(t[1]) > KANBAN.index(t[2]):
+                backflow = ' <- backflow'
+            print '    %s, %s -> %s %s' % (t[0], t[1], t[2], backflow)
