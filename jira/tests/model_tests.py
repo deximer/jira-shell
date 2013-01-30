@@ -23,8 +23,9 @@ def make_story(key, points=1.0, status=3, scrum_team='foo', type='72',
     story.scrum_team = scrum_team
     story.type = type
     story.created = created
-    story.started = started
-    story.resolved = resolved
+    story.history = History()
+    story.history.data.append((started, '1', '3'))
+    story.history.data.append((resolved, '3', '6'))
     return story
 
 
@@ -102,29 +103,22 @@ class StoryTest(unittest.TestCase):
 
     def testObjectInitialized(self):
         import time
-        obj = self.jira.get_story('NG-12391')
-        self.assertEqual(obj.key, 'NG-12391')
+        obj = make_story('NG-1', type='72')
+        self.assertEqual(obj.key, 'NG-1')
         self.assertEqual(obj.type, '72')
-        self.assertEqual(obj.started.isoformat(), '2013-01-01T15:31:39')
-        self.assertEqual(obj.created.isoformat(), '2012-12-21T15:05:23')
 
     def testCycleTime(self):
-        story = Story()
-        story.started = D20121201
-        story.resolved = D20121205
+        story = make_story('NG-1', started=D20121201, resolved=D20121205)
         self.assertEqual(story.cycle_time, 4)
 
     def testCycleTimeNullDates(self):
-        story = self.jira.get_story('NG-12345')
-        story.started = None
-        story.resolved = None
+        story = make_story('NG-1', started=None, resolved=None)
         self.assertEqual(story.cycle_time, None)
 
     def testCycleTimeLife(self):
-        story = self.jira.get_story('NG-12345')
-        story.created = D20121203
-        story.resolved = D20121205
-        self.assertEqual(story.cycle_time_life, 2)
+        story = make_story('NG-1', created=D20121201, started=None,
+            resolved=D20121205)
+        self.assertEqual(story.cycle_time_life, 4)
 
 
 class KanbanTest(unittest.TestCase):
@@ -343,21 +337,12 @@ class KanbanTest(unittest.TestCase):
         self.assertEqual(kanban.contingency_outside('NG-1'), 8.3)
 
     def testContingencyNoCycleTimes(self):
-        xml = open('jira/tests/data/rss.xml').read()
-        tree = ET.fromstring(xml)
-        item = tree.find('.//*/item')
         release = Release()
         kanban = release.kanban()
-        release.add(Story('NG-1'))
-        release.add(Story('NG-2'))
-        release['NG-1'].started = None
-        release['NG-1'].resolved = None
-        release['NG-1'].type = '72'
-        release['NG-1'].points = 2.0
-        release['NG-2'].started = None
-        release['NG-2'].resolved = None
-        release['NG-2'].type = '72'
-        release['NG-2'].points = 2.0
+        release.add(make_story('NG-1', type='72', points=2.0, started=None,
+            resolved=None))
+        release.add(make_story('NG-2', type='72', points=2.0, started=None,
+            resolved=None))
         self.assertEqual(kanban.contingency_average('NG-1'), None)
         
 
@@ -458,57 +443,37 @@ class ReleaseTests(unittest.TestCase):
 
     def testOnlyStories(self):
         release = Release()
-        release.add(Story('NG-1'))
-        release.add(Story('NG-2'))
-        release.add(Story('NG-3'))
-        release['NG-1'].type = '72'
-        release['NG-2'].type = '72'
-        release['NG-3'].type = '78'
+        release.add(make_story('NG-1', type='72'))
+        release.add(make_story('NG-2', type='72'))
+        release.add(make_story('NG-3', type='1'))
         self.assertEqual(len(release.stories()), 2)
 
     def testOnlyStartedStories(self):
         release = Release()
-        release.add(Story('NG-1'))
-        release.add(Story('NG-2'))
-        release.add(Story('NG-3'))
-        release['NG-1'].type = '72'
-        release['NG-1'].started = D20121201
-        release['NG-2'].type = '78'
-        release['NG-2'].started = D20121201
-        release['NG-3'].type = '72'
-        release['NG-3'].started = None
+        release.add(make_story('NG-1', started=D20121201, type='72'))
+        release.add(make_story('NG-2', started=D20121201, type='78'))
+        release.add(make_story('NG-3', started=None, type='72'))
         self.assertEqual(len(release.started_stories()), 1)
 
     def testStoriesByStatus(self):
         release = Release()
-        release.add(Story('NG-1'))
-        release.add(Story('NG-2'))
-        release.add(Story('NG-3'))
-        release['NG-1'].type = '72'
-        release['NG-1'].status = 6
-        release['NG-2'].type = '72'
-        release['NG-2'].status = 3
-        release['NG-3'].type = '72'
-        release['NG-3'].status = 3
+        release.add(make_story('NG-1', type='72', status=6))
+        release.add(make_story('NG-2', type='72', status=3))
+        release.add(make_story('NG-3', type='72', status=3))
         self.assertEqual(len(release.stories_by_status()['3']), 2)
 
     def testOnlyBugs(self):
         release = Release()
-        release.add(Story('NG-1'))
-        release.add(Story('NG-2'))
-        release.add(Story('NG-3'))
-        release['NG-1'].type = '1'
-        release['NG-2'].type = '72'
-        release['NG-3'].type = '78'
+        release.add(make_story('NG-1', type='1'))
+        release.add(make_story('NG-2', type='72'))
+        release.add(make_story('NG-3', type='78'))
         self.assertEqual(len(release.bugs()), 2)
 
     def testTotalStories(self):
         release = Release()
-        release.add(Story('NG-1'))
-        release['NG-1'].type = '72'
+        release.add(make_story('NG-1', type='72'))
         self.assertTrue(release.total_stories() == 1)
-        release.add(Story('NG-2'))
-        release['NG-2'].type = '72'
+        release.add(make_story('NG-2', type='72'))
         self.assertTrue(release.total_stories() == 2)
 
     def testTotalPoints(self):
@@ -516,35 +481,23 @@ class ReleaseTests(unittest.TestCase):
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
-        release.add(Story('NG-1'))
-        release.add(Story('NG-2'))
-        release.add(Story('NG-3'))
-        release['NG-1'].type = '72'
-        release['NG-1'].points = 1.5
-        release['NG-2'].type = '72'
-        release['NG-2'].points = 2.0
-        release['NG-3'].type = '1'
-        release['NG-3'].points = 5.0
+        release.add(make_story('NG-1', type='72', points=1.5))
+        release.add(make_story('NG-2', type='72', points=2.0))
+        release.add(make_story('NG-3', type='1', points=5.0))
         self.assertEqual(release.total_points(), 3.5)
 
     def testPointsCompleted(self):
         release = Release()
-        release.add(Story('NG-1'))
-        release.add(Story('NG-2'))
-        release.add(Story('NG-3'))
-        release['NG-1'].type = '72'
-        release['NG-1'].points = 2.0
-        release['NG-2'].type = '72'
-        release['NG-2'].points = 1.0
-        release['NG-3'].type = '1'
-        release['NG-3'].points = 0.5
+        release.add(make_story('NG-1', type='72', points=2.0))
+        release.add(make_story('NG-2', type='72', points=1.0))
+        release.add(make_story('NG-3', type='1', points=0.5))
         self.assertEqual(release.total_points(), 3.0)
 
     def testAverageStorySize(self):
         release = Release()
-        release.add(Story('NG-1'))
-        release.add(Story('NG-2'))
-        release.add(Story('NG-3'))
+        release.add(make_story('NG-1', type='72', points=2.0))
+        release.add(make_story('NG-2', type='72', points=4.0))
+        release.add(make_story('NG-3', type='72', points=8.0))
         release['NG-1'].points = 2.0
         release['NG-1'].type = '72'
         release['NG-2'].points = 4.0
@@ -555,15 +508,9 @@ class ReleaseTests(unittest.TestCase):
 
     def testAverageStorySizeNullValues(self):
         release = Release()
-        release.add(Story('NG-1'))
-        release.add(Story('NG-2'))
-        release.add(Story('NG-3'))
-        release['NG-1'].points = 2.0
-        release['NG-1'].type = '72'
-        release['NG-2'].points = None
-        release['NG-2'].type = '72'
-        release['NG-3'].points = 8.0
-        release['NG-3'].type = '72'
+        release.add(make_story('NG-1', type='72', points=2.0))
+        release.add(make_story('NG-2', type='72', points=None))
+        release.add(make_story('NG-3', type='72', points=8.0))
         self.assertEqual(release.average_story_size(), 5.0)
 
     def testStdStorySize(self):
@@ -805,26 +752,14 @@ class ReleaseTests(unittest.TestCase):
 
     def TestUpperPercentile(self):
         release = Release()
-        release.add(Story('NG-1'))
-        release.add(Story('NG-2'))
-        release.add(Story('NG-3'))
-        release.add(Story('NG-4'))
-        release['NG-1'].type = '1'
-        release['NG-1'].created = None
-        release['NG-1'].started = D20121201
-        release['NG-1'].resolved = D20121203
-        release['NG-2'].type = '1'
-        release['NG-2'].created = None
-        release['NG-2'].started = D20121201
-        release['NG-2'].resolved = D20121205
-        release['NG-3'].type = '1'
-        release['NG-3'].created = None
-        release['NG-3'].started = D20121205
-        release['NG-3'].resolved = D20121213
-        release['NG-4'].type = '1'
-        release['NG-4'].created = None
-        release['NG-4'].started = D20121201
-        release['NG-4'].resolved = D20121213
+        release.add(make_story('NG-1', type='1',created=None, started=D20121201,
+            resolved=D20121203))
+        release.add(make_story('NG-2', type='1',created=None, started=D20121201,
+            resolved=D20121205))
+        release.add(make_story('NG-3', type='1',created=None, started=D20121205,
+            resolved=D20121213))
+        release.add(make_story('NG-4', type='1',created=None, started=D20121201,
+            resolved=D20121213))
         upper85 = release.upper_percentiles(0.85, ['1'])
         self.assertEqual(len(upper85), 1)
         self.assertEqual(upper85[0].key, 'NG-4')

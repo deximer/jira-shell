@@ -41,8 +41,10 @@ KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_IN_PROGRESS, STATUS_REOPENED,
     STATUS_CLOSED]
 
 class History(Persistent):
-    def __init__(self, obj):
+    def __init__(self, obj=None):
         self.data = []
+        if not obj:
+            return
         self.start_at = obj['startAt']
         for transaction in obj['histories']:
             for transition in transaction['items']:
