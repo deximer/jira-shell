@@ -4,6 +4,9 @@ import jira
 import dao
 from datetime import datetime
 
+def before_all(context):
+    dao.connection=DB(FileStorage('tests/data/behave_cache.fs')).open()
+
 @given('The user is at the command line')
 def step(context):
     context.release = model.Release()

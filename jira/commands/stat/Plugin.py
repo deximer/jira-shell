@@ -41,3 +41,6 @@ class Command(BaseCommand):
         print '    Inside:', kanban.contingency_inside(story.key)
         print '    Average:', kanban.contingency_average(story.key)
         print '    Outside:', kanban.contingency_outside(story.key)
+        print 'Transition Log:'
+        for t in story.history.data:
+            print '    %s, %s -> %s' % (t[0], t[1], t[2])
