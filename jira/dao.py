@@ -150,7 +150,6 @@ class Jira(object):
             print 'Found cache story %s' % key
             return story
         data = self.call_rest(key, expand=['changelog'])
-        print 'Making new story %s' % key
         return self.make_story(key, data)
 
     def make_story(self, key, data):

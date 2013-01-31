@@ -42,13 +42,17 @@ class Command(BaseCommand):
         print '    Inside:', kanban.contingency_inside(story.key)
         print '    Average:', kanban.contingency_average(story.key)
         print '    Outside:', kanban.contingency_outside(story.key)
-        print 'Transition Log:'
-        for t in story.history.data:
-            backflow = ''
-            if t[1] in KANBAN and t[2] in KANBAN:
-                if KANBAN.index(t[1]) > KANBAN.index(t[2]):
-                    backflow = ' <- backflow'
-            print '    %s, %s -> %s %s' % (t[0], t[1], t[2], backflow)
-        #print 'Outward Links:'
-        #for link in story.links.data:
-        #    print '    %s %s' % (link.key, link.title[:70])
+        if story.history.data:
+            print
+            print 'Transition Log:'
+            for t in story.history.data:
+                backflow = ''
+                if t[1] in KANBAN and t[2] in KANBAN:
+                    if KANBAN.index(t[1]) > KANBAN.index(t[2]):
+                        backflow = ' <- backflow'
+                print '    %s, %s -> %s %s' % (t[0], t[1], t[2], backflow)
+        if story.links.data:
+            print
+            print 'Outward Links:'
+            for link in story.links.data:
+                print '    %s %s %s' % (link.key, link.type, link.title[:60])

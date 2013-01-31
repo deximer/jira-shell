@@ -5,6 +5,7 @@ import datetime
 from zope.interface import Interface, implements
 from persistent import Persistent
 from persistent.mapping import PersistentMapping
+from persistent.list import PersistentList
 from interfaces import IRelease, IStory, IKanban
 
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
@@ -43,7 +44,7 @@ KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_IN_PROGRESS, STATUS_REOPENED,
 
 class Links(Persistent):
     def __init__(self):
-        self.data = []
+        self.data = PersistentList()
 
     def get_links(self, link_type):
         results = []
