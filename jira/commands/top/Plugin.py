@@ -7,12 +7,12 @@ class Command(BaseCommand):
     usage = 'top'
 
     def run(self, jira, args):
-        window = curses.initscr()
         quit = False
         self.release = jira.cache.get_by_path(jira.cache.cwd)
         if not isinstance(self.release, Release):
             print 'Error: Must navigate to a release. (hint: help cd)'
             return
+        window = curses.initscr()
         command = 'wip'
         c = 0
         while not quit:

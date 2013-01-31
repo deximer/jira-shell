@@ -1,4 +1,5 @@
 import argparse
+import copy
 from ..base import BaseCommand
 from model import Release
 
@@ -17,21 +18,27 @@ class Command(BaseCommand):
             args = parser.parse_args(args)
         except:
             return
-        self.release = jira.cache.get_by_path(jira.cache.cwd)
+        self.release = copy.deepcopy(jira.cache.get_by_path(jira.cache.cwd))
         if not isinstance(self.release, Release):
             print 'Error: Must navigate to a release. (hint: help cd)'
             return
         if args.team:
-            self.release.data = [s for s in self.release.data
+            stories = [s for s in self.release.values()
                 if s.scrum_team and s.scrum_team[:len(args.team)] == args.team]
+            self.release = Release()
+            for story in stories:
+                self.release.add(story)
         if args.d:
-            self.release.data = [s for s in self.release.data
+            stories = [s for s in self.release.values()
                 if s.developer and s.developer[:len(args.d[0])] == args.d[0]]
-        if not self.release.data:
+            self.release = Release()
+            for story in stories:
+                self.release.add(story)
+        if not self.release.keys():
             print 'No data to report'
             return
         release = self.release
-        kanban = self.release.kanban()
+        kanban = release.kanban()
         print 'Points in scope  :', round(release.total_points(), 1)
         print 'Points completed :', round(release.points_completed(), 1)
         print 'Total WIP        :', round(release.wip(), 1)

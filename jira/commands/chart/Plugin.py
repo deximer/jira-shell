@@ -68,15 +68,15 @@ class Command(BaseCommand):
             if show_keys:
                 stories = [s for s in self.release.values() if s.points
                     and s.key in show_keys]
-            self.release = Release()
-            for story in stories:
-                self.release.add(story)
+                self.release = Release()
+                for story in stories:
+                    self.release.add(story)
             if hide_keys:
                 stories = [s for s in self.release.values() if s.points
                     and s.key not in hide_keys]
-            self.release = Release()
-            for story in stories:
-                self.release.add(story)
+                self.release = Release()
+                for story in stories:
+                    self.release.add(story)
         if not self.release.data:
             print 'No data to report'
             return

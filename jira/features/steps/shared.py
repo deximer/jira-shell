@@ -89,16 +89,17 @@ def make_story(row):
         story.created = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
     else:
         story.created = None
+    story.history = model.History()
     if 'started' in row.headings and row['started']:
         date = row['started'].split('/')
-        story.started = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
-    else:
-        story.started = None
+        story.history.data.append((
+            datetime(2000+int(date[0]), int(date[1]), int(date[2])),
+            1, 3))
     if 'resolved' in row.headings and row['resolved']:
         date = row['resolved'].split('/')
-        story.resolved = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
-    else:
-        story.resolved = None
+        story.history.data.append((
+            datetime(2000+int(date[0]), int(date[1]), int(date[2])),
+            3, 6))
     if 'status' in row.headings:
         story.status = int(row['status'])
     else:
