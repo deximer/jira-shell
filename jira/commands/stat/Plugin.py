@@ -45,8 +45,9 @@ class Command(BaseCommand):
         print 'Transition Log:'
         for t in story.history.data:
             backflow = ''
-            if KANBAN.index(t[1]) > KANBAN.index(t[2]):
-                backflow = ' <- backflow'
+            if t[1] in KANBAN and t[2] in KANBAN:
+                if KANBAN.index(t[1]) > KANBAN.index(t[2]):
+                    backflow = ' <- backflow'
             print '    %s, %s -> %s %s' % (t[0], t[1], t[2], backflow)
         #print 'Outward Links:'
         #for link in story.links.data:
