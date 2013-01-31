@@ -32,7 +32,7 @@ class Command(BaseCommand):
         except:
             return
         #self.refresh_data(jira, False)
-        print 'Key'.ljust(9), \
+        print 'Key'.ljust(10), \
               'Team:'.ljust(18), \
               'Pts:'.ljust(5), \
               'Stat:'.ljust(5), \
@@ -94,12 +94,12 @@ class Command(BaseCommand):
                 cycle_time = str(story.cycle_time)
             if story.backflow:
                 cycle_time = '<' + cycle_time
-            print story.key.ljust(9), \
+            print story.key[:10].ljust(10), \
                   team[:18].ljust(18), \
                   str(story.points).ljust(5), \
                   str(story.status).ljust(5), \
                   cycle_time.ljust(5), str(story.type).ljust(5), \
-                  story.title[:27]
+                  story.title[:26]
             if IStory.providedBy(story):
                 issues += 1
             if story.points:
@@ -125,6 +125,7 @@ class ReleaseAdapter(object):
         self.status = self.release.graph_kanban()
         self.type = 'N/A'
         self.title = 'Release %s' % self.key
+        self.backflow = False
 
 
 gsm.registerAdapter(ReleaseAdapter)

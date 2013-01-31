@@ -4,7 +4,7 @@ import datetime
 import json
 from ZODB.FileStorage import FileStorage
 from ZODB.DB import DB
-from ..model import Story, Release, Projects, Project, Kanban, History
+from ..model import Story, Release, Projects, Project, Kanban, History, Links
 from ..dao import Jira
 from  xml.etree import ElementTree as ET
 
@@ -28,6 +28,32 @@ def make_story(key, points=1.0, status=3, scrum_team='foo', type='72',
     story.history.data.append((resolved, 3, 6))
     return story
 
+
+class LinkTests(unittest.TestCase):
+    def setUp(self):
+        self.obj = Jira().json_to_object(
+            open('jira/tests/data/NG-12425.json').read())[
+            'fields']['issuelinks']
+        self.links = Links()
+        for link in self.obj:
+            if link.has_key('inwardIssue'):
+                self.links.data.append(make_story(link['inwardIssue']['key'],
+                    type=int(link['inwardIssue']['fields']['issuetype']['id'])))
+            if link.has_key('outwardIssue'):
+                self.links.data.append(make_story(link['outwardIssue']['key'],
+                    type=int(link['outwardIssue']['fields']['issuetype']['id'])))
+
+    def testObjectCreation(self):
+        self.assertTrue(self.obj is not None)
+
+    def testCorrectNumberOfIssues(self):
+        self.assertEqual(len(self.links.data), 4)
+
+    def testCorrectIssueId(self):
+        self.assertEqual(self.links.data[0].key, 'NG-13471')
+
+    def testGetLinks(self):
+        self.assertEqual(self.links.get_links(1)[0].key, 'NG-13471')
 
 class HistoryTest(unittest.TestCase):
     def setUp(self):
@@ -195,6 +221,17 @@ class KanbanTest(unittest.TestCase):
         release.add(make_story('NG-4', started=D20121201, resolved=D20121205))
         kanban = release.kanban()
         self.assertEqual(kanban.average_cycle_time(), 4.0)
+
+    def testAverageCycleTimeNoScrumTeam(self):
+        release = Release()
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121202))
+        release.add(make_story('NG-2', started=D20121201, resolved=D20121205))
+        release.add(make_story('NG-3', started=D20121201, resolved=D20121208))
+        release.add(make_story('NG-4', started=D20121201, resolved=D20121205))
+        del release['NG-1'].scrum_team
+        kanban = release.kanban()
+        self.assertEqual(kanban.average_cycle_time(), 4.0)
+
 
     def testAverageCycleTimeBugs(self):
         release = Release()

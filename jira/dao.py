@@ -9,7 +9,7 @@ from persistent.list import PersistentList
 from persistent.mapping import PersistentMapping
 from xml.etree import ElementTree as ET
 from BeautifulSoup import BeautifulSoup as BS
-from model import Projects, Project, Release, Story, History
+from model import Projects, Project, Release, Story, History, Links
 
 MT_USER = 'mindtap.user'
 MT_PASS = 'm1ndtap'
@@ -40,8 +40,10 @@ class LocalDB(object):
         for k in obj:
             if k == key:
                 return obj[k]
-            if hasattr(obj[k], 'has_key'):
+            if isinstance(obj[k], Release):
                 result = self.get(key, obj[k])
+                if result:
+                    break
         return result
 
     def cwd_contents(self):
@@ -128,9 +130,7 @@ class Jira(object):
         return None
 
     def refresh_cache(self):
-        page = self.request_page('sr/jira.issueviews:searchrequest-xml/24619/' \
-            'SearchRequest-24619.xml?tempMax=10000')
-        tree = ET.fromstring(page)
+        print 'Refreshing cache...'
         for key in self.get_release_keys():
             self.get_story(key, True)
 
@@ -141,18 +141,24 @@ class Jira(object):
         keys = []
         for key in tree.findall('.//*/item/key'):
             keys.append(key.text)
+        print 'Retrieved release keys'
         return keys
 
     def get_story(self, key, refresh=False):
         story = self.cache.get(key)
-        if not refresh and story:
+        if story and not refresh:
+            print 'Found cache story %s' % key
             return story
         data = self.call_rest(key, expand=['changelog'])
+        print 'Making new story %s' % key
         return self.make_story(key, data)
 
     def make_story(self, key, data):
+        if key == 'NG-10613':
+            import pdb; pdb.set_trace()
         story = Story(key)
         story.history = History(data['changelog'])
+        story.url = data['self']
         story.title = data['fields']['summary']
         story.fix_versions = PersistentList()
         for version in data['fields']['fixVersions']:
@@ -164,12 +170,16 @@ class Jira(object):
         story.type = data['fields']['issuetype']['id']
         story.assignee = data['fields']['assignee']
         story.developer = data['fields']['customfield_13435']
-        if data['fields']['customfield_11261']:
-            story.scrum_team = data['fields']['customfield_11261'][
-                'value'].strip()
+        story.scrum_team = None
+        if data['fields'].has_key('customfield_11261'):
+            if data['fields']['customfield_11261']:
+                story.scrum_team = data['fields']['customfield_11261'][
+                    'value'].strip()
         else:
             story.scrum_team = None
-        story.points = data['fields']['customfield_10792']
+        story.points = None
+        if data['fields'].has_key('customfield_10792'):
+            story.points = data['fields']['customfield_10792']
         if story.points:
             story.points = int(story.points)
         story.status = int(data['fields']['status']['id'])
@@ -183,6 +193,13 @@ class Jira(object):
                 release[story.key] = story
                 self.cache.data.root()[version] = release
         self.commit()
+        for link in data['fields']['issuelinks']:
+            skip = False
+            if link.has_key('outwardIssue'):
+                linked = self.get_story(link['outwardIssue']['key'])
+                story.links.data.append(linked)
+        self.commit()
+        print 'Made new story %s' % key
         return story
 
     def commit(self):

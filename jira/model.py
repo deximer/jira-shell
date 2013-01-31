@@ -41,6 +41,18 @@ KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_IN_PROGRESS, STATUS_REOPENED,
     STATUS_QA_READY, STATUS_QA_ACTIVE, STATUS_COMPLETED, STATUS_VERIFIED,
     STATUS_CLOSED]
 
+class Links(Persistent):
+    def __init__(self):
+        self.data = []
+
+    def get_links(self, link_type):
+        results = []
+        for link in self.data:
+            if link.type == link_type:
+                results.append(link)
+        return results
+
+
 class History(Persistent):
     def __init__(self, obj=None):
         self.data = []
@@ -85,8 +97,12 @@ class History(Persistent):
         transaction.commit()
 
         for date, begin, end in self.data:
-            if KANBAN.index(begin) > KANBAN.index(end):
-                return True
+            try:
+                if KANBAN.index(begin) > KANBAN.index(end):
+                    return True
+            except ValueError:
+                pass # Likely a state not in the KANBAN maybe from another
+                     # project, e.g. MTQA
         return False
 
 
@@ -99,6 +115,7 @@ class Story(Persistent):
 
     def __init__(self, key=None):
         super(Story, self).__init__()
+        self.links = Links()
         self.key = key
 
     def _get_cycle_time(self):
@@ -146,9 +163,9 @@ class Kanban(object):
     def add(self, story):
         self.stories.append(story)
         status = str(story.status)
-        team = story.scrum_team
-        if not team:
-            team = 'Everything Else'
+        team = 'Everything Else'
+        if hasattr(story, 'scrum_team'):
+            team = story.scrum_team
         if not self.grid.has_key(team):
             self.grid[team] = {status: {
                 'wip': story.points or 0.0,
