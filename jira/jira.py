@@ -109,7 +109,7 @@ def main():
         print 'Type "help" to get started. Type "quit" to exit.'
         while command != 'quit':
             command = shell()
-            if command:
+            if command and command != 'quit':
                 dispatch(command)
 
 if __name__ == '__main__':

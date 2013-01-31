@@ -1,4 +1,5 @@
 import argparse
+import copy
 import numpy
 import warnings
 with warnings.catch_warnings():
@@ -34,19 +35,28 @@ class Command(BaseCommand):
             args = parser.parse_args(args)
         except:
             return
-        self.release = jira.cache.get_by_path(jira.cache.cwd)
+        self.release = copy.deepcopy(jira.cache.get_by_path(jira.cache.cwd))
         if not isinstance(self.release, Release):
             print 'Error: Must navigate to a release. (hint: help cd)'
             return
         if args.team:
-            self.release.data = [s for s in self.release.data
+            stories = [s for s in self.release.values()
                 if s.scrum_team and s.scrum_team[:len(args.team)] == args.team]
+            self.release = Release()
+            for story in stories:
+                self.release.add(story)
         if args.d:
-            self.release.data = [s for s in self.release.data
+            stories = [s for s in self.release.values()
                 if s.developer and s.developer[:len(args.d[0])] == args.d[0]]
+            self.release = Release()
+            for story in stories:
+                self.release.add(story)
         if args.p:
-            self.release.data = [s for s in self.release.data
+            stories = [s for s in self.release.values()
                 if s.points and s.points == float(args.p[0])]
+            self.release = Release()
+            for story in stories:
+                self.release.add(story)
         if args.k:
             hide_keys = []
             show_keys = []
@@ -56,11 +66,17 @@ class Command(BaseCommand):
                 else:
                     show_keys.append('NG-' + k)
             if show_keys:
-                self.release.data = [s for s in self.release.data if s.points
+                stories = [s for s in self.release.values() if s.points
                     and s.key in show_keys]
+            self.release = Release()
+            for story in stories:
+                self.release.add(story)
             if hide_keys:
-                self.release.data = [s for s in self.release.data if s.points
+                stories = [s for s in self.release.values() if s.points
                     and s.key not in hide_keys]
+            self.release = Release()
+            for story in stories:
+                self.release.add(story)
         if not self.release.data:
             print 'No data to report'
             return
