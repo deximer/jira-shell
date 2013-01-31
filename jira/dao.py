@@ -154,8 +154,6 @@ class Jira(object):
         return self.make_story(key, data)
 
     def make_story(self, key, data):
-        if key == 'NG-10613':
-            import pdb; pdb.set_trace()
         story = Story(key)
         story.history = History(data['changelog'])
         story.url = data['self']

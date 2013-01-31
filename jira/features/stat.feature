@@ -27,6 +27,18 @@ Feature: List critial information about a specific issue
         | NG-2 | Bar2  | 2      | 72   |
         And I see "Developer: ann" in the output
 
+    Scenario: A user enters a non "NG" style id
+        Given I have the following issues in the release
+        | key    | title | status | type | dev |
+        | NG-1   | Foo1  | 1      | 1    | joe |
+        | NG-2   | Bar2  | 2      | 72   | ann |
+        | MTQA-1 | Baz3  | 3      | 78   | nic |
+        When I enter the command "stat MTQA-1"
+        Then I see critical data for the specific issue
+        | key    | title | status | type |
+        | MTQA-1 | Baz3  | 3      | 78   |
+        And I see "Developer: nic" in the output
+
     Scenario: A user does not supply an issue id
         Given The user is at the command line
         When I enter the command "stat"

@@ -404,7 +404,7 @@ class Release(PersistentMapping):
         return hash(self.__key())
 
     def process_raw_key(self, key):
-        if key[:3] != 'NG-':
+        if key.isnumeric():
             key = 'NG-%s' % key
         return key.strip()
 
