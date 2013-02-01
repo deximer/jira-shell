@@ -286,6 +286,19 @@ class Kanban(object):
             cycle_times.append(delta.days)
         return round(numpy.std(numpy.array(cycle_times), ddof=1), 1)
 
+    def variance_cycle_time(self, component=None):
+        if not self.release.stories():
+            return None
+        cycle_times = []
+        for story in self.release.stories():
+            if component and component not in story.components:
+                continue
+            if not story.started or not story.resolved:
+                continue
+            delta = story.resolved - story.started
+            cycle_times.append(delta.days)
+        return round(numpy.var(cycle_times), 1)
+
     def cycle_time_per_point(self, component=None):
         ''' Note that this method does not just add up the cycle times
             and the points and divide the former by the later (ct/pts). It

@@ -279,6 +279,16 @@ class KanbanTest(unittest.TestCase):
         kanban.add_release(release)
         self.assertEqual(kanban.average_cycle_time(), 5.5)
 
+    def testVarianceCycleTime(self):
+        release = Release()
+        release.add(make_story('NG-1', started=D20121201, resolved=D20121205))
+        release.add(make_story('NG-2', started=D20121203, resolved=D20121205))
+        release.add(make_story('NG-3', started=D20121205, resolved=D20121213))
+        release.add(make_story('NG-4', started=D20121203, resolved=D20121213))
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.variance_cycle_time(), 10.0)
+
     def testStdevCycleTimeLife(self):
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)

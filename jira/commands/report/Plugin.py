@@ -51,6 +51,7 @@ class Command(BaseCommand):
         print '  Avg Cycle Time :', kanban.average_cycle_time()
         print '  Std Cycle Time :', kanban.stdev_cycle_time()
         print '  m Cycle Time   :', kanban.median_cycle_time()
+        print '  Total Variance :', kanban.variance_cycle_time()
         print 'Bugs             :', len(release.bugs())
         print '  Production     :', len(release.stories(type=['78']))
         print '    Avg Cycle Time :', kanban.average_cycle_time_life(
