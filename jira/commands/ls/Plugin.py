@@ -10,15 +10,16 @@ gsm = getGlobalSiteManager()
 
 class Command(BaseCommand):
     help = 'List issues in a release.'
-    usage = 'ls [team] [-s status [status...]] [-t issue_type [issue_type...]] [-p [point]]'
+    usage = 'ls [[!]team] [-s status [status...]] [-t issue_type [issue_type...]] [-p [point]]'
     options_help = '''    -s : Show only issues with the specified status ("!" for exclusion)
     -t : Show only issues of the specified type ("!" for exclusion)
     -p : Show issues with the specified point estimates
     -b : Show issues with backflow
     '''
     examples = '''    ls
-    ls App
-    ls Math -s !3 -t 72'''
+    ls App 
+    ls !App 
+    ls Math -s !6 -t 72'''
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
@@ -38,6 +39,7 @@ class Command(BaseCommand):
               'Stat:'.ljust(5), \
               'CT:'.ljust(5), \
               'Type:'.ljust(5), \
+              'Bugs:'.ljust(5), \
               'Title:'
         issues = 0
         points = 0
@@ -80,8 +82,13 @@ class Command(BaseCommand):
                 continue
             if not story.scrum_team:
                 story.scrum_team = 'Everything Else'
-            if args.team and story.scrum_team[:len(args.team)] != args.team:
-                continue
+            if args.team:
+                if args.team[0] == '!':
+                        if story.scrum_team[:len(args.team[1:])]==args.team[1:]:
+                            continue
+                else:
+                    if story.scrum_team[:len(args.team)] != args.team:
+                        continue
 
             team = story.scrum_team
             if not team:
@@ -99,7 +106,8 @@ class Command(BaseCommand):
                   str(story.points).ljust(5), \
                   str(story.status).ljust(5), \
                   cycle_time.ljust(5), str(story.type).ljust(5), \
-                  story.title[:26]
+                  str(len(story.links.get_links('1'))).ljust(5), \
+                  story.title[:20]
             if IStory.providedBy(story):
                 issues += 1
             if story.points:
@@ -109,6 +117,7 @@ class Command(BaseCommand):
 
 class IDirectoryListItem(Interface):
     pass
+
 
 class ReleaseAdapter(object):
     implements(IDirectoryListItem)
@@ -126,6 +135,16 @@ class ReleaseAdapter(object):
         self.type = 'N/A'
         self.title = 'Release %s' % self.key
         self.backflow = False
+        class FakeLinks:
+            def __init__(self, release):
+                self.release = release
+
+            def get_links(self, link_type):
+                result = []
+                for s in self.release.stories():
+                    result.append(s.links.get_links(link_type))
+                return result
+        self.links = FakeLinks(self.release)
 
 
 gsm.registerAdapter(ReleaseAdapter)

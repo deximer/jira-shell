@@ -2,6 +2,7 @@ import urllib
 import json
 import datetime
 import time
+import copy
 import transaction
 from ZODB.DB import DB
 from ZODB.FileStorage import FileStorage
@@ -33,15 +34,15 @@ class LocalDB(object):
                 self.keys(obj[key], results)
         return results
 
-    def get(self, key, obj=None):
-        if not obj:
-            obj = self.data.root()
+    def get(self, key, context=None):
+        if context is None:
+            context = self.data.root()
         result = None
-        for k in obj:
+        for k in context:
             if k == key:
-                return obj[k]
-            if isinstance(obj[k], Release):
-                result = self.get(key, obj[k])
+                return context[k]
+            if isinstance(context[k], Release):
+                result = self.get(key, context[k])
                 if result:
                     break
         return result
@@ -56,7 +57,6 @@ class LocalDB(object):
         return tuple(contents)
 
     def get_by_path(self, path):
-        import copy
         path = copy.copy(path)
         if isinstance(path, type('')):
             path = path.split('/')
@@ -190,12 +190,12 @@ class Jira(object):
                 release[story.key] = story
                 self.cache.data.root()[version] = release
         self.commit()
-        for link in data['fields']['issuelinks']:
-            skip = False
-            if link.has_key('outwardIssue'):
-                linked = self.get_story(link['outwardIssue']['key'])
-                story.links.data.append(linked)
-        self.commit()
+        #for link in data['fields']['issuelinks']:
+        #    skip = False
+        #    if link.has_key('outwardIssue'):
+        #        linked = self.get_story(link['outwardIssue']['key'])
+        #        story.links.data.append(linked)
+        #self.commit()
         print 'Made new story %s' % key
         return story
 

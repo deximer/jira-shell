@@ -96,6 +96,26 @@ Feature: list issues in a release
         And I do not see "NG-4" in the output
         And I do not see "NG-2" in the output
 
+    Scenario: A user lists issues that are not the MathML team
+        Given I have the following release
+        | key |
+        | 1.0 |
+        Given I have the following issues in the release
+        | key  | title | team   |
+        | NG-1 | Foo 1 | MathML |
+        | NG-2 | Bar 2 | Foo    |
+        | NG-3 | Baz 3 | MathML |
+        | NG-4 | Baz 4 | Bar    |
+        And I am in the directory "/1.0"
+        When I enter the command "ls !Math"
+        Then I see these issues listed
+        | key  | title |
+        | NG-2 | Bar 2 |
+        | NG-4 | Baz 4 |
+        And I do not see "NG-3" in the output
+        And I do not see "NG-1" in the output
+
+
     Scenario: A user lists issues for a the MathML and status 6 and type 72
         Given I have the following release
         | key |
