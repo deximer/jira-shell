@@ -71,7 +71,7 @@ class DBTest(unittest.TestCase):
         self.assertEqual(len(self.db.keys()), 5)
     
     def testGet(self):
-        self.db.data.root()['1.0'] = {}
+        self.db.data.root()['1.0'] = Release()
         self.db.data.root()['1.0']['NG-1'] = 'Issue 1'
         self.assertEqual(self.db.get('NG-1'), 'Issue 1')
 

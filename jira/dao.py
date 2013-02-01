@@ -17,7 +17,9 @@ MT_PASS = 'm1ndtap'
 
 JIRA_API = 'http://%s:%s@jira.cengage.com/rest/api/2/issue/%s'
 
-connection = DB(FileStorage('db/cache.fs')).open()
+fs = FileStorage('db/cache.fs')
+db = DB(fs)
+connection = db.open()
 
 class LocalDB(object):
     def __init__(self, connection):
