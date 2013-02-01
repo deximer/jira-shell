@@ -131,7 +131,7 @@ class Jira(object):
 
     def refresh_cache(self):
         print 'Refreshing cache...'
-        for key in self.get_release_keys():
+        for key in self.get_release_keys(refresh=True):
             self.get_story(key, True)
 
     def get_release_keys(self, refresh=False):
