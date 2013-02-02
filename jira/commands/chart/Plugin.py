@@ -11,12 +11,13 @@ from model import Release
 class Command(BaseCommand):
     help = 'Render various charts based on the data'
     usage = 'chart [team] [-t chart_type] [-d developer] [-s sort_by]' \
-        ' [-p point]'
-    options_help = '''    -t : specify chart type (default is cycle times)
+        ' [-p point] [-c cycle_time]'
+    options_help = '''    -c : specify cycle time outlier limit
     -d : chart for developer
+    -k : chart using or surpressing specific issue keys
     -p : chart for estimate value 
     -s : sorting criteria
-    -k : chart using or surpressing specific issue keys
+    -t : specify chart type (default is cycle times)
     '''
     examples = '''    chart
     chart App
@@ -31,6 +32,7 @@ class Command(BaseCommand):
         parser.add_argument('-p', nargs='*', required=False)
         parser.add_argument('-s', nargs='*', required=False)
         parser.add_argument('-k', nargs='*', required=False)
+        parser.add_argument('-c', nargs='*', required=False)
         try:
             args = parser.parse_args(args)
         except:
@@ -40,20 +42,27 @@ class Command(BaseCommand):
             print 'Error: Must navigate to a release. (hint: help cd)'
             return
         if args.team:
-            stories = [s for s in self.release.values()
+            stories = [s for s in self.release.stories()
                 if s.scrum_team and s.scrum_team[:len(args.team)] == args.team]
             self.release = Release()
             for story in stories:
                 self.release.add(story)
         if args.d:
-            stories = [s for s in self.release.values()
+            stories = [s for s in self.release.stories()
                 if s.developer and s.developer[:len(args.d[0])] == args.d[0]]
             self.release = Release()
             for story in stories:
                 self.release.add(story)
         if args.p:
-            stories = [s for s in self.release.values()
+            stories = [s for s in self.release.stories()
                 if s.points and s.points == float(args.p[0])]
+            self.release = Release()
+            for story in stories:
+                self.release.add(story)
+        if args.c:
+            cycle_time = int(args.c[0])
+            stories = [s for s in self.release.stories()
+                if s.cycle_time < cycle_time]
             self.release = Release()
             for story in stories:
                 self.release.add(story)
@@ -66,18 +75,18 @@ class Command(BaseCommand):
                 else:
                     show_keys.append('NG-' + k)
             if show_keys:
-                stories = [s for s in self.release.values() if s.points
+                stories = [s for s in self.release.stories() if s.points
                     and s.key in show_keys]
                 self.release = Release()
                 for story in stories:
                     self.release.add(story)
             if hide_keys:
-                stories = [s for s in self.release.values() if s.points
+                stories = [s for s in self.release.stories() if s.points
                     and s.key not in hide_keys]
                 self.release = Release()
                 for story in stories:
                     self.release.add(story)
-        if not self.release.data:
+        if not self.release.stories():
             print 'No data to report'
             return
         kanban = self.release.kanban()

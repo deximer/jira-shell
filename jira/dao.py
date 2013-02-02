@@ -27,7 +27,7 @@ class LocalDB(object):
         self.cwd = ['/']
 
     def keys(self, obj=None, results=[]):
-        if not obj:
+        if obj is None:
             obj = self.data.root()
         for key in obj:
             if not key in results:

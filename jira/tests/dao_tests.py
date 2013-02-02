@@ -58,8 +58,8 @@ class DBTest(unittest.TestCase):
         self.assertEqual(len(self.db.keys()), 1)
 
     def testKeysNested(self):
-        self.db.data.root()['1.0'] = {}
-        self.db.data.root()['1.0']['NG-1'] = 'Issue 1'
+        self.db.data.root()['test1.0'] = Release()
+        self.db.data.root()['test1.0']['NG-test1'] = 'Issue 1'
         self.assertEqual(len(self.db.keys()), 2)
 
     def testKeysDeepNested(self):
