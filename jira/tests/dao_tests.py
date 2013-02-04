@@ -149,7 +149,7 @@ class JiraTest(unittest.TestCase):
 
 
     def testGetReleaseKeys(self):
-        keys = self.jira.get_release_keys()
+        keys = self.jira.get_release_keys(['1.0'])
         self.assertEqual(keys[0], 'NG-13809')
 
     def testGetStory(self):

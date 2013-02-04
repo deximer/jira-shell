@@ -139,7 +139,12 @@ class Jira(object):
             self.get_story(key, True)
 
     def get_release_keys(self, releases):
-        print 'Retrieving release keys for %s' % ', '.join(releases)
+        if len(releases) > 1:
+            notice = 'Retrieving release keys for %s' % ', '.join(releases[:-1])
+            notice += ' and %s' % releases[-1]
+        else:
+            notice = 'Retrieving release keys for %s' % releases[0]
+        print notice
         issues = []
         for release in releases:
             issues.extend(self.call_api('search?' \
@@ -192,12 +197,12 @@ class Jira(object):
                 release[story.key] = story
                 self.cache.data.root()[version] = release
         self.commit()
-        #for link in data['fields']['issuelinks']:
-        #    skip = False
-        #    if link.has_key('outwardIssue'):
-        #        linked = self.get_story(link['outwardIssue']['key'])
-        #        story.links.data.append(linked)
-        #self.commit()
+        for link in data['fields']['issuelinks']:
+            skip = False
+            if link.has_key('outwardIssue'):
+                linked = self.get_story(link['outwardIssue']['key'])
+                story.links.data.append(linked)
+        self.commit()
         return story
 
     def commit(self):
