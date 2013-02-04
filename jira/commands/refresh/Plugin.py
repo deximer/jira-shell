@@ -5,6 +5,5 @@ class Command(BaseCommand):
     usage = 'refresh'
 
     def run(self, jira, args):
-        print 'Retrieving data...'
         self.refresh_data(jira, True)
         print 'Cache refreshed'

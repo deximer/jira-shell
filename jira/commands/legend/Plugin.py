@@ -14,8 +14,10 @@ STATUS_CODES = {
 
 ISSUE_TYPES = {
     '1' : 'Development Bug',
+    '71': 'Epic',
     '72': 'Story',
-    '78': 'Production Bug'
+    '78': 'Production Bug',
+    '156': 'Spike'
 }
 
 class Command(BaseCommand):
@@ -24,9 +26,9 @@ class Command(BaseCommand):
 
     def run(self, jira, args):
         print 'Status codes:'
-        for key in STATUS_CODES:
+        for key in sorted(STATUS_CODES.keys()):
             print key.ljust(6) + ':', STATUS_CODES[key]
         print
         print 'Story types:'
-        for key in ISSUE_TYPES:
+        for key in sorted(ISSUE_TYPES.keys()):
             print key.ljust(6) + ':', ISSUE_TYPES[key]

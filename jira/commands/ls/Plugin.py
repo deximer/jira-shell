@@ -43,6 +43,7 @@ class Command(BaseCommand):
               'Title:'
         issues = 0
         points = 0
+        epic_points = 0
         query_points = []
         if args.p:
             query_points = [float(p) for p in args.p]
@@ -110,9 +111,17 @@ class Command(BaseCommand):
                   story.title[:20]
             if IStory.providedBy(story):
                 issues += 1
-            if story.points:
+            elif IDirectoryListItem.providedBy(story):
+                issues += len(story.release.stories())
+            if story.points and (story.type=='72' or story.type=='N/A'):
                 points += story.points
-        print 'Total Issues: %d, Total Points: %d' % (issues, points)
+            if story.points and story.type=='71':
+                epic_points += story.points
+        if epic_points:
+            print 'Total Issues: %d, Epic Points %d, Story Points: %d' \
+                % (issues, epic_points, points)
+        else:
+            print 'Total Issues: %d, Story Points: %d' % (issues, points)
 
 
 class IDirectoryListItem(Interface):

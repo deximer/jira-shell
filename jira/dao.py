@@ -132,21 +132,22 @@ class Jira(object):
         return None
 
     def refresh_cache(self):
-        print 'Refreshing cache...'
-        for key in self.get_release_keys():
+        keys = self.get_release_keys()
+        print 'Refreshing %d keys. About %d minutes' % (len(keys),
+            round(len(keys)/120, 1))
+        for key in keys:
             self.get_story(key, True)
 
     def get_release_keys(self, release='2.7'):
+        print 'Retrieving release keys for %s' % release
         issues = self.call_api('search?' \
             'jql=project%20=%20ng%20AND%20fixVersion="' + release + '"' \
             '&startAt=0&maxResults=10000&fields=key')
-        print 'Retrieved release keys for %s' % release
         return [i['key'] for i in issues['issues']]
 
     def get_story(self, key, refresh=False):
         story = self.cache.get(key)
         if story and not refresh:
-            print 'Found cache story %s' % key
             return story
         data = self.call_rest(key, expand=['changelog'])
         return self.make_story(key, data)
@@ -195,7 +196,6 @@ class Jira(object):
         #        linked = self.get_story(link['outwardIssue']['key'])
         #        story.links.data.append(linked)
         #self.commit()
-        print 'Made new story %s' % key
         return story
 
     def commit(self):
