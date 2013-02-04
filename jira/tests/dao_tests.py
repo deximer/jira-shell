@@ -88,8 +88,12 @@ class JiraTest(unittest.TestCase):
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
                 'jira/tests/data/rest_changelog.json').read())
+        def mock_call_api(method):
+            return json.loads(open(
+                'jira/tests/data/release_keys.json').read())
         self.jira = Jira('jira.cengage.com', 'user:pass')
         self.jira.call_rest = mock_call_rest
+        self.jira.call_api = mock_call_api
         self.jira.request_page = mock_request_page
 
     def tearDown(self):
@@ -146,7 +150,7 @@ class JiraTest(unittest.TestCase):
 
     def testGetReleaseKeys(self):
         keys = self.jira.get_release_keys()
-        self.assertEqual(keys[0], 'NG-12459')
+        self.assertEqual(keys[0], 'NG-13809')
 
     def testGetStory(self):
         def mock_call_rest(key, expand=['changelog']):

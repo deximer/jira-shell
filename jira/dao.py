@@ -133,18 +133,15 @@ class Jira(object):
 
     def refresh_cache(self):
         print 'Refreshing cache...'
-        for key in self.get_release_keys(refresh=True):
+        for key in self.get_release_keys():
             self.get_story(key, True)
 
-    def get_release_keys(self, refresh=False):
-        page = self.request_page('sr/jira.issueviews:searchrequest-xml/24756/' \
-            'SearchRequest-24756.xml?tempMax=10000', refresh)
-        tree = ET.fromstring(page)
-        keys = []
-        for key in tree.findall('.//*/item/key'):
-            keys.append(key.text)
-        print 'Retrieved release keys'
-        return keys
+    def get_release_keys(self, release='2.7'):
+        issues = self.call_api('search?' \
+            'jql=project%20=%20ng%20AND%20fixVersion="' + release + '"' \
+            '&startAt=0&maxResults=10000&fields=key')
+        print 'Retrieved release keys for %s' % release
+        return [i['key'] for i in issues['issues']]
 
     def get_story(self, key, refresh=False):
         story = self.cache.get(key)
@@ -212,6 +209,12 @@ class Jira(object):
                 URL += item + ','
             URL = URL[:-1]
         return self.json_to_object(urllib.urlopen(URL).read())
+
+    def call_api(self, method):
+        URL = 'http://%s:%s@jira.cengage.com/rest/api/2/%s' \
+            % (MT_USER, MT_PASS, method)
+        return self.json_to_object(urllib.urlopen(URL).read())
+
 
     def json_to_object(self, json_data):
         return json.loads(json_data)
