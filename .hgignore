@@ -4,6 +4,7 @@ syntax: glob
 .Python
 nose-*
 BeautifulSoup-*
+*.egg/
 nose
 dist
 build
@@ -12,6 +13,7 @@ include
 lib
 man
 jira
+db/
 jira.egg-*
 jira/export-*
 jira/cache.xml

@@ -454,16 +454,13 @@ class Release(PersistentMapping):
         return [story for story in self.values() if story.type in type]
 
     def started_stories(self):
-        return [story for story in self.values() if story.type == STORY_TYPE
-            and story.started]
+        return [story for story in self.stories() and story.started]
 
     def resolved_stories(self):
-        return [story for story in self.values() if story.type == STORY_TYPE
-            and story.resolved]
+        return [story for story in self.stories() if story.resolved]
 
     def bugs(self):
-        return [story for story in self.values() if story.type == BUG_TYPE or
-            story.type == PRODUCTION_BUG_TYPE]
+        return [story for story in self.stories([BUG_TYPE,PRODUCTION_BUG_TYPE])]
 
     def only_groomed_stories(self):
         return [story for story in self.stories() if story.points]

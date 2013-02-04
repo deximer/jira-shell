@@ -131,19 +131,21 @@ class Jira(object):
                 return self.cache.data.root()[key]
         return None
 
-    def refresh_cache(self):
-        keys = self.get_release_keys()
+    def refresh_cache(self, releases=['2.7']):
+        keys = self.get_release_keys(releases)
         print 'Refreshing %d keys. About %d minutes' % (len(keys),
             round(len(keys)/120, 1))
         for key in keys:
             self.get_story(key, True)
 
-    def get_release_keys(self, release='2.7'):
-        print 'Retrieving release keys for %s' % release
-        issues = self.call_api('search?' \
-            'jql=project%20=%20ng%20AND%20fixVersion="' + release + '"' \
-            '&startAt=0&maxResults=10000&fields=key')
-        return [i['key'] for i in issues['issues']]
+    def get_release_keys(self, releases):
+        print 'Retrieving release keys for %s' % ', '.join(releases)
+        issues = []
+        for release in releases:
+            issues.extend(self.call_api('search?' \
+                'jql=project%20=%20ng%20AND%20fixVersion="' + release + '"' \
+                '&startAt=0&maxResults=10000&fields=key')['issues'])
+        return [i['key'] for i in issues]
 
     def get_story(self, key, refresh=False):
         story = self.cache.get(key)
