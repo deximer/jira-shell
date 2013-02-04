@@ -137,8 +137,8 @@ class Jira(object):
             self.get_story(key, True)
 
     def get_release_keys(self, refresh=False):
-        page = self.request_page('sr/jira.issueviews:searchrequest-xml/24619/' \
-            'SearchRequest-24619.xml?tempMax=10000', refresh)
+        page = self.request_page('sr/jira.issueviews:searchrequest-xml/24756/' \
+            'SearchRequest-24756.xml?tempMax=10000', refresh)
         tree = ET.fromstring(page)
         keys = []
         for key in tree.findall('.//*/item/key'):

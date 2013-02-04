@@ -21,7 +21,7 @@ cmds = {'top': commands.top.Plugin.Command(),
        }
 
 NG_CURRENT_RELEASE = 'http://%s:%s@jira.cengage.com/sr/' \
-    'jira.issueviews:searchrequest-xml/26808/SearchRequest-26808.xml?' \
+    'jira.issueviews:searchrequest-xml/24756/SearchRequest-24756.xml?' \
     'tempMax=10000' % (MT_USER, MT_PASS)
 NG_NEXT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?tempMax=10000'
 ISSUE='http://mindtap.user:m1ndtap@jira.cengage.com/si/jira.issueviews:issue-xml/%s/%s.xml'
