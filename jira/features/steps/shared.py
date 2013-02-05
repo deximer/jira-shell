@@ -96,6 +96,8 @@ def make_story(row):
             datetime(2000+int(date[0]), int(date[1]), int(date[2])),
             1, 3))
     if 'resolved' in row.headings and row['resolved']:
+        if not row['resolved']:
+            return
         date = row['resolved'].split('/')
         story.history.data.append((
             datetime(2000+int(date[0]), int(date[1]), int(date[2])),

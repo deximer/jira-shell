@@ -23,60 +23,9 @@ class Command(BaseCommand):
                 self.top_issues(jira, window)
             window.refresh()
             c = window.getch()
-            if chr(c) == '!':
-                window.clear()
-                window.addstr(1,0, 'Retriving data...                         ')
-                window.refresh()
-                self.refresh_data(jira, True)
-                continue
-            elif chr(c) == 'w':
-                command = 'wip'
-            elif chr(c) == 'i':
-                 command = 'issues'
-            else:
+            if chr(c) == 'q':
                 quit = True
         curses.endwin()
-
-    def top_issues(self, jira, window):
-        count = 2
-        window.addstr(count,0, 'ID', curses.A_REVERSE)
-        window.addstr(count,10, 'Pts', curses.A_REVERSE)
-        window.addstr(count,16, 'Sta', curses.A_REVERSE)
-        window.addstr(count,22, 'CT', curses.A_REVERSE)
-        window.addstr(count,26, 'Type', curses.A_REVERSE)
-        window.addstr(count,32, 'Assignee', curses.A_REVERSE)
-        window.addstr(count,50, 'Team', curses.A_REVERSE)
-        total_cycle_time = 0
-        total_points = 0
-        for story in self.release.stories()[:21]:
-            count += 1
-            cycle_time = '?'
-            if story.cycle_time:
-                cycle_time = str(story.cycle_time)
-                total_cycle_time += story.cycle_time
-                if not story.resolved:
-                    cycle_time += '>'
-            if story.points:
-                total_points += story.points
-            team = story.scrum_team
-            if not team:
-                team = 'Everything Else'
-            window.addstr(count,0, story.key)
-            window.addstr(count,10, str(story.points))
-            window.addstr(count,16, str(story.status))
-            window.addstr(count,22, cycle_time)
-            window.addstr(count,26, story.type)
-            window.addstr(count,32, story.assignee)
-            window.addstr(count,50, team)
-        kanban = self.release.kanban()
-        window.addstr(0, 0, 'Release 2.5, 8 days remaining')
-        window.addstr(1, 0, 'TPts: ' + str(round(
-            self.release.total_points(), 1)) + ' AvgPts: '
-            + str(round(self.release.average_story_size(), 1)) +
-            ' AvgCT: ' +  str(kanban.average_cycle_time()) +
-            ' CT/Pt: ' + str(round(kanban.cycle_time_per_point(), 1)))
-        window.addstr(1, 0, '')
-        window.refresh()
 
     def top_wip(self, jira, window):
         count = 2

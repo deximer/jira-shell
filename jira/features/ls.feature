@@ -185,3 +185,18 @@ Feature: list issues in a release
         | NG-1 | Foo 1 |
         | NG-3 | Baz 3 |
         And I do not see "NG-2" in the output
+
+    Scenario: A user views the cycle times for listed issues
+        Given I have the following release
+        | key |
+        | 1.0 |
+        And I have the following issues in the release
+        | key  | title | type | started | resolved |
+        | NG-1 | Foo 1 | 72   | 13/9/1  | 13/9/3   |
+        | NG-2 | Bar 2 | 78   | 13/9/7  | 13/9/17  |
+        | NG-3 | Baz 3 | 1    | 13/9/2  | 13/9/2   |
+        And I am in the directory "/1.0"
+        When I enter the command "ls"
+        Then I see "  2  " in the output
+        And I see "  10  " in the output
+        And I see "3           1" in the output
