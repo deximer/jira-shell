@@ -156,7 +156,11 @@ class Jira(object):
         story = self.cache.get(key)
         if story and not refresh:
             return story
-        data = self.call_rest(key, expand=['changelog'])
+        try:
+            data = self.call_rest(key, expand=['changelog'])
+        except ValueError:
+            print 'Error: Jira down for maintenance'
+            return None
         return self.make_story(key, data)
 
     def make_story(self, key, data):
@@ -187,22 +191,26 @@ class Jira(object):
         if story.points:
             story.points = int(story.points)
         story.status = int(data['fields']['status']['id'])
-        story.data = data
+        story.project = data['fields']['project']['key']
+        if not story.project in self.cache.data.root():
+            self.cache.data.root()[story.project] = Project(story.project,
+                data['fields']['project']['name'])
+        project = self.cache.data.root()[story.project]
         for version in story.fix_versions:
-            if version in self.cache.data.root():
-                self.cache.data.root()[version][story.key] = story
+            if version in project.keys():
+                project[version][story.key] = story
             else:
                 release = Release()
                 release.version = version
                 release[story.key] = story
-                self.cache.data.root()[version] = release
+                project[version] = release
         self.commit()
-        for link in data['fields']['issuelinks']:
-            skip = False
-            if link.has_key('outwardIssue'):
-                linked = self.get_story(link['outwardIssue']['key'])
-                story.links.data.append(linked)
-        self.commit()
+        #for link in data['fields']['issuelinks']:
+        #    skip = False
+        #    if link.has_key('outwardIssue'):
+        #        linked = self.get_story(link['outwardIssue']['key'])
+        #        story.links.data.append(linked)
+        #self.commit()
         return story
 
     def commit(self):

@@ -6,7 +6,7 @@ from zope.interface import Interface, implements
 from persistent import Persistent
 from persistent.mapping import PersistentMapping
 from persistent.list import PersistentList
-from interfaces import IRelease, IStory, IKanban
+from interfaces import IRelease, IStory, IProject, IKanban
 
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
@@ -362,6 +362,18 @@ class Kanban(object):
             days.append(delta.days)
         return numpy.std(numpy.array(days))
 
+    def minimum_atp(self, estimate):
+        grid = self.release.stories_by_estimate()
+        days = []
+        if not grid.has_key(estimate):
+            return None
+        for story in grid[estimate]:
+            if not story.started or not story.resolved or not story.points:
+                continue
+            delta = story.resolved - story.started
+            days.append(delta.days)
+        return round(numpy.min(numpy.array(days)), 1)
+
     def contingency_average(self, key):
         story = self.release.get(key)
         average = self.average_cycle_time_for_estimate(str(story.points))
@@ -380,8 +392,11 @@ class Kanban(object):
         if not std2:
             return None
         inside = average - (std2 * 2)
+        min_atp = self.minimum_atp(str(story.points))
+        if inside < min_atp:
+            inside = min_atp
         if story.cycle_time:
-            return round(inside - story.cycle_time, 1)
+            inside = inside - story.cycle_time
         return round(inside, 1)
 
     def contingency_outside(self, key):
@@ -620,8 +635,11 @@ class Release(PersistentMapping):
         return []
 
 
-class Project(object):
-    def __init__(self, name=None, key=None, owner=None):
+class Project(PersistentMapping):
+    implements(IProject)
+
+    def __init__(self, key=None, name=None, owner=None):
+        PersistentMapping.__init__(self)
         self.name = name
         self.key = key
         self.owner = owner

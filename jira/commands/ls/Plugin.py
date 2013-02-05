@@ -4,7 +4,7 @@ from zope.interface import Interface, implements
 from zope.component import adapts
 from zope.component import getGlobalSiteManager
 from ..base import BaseCommand
-from interfaces import IRelease, IStory
+from interfaces import IRelease, IStory, IProject
 
 gsm = getGlobalSiteManager()
 
@@ -32,7 +32,6 @@ class Command(BaseCommand):
             args = parser.parse_args(args)
         except:
             return
-        #self.refresh_data(jira, False)
         print 'Key'.ljust(10), \
               'Team:'.ljust(18), \
               'Pts:'.ljust(5), \
@@ -118,7 +117,7 @@ class Command(BaseCommand):
             if IStory.providedBy(story):
                 issues += 1
             elif IDirectoryListItem.providedBy(story):
-                issues += len(story.release.stories())
+                issues += len(story.stories())
             if story.points and (story.type=='72' or story.type=='N/A'):
                 points += story.points
             if story.points and story.type=='71':
@@ -132,6 +131,35 @@ class Command(BaseCommand):
 
 class IDirectoryListItem(Interface):
     pass
+
+
+class ProjectAdapter(object):
+    implements(IDirectoryListItem)
+    adapts(IProject)
+
+    def __init__(self, project):
+        self.project = project
+        self.key = project.key
+        self.scrum_team = 'N/A'
+        self.cycle_time = 'N/A'
+        self.started = 'N/A'
+        self.resolved = 'N/A'
+        self.points = None
+        self.status = None
+        self.type = 'N/A'
+        self.title = 'Project %s' % self.key
+        self.backflow = False
+        class FakeLinks:
+            def __init__(self, project):
+                self.project = project
+
+            def get_links(self, link_type):
+                result = []
+                return result
+        self.links = FakeLinks(self.project)
+
+    def stories(self):
+        return []
 
 
 class ReleaseAdapter(object):
@@ -150,6 +178,7 @@ class ReleaseAdapter(object):
         self.type = 'N/A'
         self.title = 'Release %s' % self.key
         self.backflow = False
+        self.stories = self.release.stories
         class FakeLinks:
             def __init__(self, release):
                 self.release = release
@@ -163,3 +192,4 @@ class ReleaseAdapter(object):
 
 
 gsm.registerAdapter(ReleaseAdapter)
+gsm.registerAdapter(ProjectAdapter)

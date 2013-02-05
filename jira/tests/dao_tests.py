@@ -117,17 +117,6 @@ class JiraTest(unittest.TestCase):
         self.assertEqual(self.jira.format_request('test/path.html'),
             'http://user:pass@jira.cengage.com/test/path.html')
 
-    def testAllProjects(self):
-        def mock_request_page(url, refresh=False):
-            return open('jira/tests/data/projects.html').read()
-        self.jira.request_page = mock_request_page
-        projects = self.jira.all_projects()
-        keys = ['NG', 'MTQA', 'MTA']
-        count = 0
-        for project in projects.data:
-            self.assertEqual(project.key, keys[count])
-            count += 1
-
     def testGetRelease(self):
         release = Release()
         release.version = '1.0'
@@ -147,7 +136,6 @@ class JiraTest(unittest.TestCase):
         release = self.jira.get_release('1.0')
         self.assertEqual(release.version, '1.0')
 
-
     def testGetReleaseKeys(self):
         keys = self.jira.get_release_keys(['1.0'])
         self.assertEqual(keys[0], 'NG-13809')
@@ -166,6 +154,14 @@ class JiraTest(unittest.TestCase):
             , '%Y-%m-%dT%H:%M:%S.%f')))
         self.assertEqual(story.created, creation_date)
         self.assertEqual(story.assignee['displayName'], 'Abdul Habra')
+
+    def testGetStoryJiraMaintenance(self):
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/jira_maintenance_notice.html').read())
+        self.jira.call_rest = mock_call_rest
+        story = self.jira.get_story('NG-12345')
+        self.assertEqual(story, None)
 
     def testMakeStory(self):
         json_data = open('jira/tests/data/NG-13332.json').read()
