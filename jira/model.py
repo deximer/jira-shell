@@ -372,6 +372,8 @@ class Kanban(object):
                 continue
             delta = story.resolved - story.started
             days.append(delta.days)
+        if not days:
+            return None
         return round(numpy.min(numpy.array(days)), 1)
 
     def contingency_average(self, key):

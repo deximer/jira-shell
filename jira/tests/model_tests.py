@@ -404,6 +404,11 @@ class KanbanTest(unittest.TestCase):
         kanban = release.kanban()
         self.assertEqual(kanban.minimum_atp('3.0'), 2.0)
 
+    def testMinimumATPNullSet(self):
+        release = Release()
+        kanban = release.kanban()
+        self.assertEqual(kanban.minimum_atp('999.0'), None)
+
     def testContingency(self):
         release = Release()
         release.add(make_story('NG-1', started=D20121201, resolved=D20121205,
