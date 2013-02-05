@@ -5,6 +5,7 @@ from zope.component import adapts
 from zope.component import getGlobalSiteManager
 from ..base import BaseCommand
 from interfaces import IRelease, IStory, IProject
+from model import Story
 
 gsm = getGlobalSiteManager()
 
@@ -63,7 +64,8 @@ class Command(BaseCommand):
                 else:
                     show_type.append(arg)
         container = jira.cache.get_by_path(jira.cache.cwd)
-        for story in container.values():
+        stories = [IDirectoryListItem(s) for s in container.values()]
+        for story in sorted(stories, key=lambda x: x.scrum_team):
             try:
                 story = IDirectoryListItem(story)
             except TypeError:
@@ -114,10 +116,7 @@ class Command(BaseCommand):
                   str(story.type).ljust(5), \
                   rework.ljust(5), \
                   story.title[:20]
-            if IStory.providedBy(story):
-                issues += 1
-            elif IDirectoryListItem.providedBy(story):
-                issues += len(story.stories())
+            issues += story.stories()
             if story.points and (story.type=='72' or story.type=='N/A'):
                 points += story.points
             if story.points and story.type=='71':
@@ -159,7 +158,7 @@ class ProjectAdapter(object):
         self.links = FakeLinks(self.project)
 
     def stories(self):
-        return []
+        return 0
 
 
 class ReleaseAdapter(object):
@@ -178,7 +177,6 @@ class ReleaseAdapter(object):
         self.type = 'N/A'
         self.title = 'Release %s' % self.key
         self.backflow = False
-        self.stories = self.release.stories
         class FakeLinks:
             def __init__(self, release):
                 self.release = release
@@ -190,6 +188,24 @@ class ReleaseAdapter(object):
                 return result
         self.links = FakeLinks(self.release)
 
+        def stories(self):
+            return len(self.release.stories())
+
+
+class StoryAdapter(object):
+    implements(IDirectoryListItem)
+    adapts(IStory)
+
+    def __init__(self, story):
+        self.story = story
+
+    def __getattr__(self, attr):
+        return getattr(self.story, attr)
+
+    def stories(self):
+        return 1
+
 
 gsm.registerAdapter(ReleaseAdapter)
 gsm.registerAdapter(ProjectAdapter)
+gsm.registerAdapter(StoryAdapter)
