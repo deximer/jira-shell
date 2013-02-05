@@ -18,6 +18,7 @@ ISSUE_TYPES = {
     '71': 'Epic',
     '72': 'Story',
     '78': 'Production Bug',
+    '101': 'Feature',
     '156': 'Spike'
 }
 
