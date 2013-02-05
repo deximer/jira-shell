@@ -95,19 +95,25 @@ class Command(BaseCommand):
             if not team:
                 team = 'Everything Else'
             if not story.cycle_time:
-                cycle_time = 'None'
+                cycle_time = ''
             elif not story.resolved:
                 cycle_time = str(story.cycle_time) + '>'
             else:
                 cycle_time = str(story.cycle_time)
             if story.backflow:
                 cycle_time = '<' + cycle_time
+            else:
+                cycle_time = ' ' + cycle_time
+            rework = str(len(story.links.get_links('1')))
+            if rework == '0':
+                rework = ''
             print story.key[:10].ljust(10), \
                   team[:18].ljust(18), \
-                  str(story.points).ljust(5), \
+                  str(story.points).ljust(5) if story.points else ''.ljust(5), \
                   str(story.status).ljust(5), \
-                  cycle_time.ljust(5), str(story.type).ljust(5), \
-                  str(len(story.links.get_links('1'))).ljust(5), \
+                  cycle_time.ljust(5), \
+                  str(story.type).ljust(5), \
+                  rework.ljust(5), \
                   story.title[:20]
             if IStory.providedBy(story):
                 issues += 1
