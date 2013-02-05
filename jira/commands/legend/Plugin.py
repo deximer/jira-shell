@@ -14,6 +14,7 @@ STATUS_CODES = {
 
 ISSUE_TYPES = {
     '1' : 'Development Bug',
+    '65': 'Configuration',
     '71': 'Epic',
     '72': 'Story',
     '78': 'Production Bug',
