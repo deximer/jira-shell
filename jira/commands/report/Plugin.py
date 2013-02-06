@@ -54,18 +54,18 @@ class Command(BaseCommand):
         print '  Total Variance :', kanban.variance_cycle_time()
         print 'Bugs             :', len(release.bugs())
         print '  Production     :', len(release.stories(type=['78']))
-        print '    Avg Cycle Time :', kanban.average_cycle_time_life(
+        print '    Avg Cycle Time :', kanban.average_lead_time(
             type=['78'])
-        print '    m Cycle Time   :', kanban.median_cycle_time_life(
+        print '    m Cycle Time   :', kanban.median_lead_time(
             type=['78'])
-        print '    Std Cycle Time :', kanban.stdev_cycle_time_life(
+        print '    Std Cycle Time :', kanban.stdev_lead_time(
             type=['78'])
         print '  Development    :', len(release.stories(type=['1']))
-        print '    Avg Cycle Time :', kanban.average_cycle_time_life(
+        print '    Avg Cycle Time :', kanban.average_lead_time(
             type=['1'])
-        print '    m Cycle Time   :', kanban.median_cycle_time_life(
+        print '    m Cycle Time   :', kanban.median_lead_time(
             type=['1'])
-        print '    Std Cycle Time :', kanban.stdev_cycle_time_life(
+        print '    Std Cycle Time :', kanban.stdev_lead_time(
             type=['1'])
         print
         print 'WIP by Status:'
@@ -85,7 +85,7 @@ class Command(BaseCommand):
         if bugs:
             print 'Development Bug Cycle Time 85th Percentile:'
             for bug in bugs:
-                print '  ', bug.key, bug.cycle_time_life, bug.scrum_team
+                print '  ', bug.key, bug.lead_time, bug.scrum_team
             print
         stories = release.upper_percentiles(0.85, ['72'])
         stories = []

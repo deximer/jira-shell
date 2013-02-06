@@ -91,17 +91,10 @@ class History(Persistent):
         return None
 
     def _get_backflow(self):
-        fixed = []
-        transaction.begin()
-        for date, begin, end in self.data:
-            fixed.append((date, int(begin), int(end)))
-        self.data = fixed
-        transaction.commit()
-
         previous = None
         for date, begin, end in self.data:
             if previous:
-                if (date - previous).seconds < 600:
+                if (date - previous).seconds <= 300:
                     continue
             try:
                 if KANBAN.index(begin) > KANBAN.index(end):
@@ -144,7 +137,7 @@ class Story(Persistent):
         return rrule(DAILY, dtstart=self.started, until=resolved,
             byweekday=(MO, TU, WE, TH, FR)).count() - 1
 
-    def _get_cycle_time_life(self):
+    def _get_lead_time(self):
         if self.created and self.resolved:
             resolved = self.resolved
         elif self.created:
@@ -165,7 +158,7 @@ class Story(Persistent):
 
     cycle_time = property(_get_cycle_time)
     cycle_time_with_weekends = property(_get_cycle_time_with_weekends)
-    cycle_time_life = property(_get_cycle_time_life)
+    lead_time = property(_get_lead_time)
     started = property(_get_started)
     resolved = property(_get_resolved)
     backflow = property(_get_backflow)
@@ -207,7 +200,7 @@ class Kanban(object):
         for story in release.values():
             self.add(story)
 
-    def average_cycle_time_life(self, component=None, type=['72']):
+    def average_lead_time(self, component=None, type=['72']):
         stories = self.release.stories(type=type)
         if not stories:
             return None
@@ -239,7 +232,7 @@ class Kanban(object):
             return None
         return round(numpy.average(numpy.array(days)), 1)
 
-    def median_cycle_time_life(self, component=None, type=['72']):
+    def median_lead_time(self, component=None, type=['72']):
         stories = self.release.stories(type=type)
         if not stories:
             return None
@@ -271,7 +264,7 @@ class Kanban(object):
             return None
         return numpy.median(numpy.array(days))
 
-    def stdev_cycle_time_life(self, component=None, type=['72']):
+    def stdev_lead_time(self, component=None, type=['72']):
         ''' Uses ddof=1 to sync std calc with excel's
         '''
         stories = self.release.stories(type)
@@ -648,7 +641,7 @@ class Release(PersistentMapping):
         stories = self.stories(type)
         if not stories:
             []
-        stories.sort(key=lambda x:x.cycle_time if x.type != '1' else x.cycle_time_life)
+        stories.sort(key=lambda x:x.cycle_time if x.type !='1' else x.lead_time)
         index = int(round(percentile * len(stories) + 0.5))
         if index > 1:
             return [s for s in stories[index-1:]]

@@ -8,12 +8,12 @@ from ..model import Story, Release, Projects, Project, Kanban, History, Links
 from ..dao import Jira
 from  xml.etree import ElementTree as ET
 
-D20121201 = datetime.datetime(2012, 12, 1)
-D20121202 = datetime.datetime(2012, 12, 2)
-D20121203 = datetime.datetime(2012, 12, 3)
-D20121205 = datetime.datetime(2012, 12, 5)
-D20121208 = datetime.datetime(2012, 12, 8)
-D20121213 = datetime.datetime(2012, 12, 13)
+D20121201 = datetime.datetime(2012, 12, 1, 12, 0, 0)
+D20121202 = datetime.datetime(2012, 12, 2, 13, 0, 0)
+D20121203 = datetime.datetime(2012, 12, 3, 14, 0, 0)
+D20121205 = datetime.datetime(2012, 12, 5, 15, 0, 0)
+D20121208 = datetime.datetime(2012, 12, 8, 16, 0, 0)
+D20121213 = datetime.datetime(2012, 12, 13, 17, 0, 0)
 
 def make_story(key, points=1.0, status=3, scrum_team='foo', type='72',
         created=D20121201, started=D20121202, resolved=D20121203):
@@ -151,10 +151,31 @@ class StoryTest(unittest.TestCase):
 
     def testBackflow(self):
         story = make_story('NG-1')
+        story.history.data = []
         story.history.data.append((D20121201, 1, 3))
-        story.history.data.append((D20121202, 3, 10090))
-        story.history.data.append((D20121203, 10090, 3))
+        story.history.data.append((D20121203, 3, 1))
         self.assertTrue(story.backflow)
+
+    def testBackflowGracePeriod(self):
+        story = make_story('NG-1')
+        story.history.data = []
+        story.history.data.append(
+            (datetime.datetime(2012, 12, 1, 12, 30, 0), 1, 3))
+        story.history.data.append(
+            (datetime.datetime(2012, 12, 1, 12, 34, 59), 3, 1))
+        self.assertFalse(story.backflow) # 4 minutes 59 seconds
+        story.history.data = []
+        story.history.data.append(
+            (datetime.datetime(2012, 12, 1, 12, 30, 0), 1, 3))
+        story.history.data.append(
+            (datetime.datetime(2012, 12, 1, 12, 35, 0), 3, 1))
+        self.assertFalse(story.backflow) # 5 minutes
+        story.history.data = []
+        story.history.data.append(
+            (datetime.datetime(2012, 12, 1, 12, 30, 0), 1, 3))
+        story.history.data.append(
+            (datetime.datetime(2012, 12, 1, 12, 35, 1), 3, 1))
+        self.assertTrue(story.backflow) # 5 minutes 1 second
 
     def testCycleTimeWithWeekends(self):
         story = make_story('NG-1', started=D20121201, resolved=D20121205)
@@ -187,7 +208,7 @@ class StoryTest(unittest.TestCase):
     def testCycleTimeLife(self):
         story = make_story('NG-1', created=D20121201, started=None,
             resolved=D20121205)
-        self.assertEqual(story.cycle_time_life, 2)
+        self.assertEqual(story.lead_time, 2)
 
 
 class KanbanTest(unittest.TestCase):
@@ -231,7 +252,7 @@ class KanbanTest(unittest.TestCase):
         release.add(make_story('NG-3', created=D20121201, resolved=D20121208))
         release.add(make_story('NG-4', created=D20121201, resolved=D20121205))
         kanban = release.kanban()
-        self.assertEqual(kanban.average_cycle_time_life(), 4.0)
+        self.assertEqual(kanban.average_lead_time(), 4.0)
 
     def testAverageCycleTime(self):
         release = Release()
@@ -320,7 +341,7 @@ class KanbanTest(unittest.TestCase):
         release.add(make_story('NG-4', created=D20121203, resolved=D20121213))
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.stdev_cycle_time_life(), 3.7)
+        self.assertEqual(kanban.stdev_lead_time(), 3.7)
 
     def testStdevCycleTimeStrictBaked(self):
         release = Release()
