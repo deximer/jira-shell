@@ -20,6 +20,10 @@ class Command(BaseCommand):
         if not isinstance(container, Release):
             print 'Error: Must navigate to a release. (hint: help cd)'
             return
+        print 'Developer:'.ljust(25), '   Stories:'
         developers = container.developers()
-        for developer in developers:
-            print '%s: %d' % (developer, developers[developer])
+        for developer in sorted(developers.keys()):
+            if not developer:
+                continue
+            print developer.ljust(25), ' : ', developers[developer]
+        print 'Total:', str(len(developers))

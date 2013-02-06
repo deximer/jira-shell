@@ -21,5 +21,7 @@ class Command(BaseCommand):
             print 'Error: Must navigate to a release. (hint: help cd)'
             return
         teams = container.tasked_teams()
-        for team in teams:
-            print '%s: %d' % (team, teams[team])
+        print 'Team:'.ljust(25), '    Issues:'
+        for team in sorted(teams.keys()):
+            print team.ljust(25), ' : ', str(teams[team])
+        print 'Total:', str(len(teams))
