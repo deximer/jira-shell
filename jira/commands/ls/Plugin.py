@@ -99,8 +99,8 @@ class Command(BaseCommand):
                 story.scrum_team = 'Everything Else'
             if args.team:
                 if args.team[0] == '!':
-                        if story.scrum_team[:len(args.team[1:])]==args.team[1:]:
-                            continue
+                    if story.scrum_team[:len(args.team[1:])]==args.team[1:]:
+                        continue
                 else:
                     if story.scrum_team[:len(args.team)] != args.team:
                         continue
