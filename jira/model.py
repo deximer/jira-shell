@@ -141,12 +141,13 @@ class Story(Persistent):
 
     def _get_cycle_time_life(self):
         if self.created and self.resolved:
-            delta = self.resolved - self.created
-            return delta.days
-        elif self.created and not self.resolved:
-            delta = datetime.datetime.today() - self.created
-            return delta.days
-        return None
+            resolved = self.resolved
+        elif self.created:
+            resolved = datetime.datetime.today()
+        else:
+            return None
+        return rrule(DAILY, dtstart=self.created, until=resolved,
+            byweekday=(MO, TU, WE, TH, FR)).count() - 1
 
     def _get_started(self):
         return self.history.started

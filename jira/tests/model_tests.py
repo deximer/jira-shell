@@ -187,7 +187,7 @@ class StoryTest(unittest.TestCase):
     def testCycleTimeLife(self):
         story = make_story('NG-1', created=D20121201, started=None,
             resolved=D20121205)
-        self.assertEqual(story.cycle_time_life, 4)
+        self.assertEqual(story.cycle_time_life, 2)
 
 
 class KanbanTest(unittest.TestCase):
