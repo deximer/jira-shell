@@ -2,6 +2,7 @@ import numpy
 import transaction
 import time
 import datetime
+from dateutil.rrule import DAILY, MO, TU, WE, TH, FR, rrule
 from zope.interface import Interface, implements
 from persistent import Persistent
 from persistent.mapping import PersistentMapping
@@ -119,7 +120,7 @@ class Story(Persistent):
         self.links = Links()
         self.key = key
 
-    def _get_cycle_time(self):
+    def _get_cycle_time_with_weekends(self):
         if self.started and self.resolved:
             delta = self.resolved - self.started
             return delta.days
@@ -127,6 +128,16 @@ class Story(Persistent):
             delta = datetime.datetime.today() - self.started
             return delta.days
         return None
+
+    def _get_cycle_time(self):
+        if self.started and self.resolved:
+            resolved = self.resolved
+        elif self.started:
+            resolved = datetime.datetime.today()
+        else:
+            return None
+        return rrule(DAILY, dtstart=self.started, until=resolved,
+            byweekday=(MO, TU, WE, TH, FR)).count() - 1
 
     def _get_cycle_time_life(self):
         if self.created and self.resolved:
@@ -147,6 +158,7 @@ class Story(Persistent):
         return self.history.backflow
 
     cycle_time = property(_get_cycle_time)
+    cycle_time_with_weekends = property(_get_cycle_time_with_weekends)
     cycle_time_life = property(_get_cycle_time_life)
     started = property(_get_started)
     resolved = property(_get_resolved)

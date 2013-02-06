@@ -156,9 +156,29 @@ class StoryTest(unittest.TestCase):
         story.history.data.append((D20121203, 10090, 3))
         self.assertTrue(story.backflow)
 
+    def testCycleTimeWithWeekends(self):
+        story = make_story('NG-1', started=D20121201, resolved=D20121205)
+        self.assertEqual(story.cycle_time_with_weekends, 4)
+        story = make_story('NG-1', started=D20121202, resolved=D20121205)
+        self.assertEqual(story.cycle_time_with_weekends, 3)
+        story = make_story('NG-1', started=D20121203, resolved=D20121205)
+        self.assertEqual(story.cycle_time_with_weekends, 2)
+        story = make_story('NG-1', started=D20121201, resolved=D20121213)
+        self.assertEqual(story.cycle_time_with_weekends, 12)
+        story = make_story('NG-1', started=D20121205, resolved=D20121213)
+        self.assertEqual(story.cycle_time_with_weekends, 8)
+
     def testCycleTime(self):
         story = make_story('NG-1', started=D20121201, resolved=D20121205)
-        self.assertEqual(story.cycle_time, 4)
+        self.assertEqual(story.cycle_time, 2)
+        story = make_story('NG-1', started=D20121202, resolved=D20121205)
+        self.assertEqual(story.cycle_time, 2)
+        story = make_story('NG-1', started=D20121203, resolved=D20121205)
+        self.assertEqual(story.cycle_time, 2)
+        story = make_story('NG-1', started=D20121201, resolved=D20121213)
+        self.assertEqual(story.cycle_time, 8)
+        story = make_story('NG-1', started=D20121205, resolved=D20121213)
+        self.assertEqual(story.cycle_time, 6)
 
     def testCycleTimeNullDates(self):
         story = make_story('NG-1', started=None, resolved=None)
@@ -371,8 +391,8 @@ class KanbanTest(unittest.TestCase):
             points=3.0))
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.average_cycle_time_for_estimate('3.0'), 9.0)
-        self.assertEqual(kanban.average_cycle_time_for_estimate('2.0'), 4.0)
+        self.assertEqual(kanban.average_cycle_time_for_estimate('3.0'), 7.0)
+        self.assertEqual(kanban.average_cycle_time_for_estimate('2.0'), 2.0)
         self.assertEqual(kanban.average_cycle_time_for_estimate('1.0'), 2.0)
 
     def testStdevCycleTimeForEstimate(self):
@@ -420,9 +440,9 @@ class KanbanTest(unittest.TestCase):
         release.add(make_story('NG-4', started=D20121203, resolved=D20121213,
             points=3.0))
         kanban = release.kanban()
-        self.assertEqual(kanban.contingency_average('NG-1'), 2.0)
-        self.assertEqual(kanban.contingency_inside('NG-1'), -2.0)
-        self.assertEqual(kanban.contingency_outside('NG-1'), 8.3)
+        self.assertEqual(kanban.contingency_average('NG-1'), 2.5)
+        self.assertEqual(kanban.contingency_inside('NG-1'), 0.0)
+        self.assertEqual(kanban.contingency_outside('NG-1'), 8.8)
         self.assertEqual(kanban.contingency_inside('NG-2'), 0.0)
 
     def testContingencyNoCycleTimes(self):

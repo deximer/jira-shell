@@ -197,6 +197,6 @@ Feature: list issues in a release
         | NG-3 | Baz 3 | 1    | 13/9/2  | 13/9/2   |
         And I am in the directory "/1.0"
         When I enter the command "ls"
-        Then I see "  2  " in the output
-        And I see "  10  " in the output
+        Then I see "  1  " in the output
+        And I see "  6  " in the output
         And I see "3           1" in the output
