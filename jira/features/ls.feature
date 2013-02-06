@@ -254,3 +254,4 @@ Feature: list issues in a release
         And I see "<6" in the output
         And I do not see "NG-1" in the output
         And I do not see "NG-3" in the output
+

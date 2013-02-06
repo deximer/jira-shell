@@ -98,13 +98,18 @@ class History(Persistent):
         self.data = fixed
         transaction.commit()
 
+        previous = None
         for date, begin, end in self.data:
+            if previous:
+                if (date - previous).seconds < 600:
+                    continue
             try:
                 if KANBAN.index(begin) > KANBAN.index(end):
                     return True
             except ValueError:
                 pass # Likely a state not in the KANBAN maybe from another
                      # project, e.g. MTQA
+            previous = date
         return False
 
 
