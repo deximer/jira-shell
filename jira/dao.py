@@ -205,12 +205,13 @@ class Jira(object):
                 release[story.key] = story
                 project[version] = release
         self.commit()
-        #for link in data['fields']['issuelinks']:
-        #    skip = False
-        #    if link.has_key('outwardIssue'):
-        #        linked = self.get_story(link['outwardIssue']['key'])
-        #        story.links.data.append(linked)
-        #self.commit()
+        for link in data['fields']['issuelinks']:
+            if link.has_key('outwardIssue'):
+                linked = self.get_story(link['outwardIssue']['key'])
+                story.links.data.append(linked)
+            #if link.has_key('inwardIssue'):
+            #    linked = self.get_story(link['inwardIssue']['key'])
+        self.commit()
         return story
 
     def commit(self):

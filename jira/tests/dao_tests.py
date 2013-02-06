@@ -176,6 +176,12 @@ class JiraTest(unittest.TestCase):
         self.assertEqual(story.assignee['displayName'], 'Abdul Habra')
         self.assertEqual(story.key, 'NG-13332')
 
+    def testMakeStoryLinks(self):
+        json_data = open('jira/tests/data/NG-10795.json').read()
+        json_obj = self.jira.json_to_object(json_data)
+        story = self.jira.make_story('NG-10795', json_obj)
+        self.assertEqual(len(story.links.data), 3)
+
     def testJsonToObject(self):
         obj = self.jira.json_to_object('{"foo": ["bar", "baz"]}')
         self.assertEqual(obj['foo'][0], 'bar')

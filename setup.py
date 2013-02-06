@@ -32,6 +32,7 @@ Command line tools for Jira.""",
           'matplotlib',
           'zope.component',
           'ZODB3',
+          'repoze.catalog',
       ],
       entry_points="""
       # -*- Entry points: -*-
