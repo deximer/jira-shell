@@ -23,5 +23,5 @@ class Command(BaseCommand):
         teams = container.tasked_teams()
         print 'Team:'.ljust(25), '    Issues:'
         for team in sorted(teams.keys()):
-            print team.ljust(25), ' : ', str(teams[team])
+            print team.ljust(25), ': ', str(teams[team])
         print 'Total:', str(len(teams))

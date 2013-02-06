@@ -23,6 +23,13 @@ def step(context):
     for row in context.table:
         context.release.add(make_story(row))
 
+@given('Issue "{issue_key}" has this transition history')
+def step(context, issue_key):
+    context.release = dao.Jira.cache.data.root()['1.0']
+    issue = context.release[issue_key]
+    for row in context.table:
+        add_history(issue, row['date'], row['from'], row['to'])
+
 @given('I have the json file "{some_file}" in the import directory')
 def step(context, some_file):
     pass
@@ -115,3 +122,8 @@ def make_story(row):
     else:
         story.fix_versions = []
     return story
+
+def add_history(issue, date, start, end):
+    date = date.split('/')
+    issue.history.data.append((
+        datetime(2000+int(date[0]), int(date[1]), int(date[2])), start, end))

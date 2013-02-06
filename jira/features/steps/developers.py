@@ -7,5 +7,6 @@ import dao
 def step(context):
     output = context.stdout_capture.getvalue()
     for row in context.table:
-        line = '%s: %s' % (row['dev'], row['stories'])
+        line = '%s' % row['dev']
+        line = line.ljust(25) + ' :  %s' % row['stories']
         assert line in output

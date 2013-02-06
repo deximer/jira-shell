@@ -25,5 +25,5 @@ class Command(BaseCommand):
         for developer in sorted(developers.keys()):
             if not developer:
                 continue
-            print developer.ljust(25), ' : ', developers[developer]
+            print developer.ljust(25), ': ', developers[developer]
         print 'Total:', str(len(developers))
