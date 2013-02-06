@@ -19,7 +19,7 @@ class Command(BaseCommand):
     -b : Show issues with backflow
     '''
     examples = '''    ls
-    ls App 
+    ls Appif 
     ls !Appif 
     ls Core -d joe bill -t 78 1
     ls Math -s !6 -t 72'''
