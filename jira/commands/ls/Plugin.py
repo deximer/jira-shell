@@ -27,6 +27,7 @@ class Command(BaseCommand):
         parser.add_argument('-s', nargs='*', required=False)
         parser.add_argument('-t', nargs='*', required=False)
         parser.add_argument('-p', nargs='*', required=False)
+        parser.add_argument('-d', nargs='*', required=False)
         parser.add_argument('-b', action='store_true', required=False)
         parser.add_argument('team', nargs='?')
         try:
@@ -80,6 +81,16 @@ class Command(BaseCommand):
                 continue
             if args.p and story.points not in query_points:
                 continue
+            if args.d:
+                if not story.developer:
+                    continue
+                skip = False
+                for dev in args.d:
+                    if story.developer[:len(dev)] not in args.d:
+                         skip = True
+                         break
+                if skip:
+                    continue
             if args.b and not story.backflow:
                 continue
             if not story.scrum_team:

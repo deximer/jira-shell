@@ -186,6 +186,40 @@ Feature: list issues in a release
         | NG-3 | Baz 3 |
         And I do not see "NG-2" in the output
 
+    Scenario: A user lists issues for a specific developer
+        Given I have the following release
+        | key |
+        | 1.0 |
+        And I have the following issues in the release
+        | key  | title | type | dev |
+        | NG-1 | Foo 1 | 72   | joe |
+        | NG-2 | Bar 2 | 78   | ann |
+        | NG-3 | Baz 3 | 1    | nic |
+        | NG-4 | Baz 4 | 72   | ann |
+        And I am in the directory "/1.0"
+        When I enter the command "ls -d an"
+        Then I see "NG-2" in the output
+        And I see "NG-4" in the output
+        And I do not see "NG-1" in the output
+        And I do not see "NG-3" in the output
+
+    Scenario: A user lists issues for several developers
+        Given I have the following release
+        | key |
+        | 1.0 |
+        And I have the following issues in the release
+        | key  | title | type | dev |
+        | NG-1 | Foo 1 | 72   | joe |
+        | NG-2 | Bar 2 | 78   | ann |
+        | NG-3 | Baz 3 | 1    | nic |
+        | NG-4 | Baz 4 | 72   | ann |
+        And I am in the directory "/1.0"
+        When I enter the command "ls -d ann nic"
+        Then I see "NG-2" in the output
+        And I see "NG-4" in the output
+        And I see "NG-3" in the output
+        And I do not see "NG-1" in the output
+
     Scenario: A user views the cycle times for listed issues
         Given I have the following release
         | key |
