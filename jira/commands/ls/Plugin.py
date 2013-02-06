@@ -16,7 +16,7 @@ class Command(BaseCommand):
     -t : Show only issues of the specified type ("!" for exclusion)
     -d : Show issues for only the specified developers
     -p : Show issues with the specified point estimates
-    -b : Show issues with backflow
+    -b : Show issues with backflow (5 minute grace period)
     '''
     examples = '''    ls
     ls Appif 
