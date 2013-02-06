@@ -245,13 +245,14 @@ Feature: list issues in a release
         | NG-2 | Bar 2 | 78   | 13/9/7  | 13/9/17  |
         | NG-3 | Baz 3 | 1    | 13/9/2  | 13/9/2   |
         And Issue "NG-2" has this transition history
-        | date   | from  | to    |
-        | 13/9/1 | 1     | 10089 |
-        | 13/9/2 | 10089 | 1     |
+        | date   | from | to |
+        | 13/9/1 | 1    | 3  |
+        | 13/9/5 | 3    | 1  |
+        | 13/9/9 | 1    | 6  |
         And I am in the directory "/1.0"
         When I enter the command "ls -b"
         Then I see "NG-2" in the output
-        And I see "<6" in the output
+        And I see "<5" in the output
         And I do not see "NG-1" in the output
         And I do not see "NG-3" in the output
 

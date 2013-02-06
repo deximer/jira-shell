@@ -94,7 +94,7 @@ class History(Persistent):
         previous = None
         for date, begin, end in self.data:
             if previous:
-                if (date - previous).seconds <= 300:
+                if (date - previous).total_seconds() <= 300:
                     continue
             try:
                 if KANBAN.index(begin) > KANBAN.index(end):
@@ -134,8 +134,11 @@ class Story(Persistent):
             resolved = datetime.datetime.today()
         else:
             return None
-        return rrule(DAILY, dtstart=self.started, until=resolved,
+        cycle_time = rrule(DAILY, dtstart=self.started, until=resolved,
             byweekday=(MO, TU, WE, TH, FR)).count() - 1
+        if cycle_time < 0:
+            return 0
+        return cycle_time
 
     def _get_lead_time(self):
         if self.created and self.resolved:

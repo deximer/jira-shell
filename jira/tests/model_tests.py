@@ -98,18 +98,20 @@ class HistoryTest(unittest.TestCase):
         self.assertEqual(self.history.resolved, resolved)
 
     def testBackflowTrue(self):
+        self.history.data = []
         self.history.data.append((D20121201, 1, 3))
-        self.history.data.append((D20121202, 3, 10090))
-        self.history.data.append((D20121203, 10090, 3))
+        self.history.data.append((D20121203, 3, 1))
         self.assertTrue(self.history.backflow)
 
     def testBackflowFalse(self):
+        self.history.data = []
         self.history.data.append((D20121201, 1, 3))
         self.history.data.append((D20121202, 3, 10090))
         self.history.data.append((D20121203, 10090, 6))
         self.assertFalse(self.history.backflow)
 
     def testBackflowOneTransition(self):
+        self.history.data = []
         self.history.data.append((D20121201, 1, 3))
         self.assertFalse(self.history.backflow)
 
@@ -200,6 +202,8 @@ class StoryTest(unittest.TestCase):
         self.assertEqual(story.cycle_time, 8)
         story = make_story('NG-1', started=D20121205, resolved=D20121213)
         self.assertEqual(story.cycle_time, 6)
+        story = make_story('NG-1', started=D20121201, resolved=D20121202)
+        self.assertEqual(story.cycle_time, 0)
 
     def testCycleTimeNullDates(self):
         story = make_story('NG-1', started=None, resolved=None)

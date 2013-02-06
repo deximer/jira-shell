@@ -27,6 +27,7 @@ def step(context):
 def step(context, issue_key):
     context.release = dao.Jira.cache.data.root()['1.0']
     issue = context.release[issue_key]
+    issue.history.data = []
     for row in context.table:
         add_history(issue, row['date'], row['from'], row['to'])
 
@@ -126,4 +127,5 @@ def make_story(row):
 def add_history(issue, date, start, end):
     date = date.split('/')
     issue.history.data.append((
-        datetime(2000+int(date[0]), int(date[1]), int(date[2])), start, end))
+        datetime(2000+int(date[0]), int(date[1]), int(date[2]), 12, 30, 0),
+            int(start), int(end)))
