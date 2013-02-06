@@ -188,8 +188,8 @@ class ReleaseAdapter(object):
                 return result
         self.links = FakeLinks(self.release)
 
-        def stories(self):
-            return len(self.release.stories())
+    def stories(self):
+        return len(self.release.stories())
 
 
 class StoryAdapter(object):
