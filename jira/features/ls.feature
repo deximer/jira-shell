@@ -217,6 +217,6 @@ Feature: list issues in a release
         And I am in the directory "/1.0"
         When I enter the command "ls -b"
         Then I see "NG-2" in the output
-        Then I see "<6" in the output
+        And I see "<6" in the output
         And I do not see "NG-1" in the output
         And I do not see "NG-3" in the output
