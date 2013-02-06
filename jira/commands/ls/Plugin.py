@@ -11,15 +11,17 @@ gsm = getGlobalSiteManager()
 
 class Command(BaseCommand):
     help = 'List issues in a release.'
-    usage = 'ls [[!]team] [-s status [status...]] [-t issue_type [issue_type...]] [-p [point]]'
+    usage = 'ls [[!]team] [-s status [...]] [-t issue_type [...]] [-p point] [-d dev [...]]'
     options_help = '''    -s : Show only issues with the specified status ("!" for exclusion)
     -t : Show only issues of the specified type ("!" for exclusion)
+    -d : Show issues for only the specified developers
     -p : Show issues with the specified point estimates
     -b : Show issues with backflow
     '''
     examples = '''    ls
     ls App 
-    ls !App 
+    ls !Appif 
+    ls Core -d joe bill -t 78 1
     ls Math -s !6 -t 72'''
 
     def run(self, jira, args):
