@@ -4,12 +4,19 @@ import datetime
 import time
 import copy
 import transaction
+from xml.etree import ElementTree as ET
 from ZODB.DB import DB
 from ZODB.FileStorage import FileStorage
 from persistent.list import PersistentList
 from persistent.mapping import PersistentMapping
-from xml.etree import ElementTree as ET
+
+from repoze.catalog.catalog import ConnectionManager, Catalog
+from repoze.catalog.indexes.field import CatalogFieldIndex
+from repoze.catalog.indexes.path import CatalogPathIndex
+from repoze.catalog.document import DocumentMap
+
 from BeautifulSoup import BeautifulSoup as BS
+
 from model import Projects, Project, Release, Story, History, Links
 
 MT_USER = 'mindtap.user'
@@ -20,15 +27,32 @@ JIRA_API = 'http://%s:%s@jira.cengage.com/rest/api/2/issue/%s'
 fs = FileStorage('db/cache.fs')
 db = DB(fs)
 connection = db.open()
+if 'jira' not in connection.root():
+    connection.root()['jira'] = PersistentMapping()
+root = connection.root()['jira']
+
+def get_key(obj, default=None):
+    return getattr(obj, 'key', default)
+
+if not 'catalog' in connection.root():
+    transaction.begin()
+    catalog = Catalog()
+    connection.root()['catalog'] = catalog
+    catalog['key'] = CatalogFieldIndex(get_key)
+    connection.root()['document_map'] = DocumentMap()
+    transaction.commit()
+
 
 class LocalDB(object):
     def __init__(self, connection):
-        self.data = connection
+        self.data = root
+        self.catalog = connection.root()['catalog']
+        self.document_map = connection.root()['document_map']
         self.cwd = ['/']
 
     def keys(self, obj=None, results=[]):
         if obj is None:
-            obj = self.data.root()
+            obj = self.data
         for key in obj:
             if not key in results:
                 results.append(key)
@@ -38,7 +62,7 @@ class LocalDB(object):
 
     def get(self, key, context=None):
         if context is None:
-            context = self.data.root()
+            context = self.data
         result = None
         for k in context:
             if k == key:
@@ -51,7 +75,7 @@ class LocalDB(object):
 
     def cwd_contents(self):
         if self.cwd[-1] == '/':
-            return tuple(sorted([key for key in self.data.root()]))
+            return tuple(sorted([key for key in self.data]))
         contents = []
         obj = self.get_by_path(self.cwd)
         for key in obj:
@@ -65,7 +89,7 @@ class LocalDB(object):
             if not path[0]:
                 path[0] = '/'
         if path[0] == '/':
-            obj = self.data.root()
+            obj = self.data
             del path[0]
         else:
             obj = self.get_by_path(self.cwd)
@@ -126,9 +150,9 @@ class Jira(object):
     def get_release(self, version=None):
         if not version:
             version = self.cwd[-1]
-        for key in self.cache.data.root().keys():
+        for key in self.cache.data.keys():
             if key == version:
-                return self.cache.data.root()[key]
+                return self.cache.data[key]
         return None
 
     def refresh_cache(self, releases=['2.7']):
@@ -165,6 +189,7 @@ class Jira(object):
 
     def make_story(self, key, data):
         story = Story(key)
+        story.id = int(data['id'])
         story.history = History(data['changelog'])
         story.url = data['self']
         story.title = data['fields']['summary']
@@ -192,10 +217,10 @@ class Jira(object):
             story.points = int(story.points)
         story.status = int(data['fields']['status']['id'])
         story.project = data['fields']['project']['key']
-        if not story.project in self.cache.data.root():
-            self.cache.data.root()[story.project] = Project(story.project,
+        if not story.project in self.cache.data:
+            self.cache.data[story.project] = Project(story.project,
                 data['fields']['project']['name'])
-        project = self.cache.data.root()[story.project]
+        project = self.cache.data[story.project]
         for version in story.fix_versions:
             if version in project.keys():
                 project[version][story.key] = story
@@ -204,6 +229,9 @@ class Jira(object):
                 release.version = version
                 release[story.key] = story
                 project[version] = release
+        id = self.cache.document_map.add('/jira/%s/%s' % (story.project,
+            story.fix_versions[0]))
+        self.cache.catalog.index_doc(id, story)
         self.commit()
         for link in data['fields']['issuelinks']:
             if link.has_key('outwardIssue'):
@@ -211,7 +239,7 @@ class Jira(object):
                 story.links.data.append(linked)
             #if link.has_key('inwardIssue'):
             #    linked = self.get_story(link['inwardIssue']['key'])
-        self.commit()
+        #self.commit()
         return story
 
     def commit(self):

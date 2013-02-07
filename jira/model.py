@@ -4,6 +4,7 @@ import time
 import datetime
 from dateutil.rrule import DAILY, MO, TU, WE, TH, FR, rrule
 from zope.interface import Interface, implements
+from repoze.folder import Folder
 from persistent import Persistent
 from persistent.mapping import PersistentMapping
 from persistent.list import PersistentList
@@ -43,7 +44,7 @@ KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_REOPENED, STATUS_IN_PROGRESS,
     STATUS_COMPLETED, STATUS_QA_READY, STATUS_QA_ACTIVE, STATUS_VERIFIED,
     STATUS_CLOSED]
 
-class Links(Persistent):
+class Links(Folder):
     def __init__(self):
         self.data = PersistentList()
 
@@ -55,8 +56,9 @@ class Links(Persistent):
         return results
 
 
-class History(Persistent):
+class History(Folder):
     def __init__(self, obj=None):
+        super(History, self).__init__()
         self.data = []
         if not obj:
             return
@@ -110,7 +112,7 @@ class History(Persistent):
     resolved = property(_get_resolved)
     backflow = property(_get_backflow)
 
-class Story(Persistent):
+class Story(Folder):
     implements(IStory)
 
     def __init__(self, key=None):
@@ -429,14 +431,14 @@ class Kanban(object):
         return round(outside, 1)
 
 
-class Release(PersistentMapping):
+class Release(Folder):
     implements(IRelease)
 
     WIP = {'In Progress': 3, 'Complete': 10090, 'QA Active': 10092,
            'Ready for QA': 10104, 'Ready for PO': 10036}
 
     def __init__(self, version=None):
-        PersistentMapping.__init__(self)
+        super(Release, self).__init__()
         self.version = version
 
     def __key(self):
@@ -448,12 +450,17 @@ class Release(PersistentMapping):
     def __hash__(self):
         return hash(self.__key())
 
+    def has_key(self, key):
+        if key in self.keys():
+            return True
+        return False
+
     def process_raw_key(self, key):
         if key.isdigit():
             key = 'NG-%s' % key
         return key.strip()
 
-    def add(self, story):
+    def add_story(self, story):
         self[story.key] = story
 
     def get(self, key):
@@ -651,11 +658,11 @@ class Release(PersistentMapping):
         return []
 
 
-class Project(PersistentMapping):
+class Project(Folder):
     implements(IProject)
 
     def __init__(self, key=None, name=None, owner=None):
-        PersistentMapping.__init__(self)
+        super(Project, self).__init__()
         self.name = name
         self.key = key
         self.owner = owner
