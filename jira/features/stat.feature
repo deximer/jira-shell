@@ -4,7 +4,10 @@ Feature: List critial information about a specific issue
          I want a command to list critical data for a specific issue
 
     Scenario: A user lists critical data for a specific issue
-        Given I have the following issues in the release
+        Given I have the following release
+        | key |
+        | 1.0 |
+        And I have the following issues in the release
         | key  | title | status | type | dev |
         | NG-1 | Foo1  | 1      | 1    | joe |
         | NG-2 | Bar2  | 2      | 72   | ann |

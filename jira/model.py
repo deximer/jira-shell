@@ -44,6 +44,13 @@ KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_REOPENED, STATUS_IN_PROGRESS,
     STATUS_COMPLETED, STATUS_QA_READY, STATUS_QA_ACTIVE, STATUS_VERIFIED,
     STATUS_CLOSED]
 
+class Link(Folder):
+    def __init__(self, story, type):
+        super(Link, self).__init__()
+        self.target = story
+        self.type = type
+
+
 class Links(Folder):
     def __init__(self):
         self.data = PersistentList()
@@ -311,9 +318,22 @@ class Kanban(object):
                 continue
             if not story.started or not story.resolved:
                 continue
-            delta = story.resolved - story.started
-            cycle_times.append(delta.days)
+            cycle_times.append(story.cycle_time)
         return round(numpy.var(cycle_times), 1)
+
+    def squared_cycle_times(self, component=None):
+        if not self.release.stories():
+            return None
+        cycle_times = []
+        average_cycle_time = self.average_cycle_time()
+        for story in self.release.stories():
+            if component and component not in story.components:
+                continue
+            if not story.started or not story.resolved:
+                continue
+            cycle_times.append(story.cycle_time - average_cycle_time)
+        return round(sum([c*c for c in cycle_times]), 4)
+
 
     def cycle_time_per_point(self, component=None):
         ''' Note that this method does not just add up the cycle times

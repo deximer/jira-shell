@@ -265,10 +265,12 @@ class Jira(object):
                 linked = self.get_story(link['outwardIssue']['key'])
                 if linked:
                     story.links.data.append(linked)
+                    linked.links.data.append(story)
             if link.has_key('inwardIssue'):
                 linked = self.get_story(link['inwardIssue']['key'])
                 if linked:
                     story.links.data.append(linked)
+                    linked.links.data.append(story)
         transaction.commit()
         return story
 

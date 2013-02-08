@@ -4,7 +4,8 @@ import datetime
 import json
 from ZODB.FileStorage import FileStorage
 from ZODB.DB import DB
-from ..model import Story, Release, Projects, Project, Kanban, History, Links
+from ..model import Story, Release, Projects, Project, Kanban, History, Links, \
+    Link
 from ..dao import Jira
 from  xml.etree import ElementTree as ET
 
@@ -30,6 +31,21 @@ def make_story(key, points=1.0, status=3, scrum_team='foo', type='72',
 
 
 class LinkTests(unittest.TestCase):
+    def setUp(self):
+        self.story = Story('NG-1')
+        self.link = Link(self.story, 'Cloners')
+
+    def tearDown(self):
+        del self.link
+
+    def testObjectCreation(self):
+        self.assertTrue(self.link is not None)
+
+    def testCreateLink(self):
+        self.assertEqual(self.link.target, self.story)
+        self.assertEqual(self.link.type, 'Cloners')
+
+class LinksTests(unittest.TestCase):
     def setUp(self):
         self.obj = Jira().json_to_object(
             open('jira/tests/data/NG-12425.json').read())[
@@ -333,6 +349,17 @@ class KanbanTest(unittest.TestCase):
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.variance_cycle_time(), 10.0)
+
+    def testSquaredCycleTimes(self):
+        release = Release()
+        release.add_story(make_story('NG-1', started=D20121201, resolved=D20121205))
+        release.add_story(make_story('NG-2', started=D20121203, resolved=D20121205))
+        release.add_story(make_story('NG-3', started=D20121205, resolved=D20121213))
+        release.add_story(make_story('NG-4', started=D20121203, resolved=D20121213))
+        kanban = Kanban()
+        kanban.add_release(release)
+        self.assertEqual(kanban.squared_cycle_times(), 36.0)
+
 
     def testStdevCycleTimeLife(self):
         xml = open('jira/tests/data/rss.xml').read()

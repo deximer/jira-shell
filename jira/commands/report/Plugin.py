@@ -18,7 +18,7 @@ class Command(BaseCommand):
             args = parser.parse_args(args)
         except:
             return
-        self.release = copy.deepcopy(jira.cache.get_by_path(jira.cache.cwd))
+        self.release = jira.cache.get_by_path(jira.cache.cwd)
         if not isinstance(self.release, Release):
             print 'Error: Must navigate to a release. (hint: help cd)'
             return

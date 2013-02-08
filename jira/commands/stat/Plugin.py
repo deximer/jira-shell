@@ -41,6 +41,11 @@ class Command(BaseCommand):
         print 'Started:', story.started
         print 'Resolved:', story.resolved
         print 'Cycle Time:', story.cycle_time
+        spread = story.cycle_time-story.__parent__.kanban().average_cycle_time()
+        variance = spread * spread
+        percent_variance = variance / \
+            story.__parent__.kanban().squared_cycle_times()
+        print '% Variance:', '%' + str(round(percent_variance, 4) * 100)
         print 'Fix Versions:', ', '.join(story.fix_versions)
         print 'Contingency:'
         print '    Inside:', kanban.contingency_inside(story.key)
@@ -57,6 +62,6 @@ class Command(BaseCommand):
                 print '    %s, %s -> %s %s' % (t[0], t[1], t[2], backflow)
         if story.links.data:
             print
-            print 'Outward Links:'
+            print 'Links:'
             for link in story.links.data:
                 print '    %s %s %s' % (link.key, link.type, link.title[:60])
