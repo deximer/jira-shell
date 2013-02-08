@@ -46,26 +46,26 @@ class Command(BaseCommand):
                 if s.scrum_team and s.scrum_team[:len(args.team)] == args.team]
             self.release = Release()
             for story in stories:
-                self.release.add(story)
+                self.release.add_story(story)
         if args.d:
             stories = [s for s in self.release.stories()
                 if s.developer and s.developer[:len(args.d[0])] == args.d[0]]
             self.release = Release()
             for story in stories:
-                self.release.add(story)
+                self.release.add_story(story)
         if args.p:
             stories = [s for s in self.release.stories()
                 if s.points and s.points == float(args.p[0])]
             self.release = Release()
             for story in stories:
-                self.release.add(story)
+                self.release.add_story(story)
         if args.c:
             cycle_time = int(args.c[0])
             stories = [s for s in self.release.stories()
                 if s.cycle_time < cycle_time]
             self.release = Release()
             for story in stories:
-                self.release.add(story)
+                self.release.add_story(story)
         if args.k:
             hide_keys = []
             show_keys = []
@@ -79,13 +79,13 @@ class Command(BaseCommand):
                     and s.key in show_keys]
                 self.release = Release()
                 for story in stories:
-                    self.release.add(story)
+                    self.release.add_story(story)
             if hide_keys:
                 stories = [s for s in self.release.stories() if s.points
                     and s.key not in hide_keys]
                 self.release = Release()
                 for story in stories:
-                    self.release.add(story)
+                    self.release.add_story(story)
         if not self.release.stories():
             print 'No data to report'
             return

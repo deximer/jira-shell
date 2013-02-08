@@ -461,7 +461,9 @@ class Release(Folder):
         return key.strip()
 
     def add_story(self, story):
-        self[story.key] = story
+        if story.key in self.keys():
+            del self[story.key]
+        self.add(story.key, story)
 
     def get(self, key):
         key = self.process_raw_key(key)

@@ -24,31 +24,48 @@ MT_PASS = 'm1ndtap'
 
 JIRA_API = 'http://%s:%s@jira.cengage.com/rest/api/2/issue/%s'
 
-fs = FileStorage('db/cache.fs')
-db = DB(fs)
-connection = db.open()
-if 'jira' not in connection.root():
-    connection.root()['jira'] = PersistentMapping()
-root = connection.root()['jira']
-
 def get_key(obj, default=None):
     return getattr(obj, 'key', default)
 
-if not 'catalog' in connection.root():
-    transaction.begin()
-    catalog = Catalog()
-    connection.root()['catalog'] = catalog
-    catalog['key'] = CatalogFieldIndex(get_key)
-    connection.root()['document_map'] = DocumentMap()
-    transaction.commit()
-
 
 class LocalDB(object):
-    def __init__(self, connection):
-        self.data = root
-        self.catalog = connection.root()['catalog']
-        self.document_map = connection.root()['document_map']
+    cache_file = 'db/cache.fs'
+    fs = None
+    db = None
+    connection = None
+    root = None
+    data = None
+
+    def __init__(self):
+        self.init_db()
+        self.catalog = self.connection.root()['catalog']
+        self.document_map = self.connection.root()['document_map']
+        self.data = self.connection.root()['jira']
         self.cwd = ['/']
+
+    def init_db(self):
+        self.fs = FileStorage(self.cache_file)
+        self.db = DB(self.fs)
+        self.connection = self.db.open()
+        transaction.begin()
+        if 'jira' not in self.connection.root():
+            self.connection.root()['jira'] = PersistentMapping()
+        self.root = self.connection.root()['jira']
+        if not 'catalog' in self.connection.root():
+            catalog = Catalog()
+            self.connection.root()['catalog'] = catalog
+            catalog['key'] = CatalogFieldIndex(get_key)
+            self.connection.root()['document_map'] = DocumentMap()
+        transaction.commit()
+
+    def close_db(self):
+        transaction.abort()
+        self.catalog = None
+        self.document_map = None
+        self.data = None
+        self.connection.close()
+        self.db.close()
+        self.fs.close()
 
     def keys(self, obj=None, results=[]):
         if obj is None:
@@ -61,17 +78,14 @@ class LocalDB(object):
         return results
 
     def get(self, key, context=None):
-        if context is None:
-            context = self.data
-        result = None
-        for k in context:
-            if k == key:
-                return context[k]
-            if isinstance(context[k], Release):
-                result = self.get(key, context[k])
-                if result:
-                    break
-        return result
+        results = self.catalog.search(key=key)
+        stories = []
+        for id in results[1].keys():
+            path = self.document_map.address_for_docid(id)
+            if path:
+                path[0] = '/'
+                stories.append(self.get_by_path(path))
+        return stories
 
     def cwd_contents(self):
         if self.cwd[-1] == '/':
@@ -99,7 +113,7 @@ class LocalDB(object):
 
 
 class Jira(object):
-    cache = LocalDB(connection)
+    cache = LocalDB()
 
     def __init__(self, server=None, auth=None):
         self.server = server
@@ -179,7 +193,7 @@ class Jira(object):
     def get_story(self, key, refresh=False):
         story = self.cache.get(key)
         if story and not refresh:
-            return story
+            return story[0]
         try:
             data = self.call_rest(key, expand=['changelog'])
         except ValueError:
@@ -188,6 +202,9 @@ class Jira(object):
         return self.make_story(key, data)
 
     def make_story(self, key, data):
+        if not data['fields']['fixVersions']:
+            return None
+        transaction.begin()
         story = Story(key)
         story.id = int(data['id'])
         story.history = History(data['changelog'])
@@ -223,23 +240,30 @@ class Jira(object):
         project = self.cache.data[story.project]
         for version in story.fix_versions:
             if version in project.keys():
-                project[version][story.key] = story
+                if not project[version].has_key(story.key):
+                    project[version][story.key] = story
             else:
                 release = Release()
                 release.version = version
                 release[story.key] = story
                 project[version] = release
-        id = self.cache.document_map.add('/jira/%s/%s' % (story.project,
-            story.fix_versions[0]))
-        self.cache.catalog.index_doc(id, story)
-        self.commit()
+        transaction.commit()
+        transaction.begin()
+        docid = self.cache.document_map.add(
+            ['jira', story.project, story.fix_versions[0], story.key])
+        self.cache.catalog.index_doc(docid, story)
+        transaction.commit()
+        transaction.begin()
         for link in data['fields']['issuelinks']:
             if link.has_key('outwardIssue'):
                 linked = self.get_story(link['outwardIssue']['key'])
-                story.links.data.append(linked)
-            #if link.has_key('inwardIssue'):
-            #    linked = self.get_story(link['inwardIssue']['key'])
-        #self.commit()
+                if linked:
+                    story.links.data.append(linked)
+            if link.has_key('inwardIssue'):
+                linked = self.get_story(link['inwardIssue']['key'])
+                if linked:
+                    story.links.data.append(linked)
+        transaction.commit()
         return story
 
     def commit(self):

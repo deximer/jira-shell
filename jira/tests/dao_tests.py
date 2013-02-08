@@ -4,19 +4,16 @@ import transaction
 import datetime
 from ZODB.FileStorage import FileStorage
 from ZODB.DB import DB
-from ..dao import Jira, LocalDB, connection
+from ..dao import Jira, LocalDB
 from ..model import Release, Story
 
 class DBTest(unittest.TestCase):
     def setUp(self):
-        self.db = LocalDB(connection)
+        LocalDB.cache_file = 'db/test_cache.fs'
+        self.db = LocalDB()
 
     def tearDown(self):
-        transaction.abort()
-        for key in self.db.data.keys():
-            transaction.begin()
-            del self.db.data[key]
-            transaction.commit()
+        self.db.close_db()
         del self.db
 
     def testObjectCreation(self):

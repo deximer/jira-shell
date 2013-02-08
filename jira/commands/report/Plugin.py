@@ -27,13 +27,13 @@ class Command(BaseCommand):
                 if s.scrum_team and s.scrum_team[:len(args.team)] == args.team]
             self.release = Release()
             for story in stories:
-                self.release.add(story)
+                self.release.add_story(story)
         if args.d:
             stories = [s for s in self.release.values()
                 if s.developer and s.developer[:len(args.d[0])] == args.d[0]]
             self.release = Release()
             for story in stories:
-                self.release.add(story)
+                self.release.add_story(story)
         if not self.release.keys():
             print 'No data to report'
             return
