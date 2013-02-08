@@ -17,12 +17,16 @@ class Command(BaseCommand):
         parser = argparse.ArgumentParser()
         parser.add_argument('key')
         args = parser.parse_args(args)
-        self.release = jira.cache.get_by_path(jira.cache.cwd)
-        if not isinstance(self.release, Release):
-            print 'Error: Must navigate to a release. (hint: help cd)'
+        story = jira.cache.get(args.key)
+        if not story:
+            print 'Error: story key %s not found' % args.key
             return
+        story = story[0]
+        if not isinstance(story.__parent__, Release):
+            print 'Error: story is not part of a release'
+            return
+        self.release = story.__parent__
         kanban = self.release.kanban()
-        story = self.release.get(args.key)
         if not story:
             print 'No story matching key: %s' % args.key
             return

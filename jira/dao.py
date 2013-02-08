@@ -78,6 +78,7 @@ class LocalDB(object):
         return results
 
     def get(self, key, context=None):
+        key = self.process_raw_key(key)
         results = self.catalog.search(key=key)
         stories = []
         for id in results[1].keys():
@@ -86,6 +87,11 @@ class LocalDB(object):
                 path[0] = '/'
                 stories.append(self.get_by_path(path))
         return stories
+
+    def process_raw_key(self, key):
+        if key.isdigit():
+            key = 'NG-%s' % key
+        return key.strip()
 
     def cwd_contents(self):
         if self.cwd[-1] == '/':
