@@ -26,7 +26,7 @@ Feature: Report data required by the ExecReport.xls
         And I see "  Avg Cycle Time : 13.3" in the output
         And I see "  Std Cycle Time : 7.0" in the output
         And I see "  m Cycle Time   : 14.0" in the output
-        And I see "  Total Variance : 32.9" in the output
+        And I see "  Total Variance : 16.7" in the output
         And I see "Bugs             : 3" in the output
         And I see "  Production     : 1" in the output
         And I see "    Avg Cycle Time : 15.0" in the output

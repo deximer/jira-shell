@@ -88,9 +88,12 @@ class History(Folder):
         return results
 
     def _get_started(self):
-        dates = self.get_transition(3)
-        if dates:
-            return dates[0]
+        start_dates = self.get_transition(3)
+        open_dates = self.get_transition(1)
+        if start_dates:
+            if open_dates and (open_dates[-1] - start_dates[-1]).days > 0:
+                return None
+            return start_dates[-1]
         return None
 
     def _get_resolved(self):
