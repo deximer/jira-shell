@@ -513,11 +513,11 @@ class Release(Folder):
     def stories(self, type=['72']):
         return [story for story in self.values() if story.type in type]
 
-    def started_stories(self):
-        return [story for story in self.stories() if story.started]
+    def started_stories(self, type=['72']):
+        return [story for story in self.stories(type) if story.started]
 
-    def resolved_stories(self):
-        return [story for story in self.stories() if story.resolved]
+    def resolved_stories(self, type=['72']):
+        return [story for story in self.stories(type) if story.resolved]
 
     def bugs(self):
         return [story for story in self.stories([BUG_TYPE,PRODUCTION_BUG_TYPE])]

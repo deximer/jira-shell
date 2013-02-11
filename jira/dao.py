@@ -272,6 +272,7 @@ class Jira(object):
                     story.links.data.append(linked)
                     linked.links.data.append(story)
         transaction.commit()
+        print story.key
         return story
 
     def commit(self):

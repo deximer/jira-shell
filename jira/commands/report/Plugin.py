@@ -54,6 +54,7 @@ class Command(BaseCommand):
         print '  Total Variance :', kanban.variance_cycle_time()
         print 'Bugs             :', len(release.bugs())
         print '  Production     :', len(release.stories(type=['78']))
+        print '    Open           :', len(release.resolved_stories(['78']))
         print '    Avg Cycle Time :', kanban.average_lead_time(
             type=['78'])
         print '    m Cycle Time   :', kanban.median_lead_time(
@@ -61,6 +62,7 @@ class Command(BaseCommand):
         print '    Std Cycle Time :', kanban.stdev_lead_time(
             type=['78'])
         print '  Development    :', len(release.stories(type=['1']))
+        print '    Open           :', len(release.resolved_stories(['1']))
         print '    Avg Cycle Time :', kanban.average_lead_time(
             type=['1'])
         print '    m Cycle Time   :', kanban.median_lead_time(
