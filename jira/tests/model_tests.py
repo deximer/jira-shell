@@ -71,6 +71,9 @@ class LinksTests(unittest.TestCase):
     def testGetLinks(self):
         self.assertEqual(self.links.get_links(1)[0].key, 'NG-13471')
 
+    def testHasLink(self):
+        self.assertEqual(self.links.has_link('NG-13471'), True)
+
 class HistoryTest(unittest.TestCase):
     def setUp(self):
         self.obj = Jira().json_to_object(
@@ -348,7 +351,7 @@ class KanbanTest(unittest.TestCase):
         release.add_story(make_story('NG-4', started=D20121203, resolved=D20121213))
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.variance_cycle_time(), 10.0)
+        self.assertEqual(kanban.variance_cycle_time(), 6.8)
 
     def testSquaredCycleTimes(self):
         release = Release()

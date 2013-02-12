@@ -55,6 +55,12 @@ class Links(Folder):
     def __init__(self):
         self.data = PersistentList()
 
+    def has_link(self, key):
+        for link in self.data:
+            if link.key == key:
+                return True
+        return False
+
     def get_links(self, link_type):
         results = []
         for link in self.data:

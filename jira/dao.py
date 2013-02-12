@@ -262,17 +262,18 @@ class Jira(object):
         transaction.begin()
         for link in data['fields']['issuelinks']:
             if link.has_key('outwardIssue'):
-                linked = self.get_story(link['outwardIssue']['key'])
-                if linked:
-                    story.links.data.append(linked)
-                    linked.links.data.append(story)
+                if not story.links.has_link(link['outwardIssue']['key']):
+                    linked = self.get_story(link['outwardIssue']['key'])
+                    if linked:
+                        story.links.data.append(linked)
+                        linked.links.data.append(story)
             if link.has_key('inwardIssue'):
-                linked = self.get_story(link['inwardIssue']['key'])
-                if linked:
-                    story.links.data.append(linked)
-                    linked.links.data.append(story)
+                if not story.links.has_link(link['inwardIssue']['key']):
+                    linked = self.get_story(link['inwardIssue']['key'])
+                    if linked:
+                        story.links.data.append(linked)
+                        linked.links.data.append(story)
         transaction.commit()
-        print story.key
         return story
 
     def commit(self):
