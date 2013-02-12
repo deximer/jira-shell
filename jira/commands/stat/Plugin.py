@@ -41,11 +41,16 @@ class Command(BaseCommand):
         print 'Started:', story.started
         print 'Resolved:', story.resolved
         print 'Cycle Time:', story.cycle_time
-        spread = story.cycle_time-story.__parent__.kanban().average_cycle_time()
-        variance = spread * spread
-        percent_variance = variance / \
-            story.__parent__.kanban().squared_cycle_times()
-        print '% Variance:', '%' + str(round(percent_variance, 4) * 100)
+        avg_ct = story.__parent__.kanban().average_cycle_time()
+        ct = story.cycle_time
+        if ct and avg_ct:
+            spread = ct - avg_ct
+            variance = spread * spread
+            percent_variance = variance / \
+                story.__parent__.kanban().squared_cycle_times()
+            print '% Variance:', '%' + str(round(percent_variance, 4) * 100)
+        else:
+            print '% Variance:', 'nan'
         print 'Fix Versions:', ', '.join(story.fix_versions)
         print 'Contingency:'
         print '    Inside:', kanban.contingency_inside(story.key)
