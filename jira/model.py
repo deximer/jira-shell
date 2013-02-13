@@ -433,7 +433,7 @@ class Kanban(object):
         if not average:
             return None
         if story.cycle_time:
-            return average - story.cycle_time
+            return round(average - story.cycle_time, 1)
         return round(average, 1)
 
     def contingency_inside(self, key):
