@@ -105,7 +105,6 @@ def main():
     p.add_option('--command', '-c', action='store_true', dest='command')
     p.add_option('--shell', '-s', action='store_true', dest='shell')
     options, arguments = p.parse_args()
-    #request_projects()
     if options.command:
         commands = arguments[0].split(';')
         for command in commands:
