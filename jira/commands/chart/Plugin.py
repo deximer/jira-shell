@@ -11,13 +11,14 @@ from model import Release
 class Command(BaseCommand):
     help = 'Render various charts based on the data'
     usage = 'chart [team] [-t chart_type] [-d developer] [-s sort_by]' \
-        ' [-p point] [-c cycle_time]'
+        ' [-p point] [-c cycle_time] [-x file_name.ext]'
     options_help = '''    -c : specify cycle time outlier limit
     -d : chart for developer
     -k : chart using or surpressing specific issue keys
     -p : chart for estimate value 
     -s : sorting criteria
     -t : specify chart type (default is cycle times)
+    -x : export graph to a file (valid extensions are pdf, png, or jpg)
     '''
     examples = '''    chart
     chart App
@@ -33,6 +34,7 @@ class Command(BaseCommand):
         parser.add_argument('-s', nargs='*', required=False)
         parser.add_argument('-k', nargs='*', required=False)
         parser.add_argument('-c', nargs='*', required=False)
+        parser.add_argument('-x', nargs='*', required=False)
         try:
             args = parser.parse_args(args)
         except:
@@ -221,4 +223,7 @@ class Command(BaseCommand):
             textcoords = 'offset points', ha='right', va='bottom', fontsize=7,
             bbox = dict(boxstyle = 'round,pad=0.3', fc='yellow', alpha=0.5),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
-        pyplot.show()
+        if args.x:
+            pyplot.savefig(args.x[0], bbox=0)
+        else:
+            pyplot.show()

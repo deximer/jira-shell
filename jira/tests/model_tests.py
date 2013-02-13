@@ -57,7 +57,8 @@ class LinksTests(unittest.TestCase):
                     type=int(link['inwardIssue']['fields']['issuetype']['id'])))
             if link.has_key('outwardIssue'):
                 self.links.data.append(make_story(link['outwardIssue']['key'],
-                    type=int(link['outwardIssue']['fields']['issuetype']['id'])))
+                    type=int(link[
+                        'outwardIssue']['fields']['issuetype']['id'])))
 
     def testObjectCreation(self):
         self.assertTrue(self.obj is not None)

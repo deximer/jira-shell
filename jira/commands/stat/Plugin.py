@@ -31,10 +31,11 @@ class Command(BaseCommand):
             print 'No story matching key: %s' % args.key
             return
         print 'ID:', story.key
+        print 'Release:', ', '.join(story.fix_versions)
+        print 'Type:', story.type
         print 'Title:', story.title
         print 'Team:', story.scrum_team
         print 'Developer:', story.developer
-        print 'Type:', story.type
         print 'Points:', story.points
         print 'Status:', story.status
         print 'Created:', story.created
@@ -70,8 +71,11 @@ class Command(BaseCommand):
                     days = str(t[3]).ljust(3)
                 print '    %s, [%s], %s -> %s %s' % (t[0], days, t[1], t[2],
                     backflow)
-        if story.links.data:
-            print
-            print 'Links:'
-            for link in story.links.data:
-                print '    %s %s %s' % (link.key, link.type, link.title[:60])
+        print
+        for direction in ['out', 'in']:
+            print 'Links %s:' % direction
+            for links in story.links[direction]:
+                print '  %s:' % links
+                for link in story.links[direction][links].values():
+                    print '    %s %s %s' % (link.key, link.type,
+                        link.title[:60])

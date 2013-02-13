@@ -54,7 +54,8 @@ class Link(Folder):
 class Links(Folder):
     def __init__(self):
         super(Links, self).__init__()
-        self.data = PersistentList()
+        self['out'] = PersistentMapping()
+        self['in'] = PersistentMapping()
 
     def has_link(self, key):
         for link in self.data:
@@ -62,11 +63,16 @@ class Links(Folder):
                 return True
         return False
 
-    def get_links(self, link_type):
+    def get_links(self, link_type=None):
         results = []
-        for link in self.data:
-            if link.type == link_type:
-                results.append(link)
+        for direction in ['in', 'out']:
+            for links in self[direction]:
+                for issue in self[direction][links].values():
+                    if not issue: # remove this!
+                        continue
+                    if link_type and issue.type != link_type:
+                        continue
+                    results.append(issue)
         return results
 
 

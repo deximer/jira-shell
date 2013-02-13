@@ -259,21 +259,41 @@ class Jira(object):
             ['jira', story.project, story.fix_versions[0], story.key])
         self.cache.catalog.index_doc(docid, story)
         transaction.commit()
-        #transaction.begin()
-        #for link in data['fields']['issuelinks']:
-        #    if link.has_key('outwardIssue'):
-        #        if not story.links.has_link(link['outwardIssue']['key']):
-        #            linked = self.get_story(link['outwardIssue']['key'])
-        #            if linked:
-        #                story.links.data.append(linked)
-        #                linked.links.data.append(story)
-        #    if link.has_key('inwardIssue'):
-        #        if not story.links.has_link(link['inwardIssue']['key']):
-        #            linked = self.get_story(link['inwardIssue']['key'])
-        #            if linked:
-        #                story.links.data.append(linked)
-        #                linked.links.data.append(story)
-        #transaction.commit()
+        transaction.begin()
+        for link in data['fields']['issuelinks']:
+            if link.has_key('outwardIssue'):
+                type = link['type']['name']
+                key = link['outwardIssue']['key']
+                if not type in story.links['out'].keys():
+                    story.links['out'][type] = PersistentMapping()
+                    transaction.commit()
+                    s = self.get_story(key)
+                    if not s:
+                        continue
+                    story.links['out'][type][key] = s
+                else:
+                    if not key in story.links['out'][type].keys():
+                        s = self.get_story(key)
+                        if not s:
+                            continue
+                        story.links['out'][type][key] = s
+            elif link.has_key('inwardIssue'):
+                type = link['type']['name']
+                key = link['inwardIssue']['key']
+                if not type in story.links['in'].keys():
+                    story.links['in'][type] = PersistentMapping()
+                    transaction.commit()
+                    s = self.get_story(key)
+                    if not s:
+                        continue
+                    story.links['in'][type][key] = s
+                else:
+                    if not key in story.links['in'][type].keys():
+                        s = self.get_story(key)
+                        if not s:
+                            continue
+                        story.links['in'][type][key] = s
+        transaction.commit()
         return story
 
     def commit(self):
