@@ -277,6 +277,16 @@ class KanbanTest(unittest.TestCase):
         kanban = release.kanban()
         self.assertEqual(kanban.average_lead_time(), 4.0)
 
+    def testCycleTimesInStatus(self):
+        release = Release()
+        release.add_story(make_story('NG-1', started=D20121201, resolved=D20121202))
+        release.add_story(make_story('NG-2', started=D20121201, resolved=D20121205))
+        release.add_story(make_story('NG-3', started=D20121201, resolved=D20121208))
+        release.add_story(make_story('NG-4', started=D20121201, resolved=D20121205))
+        kanban = release.kanban()
+        print kanban.cycle_times_in_status()
+        self.assertEqual(kanban.cycle_times_in_status()[3], 16)
+
     def testAverageCycleTime(self):
         release = Release()
         release.add_story(make_story('NG-1', started=D20121201, resolved=D20121202))
