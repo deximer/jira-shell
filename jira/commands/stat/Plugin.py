@@ -59,7 +59,7 @@ class Command(BaseCommand):
         if story.history.data:
             print
             print 'Transition Log:'
-            for t in story.history.data:
+            for t in story.history.all:
                 backflow = ''
                 if t[1] in KANBAN and t[2] in KANBAN:
                     if KANBAN.index(t[1]) > KANBAN.index(t[2]):

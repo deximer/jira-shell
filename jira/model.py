@@ -77,19 +77,15 @@ class History(Folder):
         if not obj:
             return
         self.start_at = obj['startAt']
-        previous_date = days = None
         for transaction in obj['histories']:
             for transition in transaction['items']:
                 if transition['field'] == 'status':
                     created = datetime.datetime.fromtimestamp(time.mktime(
                         time.strptime(transaction['created'][:23],
                         '%Y-%m-%dT%H:%M:%S.%f')))
-                    if previous_date:
-                        days = (created - previous_date).days
                     self.data.append((created,
                                       int(transition['from']),
-                                      int(transition['to']),
-                                      days))
+                                      int(transition['to'])))
                     previous_date = created
 
     def get_transition(self, state):
@@ -116,7 +112,7 @@ class History(Folder):
 
     def _get_backflow(self):
         previous = None
-        for date, begin, end, days in self.data:
+        for date, begin, end, days in self.all:
             if previous:
                 if (date - previous).total_seconds() <= 300:
                     continue
@@ -129,10 +125,21 @@ class History(Folder):
             previous = date
         return False
 
+    def _all(self):
+        results = []
+        previous_date = None
+        days = None
+        for transition in self.data:
+            if previous_date:
+                days = (transition[0] - previous_date).days
+            results.append((transition[0], transition[1], transition[2], days))
+            previous_date = transition[0]
+        return results
 
     started = property(_get_started)
     resolved = property(_get_resolved)
     backflow = property(_get_backflow)
+    all = property(_all)
 
 class Story(Folder):
     implements(IStory)
