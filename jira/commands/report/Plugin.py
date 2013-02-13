@@ -100,6 +100,8 @@ class Command(BaseCommand):
         total = 0
         cycle_times = []
         for status in cycle_times_in_status.keys():
+            if status in [1, 10089]:
+                continue
             total += cycle_times_in_status[status]
             cycle_times.append((str(status), cycle_times_in_status[status]))
         cycle_times.sort(key=lambda x:x[1], reverse=True)
