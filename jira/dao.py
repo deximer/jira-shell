@@ -259,21 +259,21 @@ class Jira(object):
             ['jira', story.project, story.fix_versions[0], story.key])
         self.cache.catalog.index_doc(docid, story)
         transaction.commit()
-        transaction.begin()
-        for link in data['fields']['issuelinks']:
-            if link.has_key('outwardIssue'):
-                if not story.links.has_link(link['outwardIssue']['key']):
-                    linked = self.get_story(link['outwardIssue']['key'])
-                    if linked:
-                        story.links.data.append(linked)
-                        linked.links.data.append(story)
-            if link.has_key('inwardIssue'):
-                if not story.links.has_link(link['inwardIssue']['key']):
-                    linked = self.get_story(link['inwardIssue']['key'])
-                    if linked:
-                        story.links.data.append(linked)
-                        linked.links.data.append(story)
-        transaction.commit()
+        #transaction.begin()
+        #for link in data['fields']['issuelinks']:
+        #    if link.has_key('outwardIssue'):
+        #        if not story.links.has_link(link['outwardIssue']['key']):
+        #            linked = self.get_story(link['outwardIssue']['key'])
+        #            if linked:
+        #                story.links.data.append(linked)
+        #                linked.links.data.append(story)
+        #    if link.has_key('inwardIssue'):
+        #        if not story.links.has_link(link['inwardIssue']['key']):
+        #            linked = self.get_story(link['inwardIssue']['key'])
+        #            if linked:
+        #                story.links.data.append(linked)
+        #                linked.links.data.append(story)
+        #transaction.commit()
         return story
 
     def commit(self):

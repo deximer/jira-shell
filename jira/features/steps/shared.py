@@ -20,6 +20,14 @@ def step(context):
 @given('I have the following issues in the release')
 def step(context):
     context.release = dao.Jira.cache.data['1.0']
+    def mock_get(self, key):
+        if key.isdigit():
+            key = 'NG-%s' % key
+        key = key.strip()
+        if context.release.has_key(key):
+            return [context.release[key]]
+        return None
+    dao.LocalDB.get = mock_get
     for row in context.table:
         context.release.add_story(make_story(row))
 
