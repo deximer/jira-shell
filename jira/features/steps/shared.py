@@ -39,6 +39,12 @@ def step(context, issue_key):
     for row in context.table:
         add_history(issue, row['date'], row['from'], row['to'])
 
+@given('Issue "{issue_key}" has the following links')
+def step(context, issue_key):
+    issue = context.release[issue_key]
+    for row in context.table:
+        add_link(issue, context.release[row['key']])
+
 @given('I have the json file "{some_file}" in the import directory')
 def step(context, some_file):
     pass
@@ -135,3 +141,6 @@ def add_history(issue, date, start, end):
     issue.history.data.append((
         datetime(2000+int(date[0]), int(date[1]), int(date[2]), 12, 30, 0),
             int(start), int(end)))
+
+def add_link(parent, child):
+    parent.links.data.append(child)
