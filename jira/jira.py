@@ -107,7 +107,10 @@ def main():
     options, arguments = p.parse_args()
     #request_projects()
     if options.command:
-        dispatch(' '.join(arguments))
+        commands = arguments[0].split(';')
+        for command in commands:
+            arguments = command.split()
+            dispatch(' '.join(arguments))
     elif options.shell:
         command = ''
         print 'Jira Shell 0.1'
