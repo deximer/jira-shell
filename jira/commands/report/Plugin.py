@@ -98,9 +98,13 @@ class Command(BaseCommand):
         print 'Total Cycle Times by Status:'
         cycle_times_in_status = kanban.cycle_times_in_status()
         total = 0
+        cycle_times = []
         for status in cycle_times_in_status.keys():
             total += cycle_times_in_status[status]
-            print str(status).ljust(5), ':', cycle_times_in_status[status]
+            cycle_times.append((str(status), cycle_times_in_status[status]))
+        cycle_times.sort(key=lambda x:x[1], reverse=True)
+        for cycle_time in cycle_times:
+            print cycle_time[0].ljust(5), ':', cycle_time[1]
         print 'Total :', total
             
 
