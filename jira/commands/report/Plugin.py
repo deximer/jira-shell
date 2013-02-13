@@ -95,11 +95,13 @@ class Command(BaseCommand):
             print 'Story Cycle Time 85th Percentile:'
             for story in stories:
                 print '  ', story.key, story.cycle_time, story.scrum_team
-        print
         print 'Total Cycle Times by Status:'
         cycle_times_in_status = kanban.cycle_times_in_status()
+        total = 0
         for status in cycle_times_in_status.keys():
+            total += cycle_times_in_status[status]
             print str(status).ljust(5), ':', cycle_times_in_status[status]
+        print 'Total :', total
             
 
 
