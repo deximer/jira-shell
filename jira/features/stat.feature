@@ -54,6 +54,36 @@ Feature: List critial information about a specific issue
         | MTQA-1 | Baz3  | 9999   | 78   |
         And I see "Developer: nic" in the output
 
+    Scenario: A user views the transition log for a specific issue
+        Given I have the following issues in the release
+        | key    | title | status | type | dev |
+        | NG-1   | Foo1  | 1      | 1    | joe |
+        | NG-2   | Bar2  | 2      | 72   | ann |
+        | MTQA-1 | Baz3  | 9999   | 78   | nic |
+        And Issue "NG-2" has this transition history
+        | date   | from | to |
+        | 13/9/1 | 1    | 3  |
+        | 13/9/8 | 3    | 6  |
+        When I enter the command "stat NG-2"
+        Then I see "2013-09-01 12:30:00, [   ], 1 -> 3" in the output
+        And I see "2013-09-08 12:30:00, [7  ], 3 -> 6" in the output
+
+    Scenario: A user views the transition log for an issue with backflow
+        Given I have the following issues in the release
+        | key    | title | status | type | dev |
+        | NG-1   | Foo1  | 1      | 1    | joe |
+        | NG-2   | Bar2  | 2      | 72   | ann |
+        | MTQA-1 | Baz3  | 9999   | 78   | nic |
+        And Issue "NG-2" has this transition history
+        | date   | from  | to    |
+        | 13/9/1 | 1     | 10089 |
+        | 13/9/2 | 10089 | 3     |
+        | 13/9/3 | 3     | 10089 |
+        | 13/9/4 | 10089 | 3     |
+        | 13/9/5 | 3     | 6     |
+        When I enter the command "stat NG-2"
+        Then I see "2013-09-03 12:30:00, [1  ], 3 -> 10089  <- backflow" in the output
+
     Scenario: A user does not supply an issue id
         Given The user is at the command line
         When I enter the command "stat"

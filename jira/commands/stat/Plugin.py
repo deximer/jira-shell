@@ -43,11 +43,11 @@ class Command(BaseCommand):
         print 'Cycle Time:', story.cycle_time
         avg_ct = story.__parent__.kanban().average_cycle_time()
         ct = story.cycle_time
-        if ct and avg_ct:
+        sq_ct = story.__parent__.kanban().squared_cycle_times()
+        if ct and avg_ct and sq_ct:
             spread = ct - avg_ct
             variance = spread * spread
-            percent_variance = variance / \
-                story.__parent__.kanban().squared_cycle_times()
+            percent_variance = variance / sq_ct
             print '% Variance:', '%' + str(round(percent_variance, 4) * 100)
         else:
             print '% Variance:', 'nan'
@@ -64,7 +64,12 @@ class Command(BaseCommand):
                 if t[1] in KANBAN and t[2] in KANBAN:
                     if KANBAN.index(t[1]) > KANBAN.index(t[2]):
                         backflow = ' <- backflow'
-                print '    %s, %s -> %s %s' % (t[0], t[1], t[2], backflow)
+                if not t[3]:
+                    days = ''.ljust(3)
+                else:
+                    days = str(t[3]).ljust(3)
+                print '    %s, [%s], %s -> %s %s' % (t[0], days, t[1], t[2],
+                    backflow)
         if story.links.data:
             print
             print 'Links:'

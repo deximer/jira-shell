@@ -114,14 +114,15 @@ def make_story(row):
     story.history = model.History()
     if 'started' in row.headings and row['started']:
         date = row['started'].split('/')
-        story.history.data.append((
-            datetime(2000+int(date[0]), int(date[1]), int(date[2])), 1, 3))
+        start_date = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
+        story.history.data.append((start_date, 1, 3, None))
     if 'resolved' in row.headings and row['resolved']:
         if not row['resolved']:
             return
         date = row['resolved'].split('/')
+        resolved_date = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
         story.history.data.append((
-            datetime(2000+int(date[0]), int(date[1]), int(date[2])), 3, 6))
+            resolved_date, 3, 6, (resolved_date - start_date).days))
     if 'status' in row.headings:
         story.status = int(row['status'])
     else:
@@ -138,9 +139,11 @@ def make_story(row):
 
 def add_history(issue, date, start, end):
     date = date.split('/')
-    issue.history.data.append((
-        datetime(2000+int(date[0]), int(date[1]), int(date[2]), 12, 30, 0),
-            int(start), int(end)))
+    date = datetime(2000+int(date[0]), int(date[1]), int(date[2]), 12, 30, 0)
+    days = None
+    if issue.history.data:
+        days = (date - issue.history.data[-1][0]).days
+    issue.history.data.append((date, int(start), int(end), days))
 
 def add_link(parent, child):
     parent.links.data.append(child)
