@@ -84,8 +84,11 @@ def help(jira, command):
         return
     if command == 'commands':
         print 'Available commands:'
+        print
         for command in cmds.keys():
-            print command
+            print command.ljust(10), ':', cmds[command].help
+        print
+        print 'For help on a specific command type: help <command>'
         return
     print cmds[command].help
     print
