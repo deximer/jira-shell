@@ -22,18 +22,18 @@ class Command(BaseCommand):
             print 'Error: story key %s not found' % args.key
             return
         story = story[0]
-        print story.key
-        if story.links.data:
-            for link in story.links.data:
-                print '|-> %s' % link.key
+        print story.key, story.type
+        if story.links.all:
+            for link in story.links.all:
+                print '|-> %s' % link.key, link.type
                 self.recurse_links(link, [link.key])
 
     def recurse_links(self, issue, indent):
-        for link in issue.links.data:
+        for link in issue.links.all:
             if link.key in indent:
                 continue
-            print ''.ljust(len(indent)), '|-> %s' % link.key
-            if link.links.data:
+            print ''.ljust(len(indent)), '|-> %s' % link.key, link.type
+            if link.links.all:
                 indent.append(link.key)
                 self.recurse_links(link, indent)
                 del indent[0]

@@ -8,6 +8,7 @@ from ..model import Story, Release, Projects, Project, Kanban, History, Links, \
     Link
 from ..dao import Jira
 from  xml.etree import ElementTree as ET
+from persistent.mapping import PersistentMapping
 
 D20121201 = datetime.datetime(2012, 12, 1, 12, 0, 0)
 D20121202 = datetime.datetime(2012, 12, 2, 13, 0, 0)
@@ -51,29 +52,33 @@ class LinksTests(unittest.TestCase):
             open('jira/tests/data/NG-12425.json').read())[
             'fields']['issuelinks']
         self.links = Links()
+        self.links['out']['Related'] = PersistentMapping()
+        self.links['in']['Related'] = PersistentMapping()
         for link in self.obj:
             if link.has_key('inwardIssue'):
-                self.links.data.append(make_story(link['inwardIssue']['key'],
-                    type=int(link['inwardIssue']['fields']['issuetype']['id'])))
+                self.links['in']['Related'][link['inwardIssue']['key']] = \
+                    make_story(link['inwardIssue']['key'], type=int(
+                    link['inwardIssue']['fields']['issuetype']['id']))
             if link.has_key('outwardIssue'):
-                self.links.data.append(make_story(link['outwardIssue']['key'],
-                    type=int(link[
-                        'outwardIssue']['fields']['issuetype']['id'])))
+                self.links['out']['Related'][link['outwardIssue']['key']] = \
+                    make_story(link['outwardIssue']['key'], type=int(
+                    link['outwardIssue']['fields']['issuetype']['id']))
 
     def testObjectCreation(self):
         self.assertTrue(self.obj is not None)
 
     def testCorrectNumberOfIssues(self):
-        self.assertEqual(len(self.links.data), 4)
+        self.assertEqual(len(self.links.all), 4)
 
     def testCorrectIssueId(self):
-        self.assertEqual(self.links.data[0].key, 'NG-13471')
+        self.assertEqual(self.links['in']['Related']['NG-13471'].key,'NG-13471')
 
     def testGetLinks(self):
         self.assertEqual(self.links.get_links(1)[0].key, 'NG-13471')
 
     def testHasLink(self):
         self.assertEqual(self.links.has_link('NG-13471'), True)
+
 
 class HistoryTest(unittest.TestCase):
     def setUp(self):

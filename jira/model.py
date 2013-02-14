@@ -58,22 +58,27 @@ class Links(Folder):
         self['in'] = PersistentMapping()
 
     def has_link(self, key):
-        for link in self.data:
+        for link in self.all:
             if link.key == key:
                 return True
         return False
 
     def get_links(self, link_type=None):
         results = []
-        for direction in ['in', 'out']:
+        for direction in ['out', 'in']:
             for links in self[direction]:
                 for issue in self[direction][links].values():
-                    if not issue: # remove this!
+                    if not issue:
                         continue
                     if link_type and issue.type != link_type:
                         continue
                     results.append(issue)
         return results
+
+    def _all(self):
+        return self.get_links()
+
+    all = property(_all)
 
 
 class History(Folder):

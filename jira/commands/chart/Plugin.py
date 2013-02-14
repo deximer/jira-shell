@@ -223,7 +223,4 @@ class Command(BaseCommand):
             textcoords = 'offset points', ha='right', va='bottom', fontsize=7,
             bbox = dict(boxstyle = 'round,pad=0.3', fc='yellow', alpha=0.5),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
-        if args.x:
-            pyplot.savefig(args.x[0], bbox=0)
-        else:
-            pyplot.show()
+        pyplot.show(block=False)

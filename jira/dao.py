@@ -175,12 +175,15 @@ class Jira(object):
                 return self.cache.data[key]
         return None
 
-    def refresh_cache(self, releases=['2.7']):
+    def refresh_cache(self, releases=['2.7'], links=True):
         keys = self.get_release_keys(releases)
+        factor = 120.0
+        if links:
+            factor = 12.0
         print 'Refreshing %d keys. About %d minutes' % (len(keys),
-            round(len(keys)/120, 1))
+            round(len(keys)/factor, 1))
         for key in keys:
-            self.get_story(key, True)
+            self.get_story(key, True, links=links)
 
     def get_release_keys(self, releases):
         if len(releases) > 1:
@@ -196,7 +199,7 @@ class Jira(object):
                 '&startAt=0&maxResults=10000&fields=key')['issues'])
         return [i['key'] for i in issues]
 
-    def get_story(self, key, refresh=False):
+    def get_story(self, key, refresh=False, links=True):
         story = self.cache.get(key)
         if story and not refresh:
             return story[0]
@@ -205,9 +208,9 @@ class Jira(object):
         except ValueError:
             print 'Error: Jira down for maintenance'
             return None
-        return self.make_story(key, data)
+        return self.make_story(key, data, links=links)
 
-    def make_story(self, key, data):
+    def make_story(self, key, data, links=True):
         if not data['fields']['fixVersions']:
             return None
         transaction.begin()
@@ -259,6 +262,8 @@ class Jira(object):
             ['jira', story.project, story.fix_versions[0], story.key])
         self.cache.catalog.index_doc(docid, story)
         transaction.commit()
+        if not links:
+            return story
         transaction.begin()
         for link in data['fields']['issuelinks']:
             if link.has_key('outwardIssue'):
