@@ -4,10 +4,12 @@ from ..base import BaseCommand
 from model import Release, KANBAN
 
 class Command(BaseCommand):
-    help = 'Render issue link graphs'
-    usage = 'links <issue_id>'
+    help = "Render an issue's link graphs"
+    usage = 'links <issue_id> [-t <issue_type [...]>]'
+    options_help = '''    -t : Show only issues of the specified type
+    '''
     examples = '''    links 12345
-    links NG-12345
+    links NG-12345 -t 1 78
     '''
 
     def run(self, jira, args):
@@ -16,6 +18,7 @@ class Command(BaseCommand):
             return
         parser = argparse.ArgumentParser()
         parser.add_argument('key')
+        parser.add_argument('-t', nargs='*', required=False)
         args = parser.parse_args(args)
         story = jira.cache.get(args.key)
         if not story:
@@ -25,12 +28,14 @@ class Command(BaseCommand):
         print story.key, story.type, story.status
         if story.links.all:
             for link in story.links.all:
+                if args.t and link.type not in args.t:
+                    continue
                 print '\-> %s' % link.key, link.type, link.status
-                self.recurse_links(link, [link.key])
+                self.recurse_links(link, [link.key], args.t)
 
-    def recurse_links(self, issue, indent):
+    def recurse_links(self, issue, indent, types=[]):
         for link in issue.links.all:
-            if link.key in indent:
+            if link.key in indent or (types and link.type not in types):
                 continue
             print ''.ljust(len(indent)), '\-> %s' % link.key, link.type, \
                 link.status

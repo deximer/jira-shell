@@ -144,6 +144,6 @@ def add_history(issue, date, start, end):
     issue.history.data.append((date, int(start), int(end)))
 
 def add_link(parent, child):
-    if 'Releated' not in parent.links['out']:
+    if 'Related' not in parent.links['out']:
         parent.links['out']['Related'] = PersistentMapping()
     parent.links['out']['Related'][child.key] = child
