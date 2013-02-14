@@ -6,7 +6,7 @@ try:
 except ImportError:
     pass
 
-version = '0.2'
+version = '0.3'
 
 setup(name='jira',
       version=version,
