@@ -25,6 +25,7 @@ class Command(BaseCommand):
             print 'Error: story key %s not found' % args.key
             return
         story = story[0]
+        print 'Release:'.ljust(15), 'Typ:', 'Stat:', ' Relationship Tree:'
         print ''.join(story.fix_versions).ljust(15)[:15], str(story.type).ljust(4), str(story.status).ljust(6), story.key
         if story.links.outward:
             for link in story.links.outward:
@@ -39,7 +40,7 @@ class Command(BaseCommand):
             if not types or link.type in types:
                 print ''.join(link.fix_versions).ljust(15)[:15], str(link.type).ljust(4), str(link.status).ljust(6), \
                 ''.ljust(len(indent[:-1])), '\-> %s' % link.key
-            if link.links.all:
+            if link.links.outward:
                 indent.append(link.key)
                 self.recurse_links(link, indent, types)
                 del indent[0]
