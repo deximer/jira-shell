@@ -28,18 +28,18 @@ class Command(BaseCommand):
         print ''.join(story.fix_versions).ljust(15)[:15], str(story.type).ljust(4), str(story.status).ljust(6), story.key
         if story.links.outward:
             for link in story.links.outward:
-                if args.t and link.type not in args.t:
-                    continue
-                print ''.join(link.fix_versions).ljust(15)[:15], str(link.type).ljust(4), str(link.status).ljust(6),'\-> %s' % link.key
+                if not args.t or link.type in args.t:
+                    print ''.join(link.fix_versions).ljust(15)[:15], str(link.type).ljust(4), str(link.status).ljust(6),'\-> %s' % link.key
                 self.recurse_links(link, [link.key], args.t)
 
     def recurse_links(self, issue, indent, types=[]):
         for link in issue.links.outward:
-            if link.key in indent or (types and link.type not in types):
+            if link.key in indent:
                 continue
-            print ''.join(link.fix_versions).ljust(15)[:15], str(link.type).ljust(4), str(link.status).ljust(6), \
+            if not types or link.type in types:
+                print ''.join(link.fix_versions).ljust(15)[:15], str(link.type).ljust(4), str(link.status).ljust(6), \
                 ''.ljust(len(indent[:-1])), '\-> %s' % link.key
             if link.links.all:
                 indent.append(link.key)
-                self.recurse_links(link, indent)
+                self.recurse_links(link, indent, types)
                 del indent[0]
