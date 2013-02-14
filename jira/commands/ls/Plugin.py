@@ -26,11 +26,16 @@ class Command(BaseCommand):
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
-        parser.add_argument('-s', nargs='*', required=False)
-        parser.add_argument('-t', nargs='*', required=False)
-        parser.add_argument('-p', nargs='*', required=False)
-        parser.add_argument('-d', nargs='*', required=False)
-        parser.add_argument('-b', action='store_true', required=False)
+        parser.add_argument('-s', nargs='*', required=False,
+            help='show only issues with the specified status (! for exclusion)')
+        parser.add_argument('-t', nargs='*', required=False,
+            help='show only issues of the specified type (! for exclusion)')
+        parser.add_argument('-p', nargs='*', required=False,
+            help='show issues with the specified point estimates')
+        parser.add_argument('-d', nargs='*', required=False,
+            help='show issues for only the specified developers')
+        parser.add_argument('-b', action='store_true', required=False,
+            help='show issues with backflow (5 minute grace period)')
         parser.add_argument('team', nargs='?')
         try:
             args = parser.parse_args(args)

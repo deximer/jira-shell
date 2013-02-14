@@ -12,7 +12,6 @@ class Command(BaseCommand):
         parser.add_argument('dir', nargs='?')
         try:
             args = parser.parse_args(args)
-            import pdb; pdb.set_trace()
         except:
             return
         import copy
