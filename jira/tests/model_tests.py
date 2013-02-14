@@ -79,6 +79,11 @@ class LinksTests(unittest.TestCase):
     def testHasLink(self):
         self.assertEqual(self.links.has_link('NG-13471'), True)
 
+    def testOutward(self):
+        self.assertEqual(len(self.links.outward), 1)
+
+    def testInward(self):
+        self.assertEqual(len(self.links.inward), 3)
 
 class HistoryTest(unittest.TestCase):
     def setUp(self):

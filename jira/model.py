@@ -63,9 +63,9 @@ class Links(Folder):
                 return True
         return False
 
-    def get_links(self, link_type=None):
+    def get_links(self, link_type=None, directions=['out', 'in']):
         results = []
-        for direction in ['out', 'in']:
+        for direction in directions:
             for links in self[direction]:
                 for issue in self[direction][links].values():
                     if not issue:
@@ -78,7 +78,15 @@ class Links(Folder):
     def _all(self):
         return self.get_links()
 
+    def _outward(self):
+        return self.get_links(directions=['out'])
+
+    def _inward(self):
+        return self.get_links(directions=['in'])
+
     all = property(_all)
+    outward = property(_outward)
+    inward = property(_inward)
 
 
 class History(Folder):
