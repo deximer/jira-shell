@@ -38,7 +38,7 @@ class Command(BaseCommand):
             if link.key in indent or (types and link.type not in types):
                 continue
             print ''.join(link.fix_versions).ljust(15)[:15], str(link.type).ljust(4), str(link.status).ljust(6), \
-                ''.ljust(len(indent)), '\-> %s' % link.key
+                ''.ljust(len(indent[:-1])), '\-> %s' % link.key
             if link.links.all:
                 indent.append(link.key)
                 self.recurse_links(link, indent)
