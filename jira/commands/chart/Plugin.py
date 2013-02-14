@@ -9,13 +9,14 @@ from ..base import BaseCommand
 from model import Release
 
 class Command(BaseCommand):
-    help = 'Render various charts based on the data'
+    help = 'Render various charts'
     usage = 'chart [team] [-t chart_type] [-d developer] [-s sort_by]' \
-        ' [-p point] [-c cycle_time] [-x file_name.ext]'
+        ' [-p point] [-c cycle_time] [-x file_name.ext] [-f]'
     options_help = '''    -c : specify cycle time outlier limit
     -d : chart for developer
     -k : chart using or surpressing specific issue keys
     -p : chart for estimate value 
+    -f : calculate cycle times from the first in process date (default is last)
     -s : sorting criteria
     -t : specify chart type (default is cycle times)
     -x : export graph to a file (valid extensions are pdf, png, or jpg)
@@ -35,6 +36,7 @@ class Command(BaseCommand):
         parser.add_argument('-k', nargs='*', required=False)
         parser.add_argument('-c', nargs='*', required=False)
         parser.add_argument('-x', nargs='*', required=False)
+        parser.add_argument('-f', action='store_true', required=False)
         try:
             args = parser.parse_args(args)
         except:
@@ -43,6 +45,10 @@ class Command(BaseCommand):
         if not isinstance(self.release, Release):
             print 'Error: Must navigate to a release. (hint: help cd)'
             return
+        if args.f:
+            self.cycle_time = 'aggregate_cycle_time'
+        else:
+            self.cycle_time = 'cycle_time'
         if args.team:
             stories = [s for s in self.release.stories()
                 if s.scrum_team and s.scrum_team[:len(args.team)] == args.team]
@@ -64,7 +70,7 @@ class Command(BaseCommand):
         if args.c:
             cycle_time = int(args.c[0])
             stories = [s for s in self.release.stories()
-                if s.cycle_time < cycle_time]
+                if getattr(s, self.cycle_time) < cycle_time]
             self.release = Release()
             for story in stories:
                 self.release.add_story(story)
@@ -123,12 +129,12 @@ class Command(BaseCommand):
            and s.scrum_team != 'Continuous Improvement ']
         stories.sort(key=lambda x:tuple([getattr(x, key) for key in sorting]))
         for story in stories:
-            alldata.append(story.cycle_time)
+            alldata.append(getattr(story, self.cycle_time))
             if not story.resolved:
-                wip.append(story.cycle_time)
+                wip.append(getattr(story, self.cycle_time))
                 data.append(None)
             else:
-                data.append(story.cycle_time)
+                data.append(getattr(story, self.cycle_time))
                 wip.append(None)
             estimates.append(story.points)
             labels.append(story.key)

@@ -127,6 +127,11 @@ class HistoryTest(unittest.TestCase):
             time.strptime('2013-01-08T10:45:59.000','%Y-%m-%dT%H:%M:%S.%f')))
         self.assertEqual(self.history.resolved, resolved)
 
+    def testFirstStarted(self):
+        started = datetime.datetime.fromtimestamp(time.mktime(
+            time.strptime('2013-01-01T15:31:39.000','%Y-%m-%dT%H:%M:%S.%f')))
+        self.assertEqual(self.history.first_started, started)
+
     def testBackflowTrue(self):
         self.history.data = []
         self.history.data.append((D20121201, 1, 3))
@@ -243,6 +248,20 @@ class StoryTest(unittest.TestCase):
         story = make_story('NG-1', created=D20121201, started=None,
             resolved=D20121205)
         self.assertEqual(story.lead_time, 2)
+
+    def testLongCycleTime(self):
+        story = make_story('NG-1', started=D20121201, resolved=D20121205)
+        self.assertEqual(story.aggregate_cycle_time, 2)
+        story = make_story('NG-1', started=D20121202, resolved=D20121205)
+        self.assertEqual(story.aggregate_cycle_time, 2)
+        story = make_story('NG-1', started=D20121203, resolved=D20121205)
+        self.assertEqual(story.aggregate_cycle_time, 2)
+        story = make_story('NG-1', started=D20121201, resolved=D20121213)
+        self.assertEqual(story.aggregate_cycle_time, 8)
+        story = make_story('NG-1', started=D20121205, resolved=D20121213)
+        self.assertEqual(story.aggregate_cycle_time, 6)
+        story = make_story('NG-1', started=D20121201, resolved=D20121202)
+        self.assertEqual(story.aggregate_cycle_time, 0)
 
 
 class KanbanTest(unittest.TestCase):

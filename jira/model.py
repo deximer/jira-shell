@@ -129,6 +129,12 @@ class History(Folder):
             return dates [-1]
         return None
 
+    def _get_first_started(self):
+        start_dates = self.get_transition(3)
+        if start_dates:
+            return start_dates[0]
+        return None
+
     def _get_backflow(self):
         previous = None
         for date, begin, end, days in self.all:
@@ -140,7 +146,7 @@ class History(Folder):
                     return True
             except ValueError:
                 pass # Likely a state not in the KANBAN maybe from another
-                     # project, e.g. MTQA
+                     # project, e.g. MTQA <- Ok, so check it knucklehead
             previous = date
         return False
 
@@ -157,6 +163,7 @@ class History(Folder):
 
     started = property(_get_started)
     resolved = property(_get_resolved)
+    first_started = property(_get_first_started)
     backflow = property(_get_backflow)
     all = property(_all)
 
@@ -190,6 +197,19 @@ class Story(Folder):
             return 0
         return cycle_time
 
+    def _get_aggregate_cycle_time(self):
+        if self.first_started and self.resolved:
+            resolved = self.resolved
+        elif self.first_started:
+            resolved = datetime.datetime.today()
+        else:
+            return None
+        cycle_time = rrule(DAILY, dtstart=self.first_started, until=resolved,
+            byweekday=(MO, TU, WE, TH, FR)).count() - 1
+        if cycle_time < 0:
+            return 0
+        return cycle_time
+
     def _get_lead_time(self):
         if self.created and self.resolved:
             resolved = self.resolved
@@ -203,6 +223,9 @@ class Story(Folder):
     def _get_started(self):
         return self.history.started
 
+    def _get_first_started(self):
+        return self.history.first_started
+
     def _get_resolved(self):
         return self.history.resolved
 
@@ -210,10 +233,12 @@ class Story(Folder):
         return self.history.backflow
 
     cycle_time = property(_get_cycle_time)
+    aggregate_cycle_time = property(_get_aggregate_cycle_time)
     cycle_time_with_weekends = property(_get_cycle_time_with_weekends)
     lead_time = property(_get_lead_time)
     started = property(_get_started)
     resolved = property(_get_resolved)
+    first_started = property(_get_first_started)
     backflow = property(_get_backflow)
 
 
