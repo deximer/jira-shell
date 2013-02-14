@@ -88,6 +88,10 @@ class Command(BaseCommand):
                 self.release = Release()
                 for story in stories:
                     self.release.add_story(story)
+        if args.x:
+            self.file = args.x[0]
+        else:
+            self.file = None
         if not self.release.stories():
             print 'No data to report'
             return
@@ -223,4 +227,8 @@ class Command(BaseCommand):
             textcoords = 'offset points', ha='right', va='bottom', fontsize=7,
             bbox = dict(boxstyle = 'round,pad=0.3', fc='yellow', alpha=0.5),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
-        pyplot.show(block=False)
+
+        if self.file:
+            pyplot.savefig(self.file, bbox=0)
+        else:
+            pyplot.show(block=False)
