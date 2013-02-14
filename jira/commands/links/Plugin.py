@@ -22,38 +22,46 @@ class Command(BaseCommand):
         parser.add_argument('key')
         parser.add_argument('-t', nargs='*', required=False)
         parser.add_argument('-b', action='store_true', required=False)
+        parser.add_argument('-i', action='store_true', required=False)
         self.args = parser.parse_args(args)
         story = jira.cache.get(self.args.key)
         if not story:
             print 'Error: story key %s not found' % self.args.key
             return
         story = story[0]
+        self.direction = ['out']
+        self.arrow = '->'
+        if self.args.i:
+            self.direction = ['in']
+            self.arrow = '<-'
         if self.args.b:
             self.args.t = ['1']
         print 'Release:'.ljust(15), 'Typ:', 'Stat:', ' Relationship Tree:'
         print ''.join(story.fix_versions).ljust(15)[:15], \
             str(story.type).ljust(4), str(story.status).ljust(6), story.key
-        if story.links.outward:
-            for link in story.links.outward:
+        if story.links.get_links(directions=self.direction):
+            for link in story.links.get_links(directions=self.direction):
                 if not self.args.t or link.type in self.args.t:
                     print ''.join(link.fix_versions).ljust(15)[:15], \
                         str(link.type).ljust(4), \
-                        str(link.status).ljust(6),'\-> %s' % link.key
+                        str(link.status).ljust(6),'\%s %s' % (self.arrow,
+                            link.key)
                 if self.args.b and link.type not in self.args.t:
                     continue
                 self.recurse_links(link, [link.key])
 
     def recurse_links(self, issue, indent):
-        for link in issue.links.outward:
+        for link in issue.links.get_links(directions=self.direction):
             if link.key in indent:
                 continue
             if not self.args.t or link.type in self.args.t:
                 print ''.join(link.fix_versions).ljust(15)[:15], \
                     str(link.type).ljust(4), str(link.status).ljust(6), \
-                    ''.ljust(len(indent[:-1])), '\-> %s' % link.key
+                    ''.ljust(len(indent[:-1])), '\%s %s' % (self.arrow, 
+                        link.key)
             if self.args.b and link.type not in self.args.t:
                 continue
-            if link.links.outward:
+            if link.links.get_links(directions=self.direction):
                 indent.append(link.key)
                 self.recurse_links(link, indent)
                 del indent[0]
