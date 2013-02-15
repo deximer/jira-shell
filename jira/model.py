@@ -92,7 +92,7 @@ class Links(Folder):
 class History(Folder):
     def __init__(self, obj=None):
         super(History, self).__init__()
-        self.data = []
+        self.data = PersistentList()
         if not obj:
             return
         self.start_at = obj['startAt']
@@ -102,9 +102,11 @@ class History(Folder):
                     created = datetime.datetime.fromtimestamp(time.mktime(
                         time.strptime(transaction['created'][:23],
                         '%Y-%m-%dT%H:%M:%S.%f')))
+                    print transaction['author']['displayName']
                     self.data.append((created,
                                       int(transition['from']),
-                                      int(transition['to'])))
+                                      int(transition['to']),
+                                      transaction['author']['displayName']))
                     previous_date = created
 
     def get_transition(self, state):
@@ -126,7 +128,7 @@ class History(Folder):
     def _get_resolved(self):
         dates = self.get_transition(6)
         if dates:
-            return dates [-1]
+            return dates[-1]
         return None
 
     def _get_first_started(self):
@@ -137,7 +139,7 @@ class History(Folder):
 
     def _get_backflow(self):
         previous = None
-        for date, begin, end, days in self.all:
+        for date, begin, end, days, name in self.all:
             if previous:
                 if (date - previous).total_seconds() <= 300:
                     continue
@@ -157,7 +159,8 @@ class History(Folder):
         for transition in self.data:
             if previous_date:
                 days = (transition[0] - previous_date).days
-            results.append((transition[0], transition[1], transition[2], days))
+            results.append((transition[0], transition[1], transition[2], days,
+                transition[3]))
             previous_date = transition[0]
         return results
 

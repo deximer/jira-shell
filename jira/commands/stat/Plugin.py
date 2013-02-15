@@ -42,6 +42,7 @@ class Command(BaseCommand):
         print 'Started:', story.started
         print 'Resolved:', story.resolved
         print 'Cycle Time:', story.cycle_time
+        print 'Aggregate Cycle Time:', story.aggregate_cycle_time
         avg_ct = story.__parent__.kanban().average_cycle_time()
         ct = story.cycle_time
         sq_ct = story.__parent__.kanban().squared_cycle_times()
@@ -63,13 +64,14 @@ class Command(BaseCommand):
                 backflow = ''
                 if t[1] in KANBAN and t[2] in KANBAN:
                     if KANBAN.index(t[1]) > KANBAN.index(t[2]):
-                        backflow = ' <- backflow'
+                        backflow = '<- backflow'
                 if not t[3]:
                     days = ''.ljust(3)
                 else:
                     days = str(t[3]).ljust(3)
-                print '    %s, [%s], %s -> %s %s' % (t[0], days, t[1], t[2],
-                    backflow)
+                name = t[4][:17].ljust(18) if t[4] else ''.ljust(18)
+                print '  %s, [%s], %s, %s -> %s %s' % (t[0], days, name,
+                    str(t[1]).ljust(5), str(t[2]).ljust(5), backflow)
         print
         for direction in ['out', 'in']:
             print 'Links %s:' % direction

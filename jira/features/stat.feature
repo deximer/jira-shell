@@ -65,8 +65,8 @@ Feature: List critial information about a specific issue
         | 13/9/1 | 1    | 3  |
         | 13/9/8 | 3    | 6  |
         When I enter the command "stat NG-2"
-        Then I see "2013-09-01 12:30:00, [   ], 1 -> 3" in the output
-        And I see "2013-09-08 12:30:00, [7  ], 3 -> 6" in the output
+        Then I see "2013-09-01 12:30:00, [   ], Jane Doe          , 1     -> 3" in the output
+        And I see "2013-09-08 12:30:00, [7  ], Jane Doe          , 3     -> 6" in the output
 
     Scenario: A user views the transition log for an issue with backflow
         Given I have the following issues in the release
@@ -82,7 +82,7 @@ Feature: List critial information about a specific issue
         | 13/9/4 | 10089 | 3     |
         | 13/9/5 | 3     | 6     |
         When I enter the command "stat NG-2"
-        Then I see "2013-09-03 12:30:00, [1  ], 3 -> 10089  <- backflow" in the output
+        Then I see "2013-09-03 12:30:00, [1  ], Jane Doe          , 3     -> 10089 <- backflow" in the output
 
     Scenario: A user does not supply an issue id
         Given The user is at the command line

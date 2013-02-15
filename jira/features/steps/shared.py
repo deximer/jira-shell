@@ -116,13 +116,13 @@ def make_story(row):
     if 'started' in row.headings and row['started']:
         date = row['started'].split('/')
         start_date = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
-        story.history.data.append((start_date, 1, 3, None))
+        story.history.data.append((start_date, 1, 3, None, 'Sarah Conner'))
     if 'resolved' in row.headings and row['resolved']:
         if not row['resolved']:
             return
         date = row['resolved'].split('/')
         resolved_date = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
-        story.history.data.append((resolved_date, 3, 6))
+        story.history.data.append((resolved_date, 3, 6, 'Jane Doe'))
     if 'status' in row.headings:
         story.status = int(row['status'])
     else:
@@ -141,7 +141,7 @@ def add_history(issue, date, start, end):
     date = date.split('/')
     date = datetime(2000+int(date[0]), int(date[1]), int(date[2]), 12, 30, 0)
     days = None
-    issue.history.data.append((date, int(start), int(end)))
+    issue.history.data.append((date, int(start), int(end), 'Jane Doe'))
 
 def add_link(parent, child):
     if 'Related' not in parent.links['out']:
