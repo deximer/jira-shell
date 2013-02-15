@@ -21,6 +21,8 @@ cmds = {'top': commands.top.Plugin.Command(),
         'refresh': commands.refresh.Plugin.Command(),
        }
 
+command_history = []
+
 NG_CURRENT_RELEASE = 'http://%s:%s@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24756/SearchRequest-24756.xml?' \
     'tempMax=10000' % (MT_USER, MT_PASS)
@@ -64,6 +66,7 @@ def dispatch(command):
              'refresh': cmds['refresh'].run,
              'chart': cmds['chart'].run,
              'help': help,
+             '!': history,
             }
     args = command.split()[1:]
     command = command.split()[0]
@@ -100,6 +103,12 @@ def help(jira, command):
         print 'Examples:'
         print cmds[command].examples
 
+def history(jira, command):
+    count = 0
+    for command in command_history:
+        print count, ':', command
+        count += 1
+
 def main():
     p = optparse.OptionParser()
     p.add_option('--command', '-c', action='store_true', dest='command')
@@ -117,6 +126,14 @@ def main():
         while command != 'quit':
             command = shell()
             if command and command != 'quit':
+                if command[:1] == '!':
+                    if len(command) > 1:
+                        index = command[1:]
+                        command = command_history[int(index)]
+                        if len(command_history) > 10:
+                            del command_history[-1]
+                else:
+                    command_history.insert(0, command)
                 dispatch(command)
 
 if __name__ == '__main__':
