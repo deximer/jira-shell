@@ -286,10 +286,9 @@ class Kanban(object):
         for story in stories:
             if component and component != story.scrum_team:
                 continue
-            if not story.created or not story.resolved:
+            if not story.cycle_time:
                 continue
-            delta = story.resolved - story.created
-            days.append(delta.days)
+            days.append(story.cycle_time)
         if not days:
             return None
         return round(numpy.average(numpy.array(days)), 1)
@@ -321,8 +320,7 @@ class Kanban(object):
                 continue
             if not story.started or not story.resolved:
                 continue
-            delta = story.resolved - story.started
-            days.append(delta.days)
+            days.append(story.cycle_time)
         if not days:
             return None
         return round(numpy.average(numpy.array(days)), 1)
@@ -337,8 +335,7 @@ class Kanban(object):
                 continue
             if not story.created or not story.resolved:
                 continue
-            delta = story.resolved - story.created
-            days.append(delta.days)
+            days.append(story.lead_time)
         if not days:
             return None
         return numpy.median(numpy.array(days))
@@ -353,8 +350,7 @@ class Kanban(object):
                 continue
             if not story.started or not story.resolved:
                 continue
-            delta = story.resolved - story.started
-            days.append(delta.days)
+            days.append(story.cycle_time)
         if not days:
             return None
         return numpy.median(numpy.array(days))
@@ -371,10 +367,9 @@ class Kanban(object):
                 continue
             if not story.type in type:
                 continue
-            if not story.created or not story.resolved:
+            if not story.cycle_time:
                 continue
-            delta = story.resolved - story.created
-            cycle_times.append(delta.days)
+            cycle_times.append(story.cycle_time)
         return round(numpy.std(numpy.array(cycle_times), ddof=1), 1)
 
     def stdev_cycle_time(self, component=None):
@@ -388,8 +383,7 @@ class Kanban(object):
                 continue
             if not story.started or not story.resolved:
                 continue
-            delta = story.resolved - story.started
-            cycle_times.append(delta.days)
+            cycle_times.append(story.cycle_time)
         return round(numpy.std(numpy.array(cycle_times), ddof=1), 1)
 
     def variance_cycle_time(self, component=None):
@@ -437,8 +431,7 @@ class Kanban(object):
                 continue
             if not story.started or not story.resolved or not story.points:
                 continue
-            delta = story.resolved - story.started
-            days.append(delta.days/story.points)
+            days.append(story.cycle_time/story.points)
         return numpy.average(numpy.array(days))
 
     def stdev_cycle_time_per_point(self, component=None):
@@ -453,8 +446,7 @@ class Kanban(object):
                 continue
             if not story.started or not story.resolved or not story.points:
                 continue
-            delta = story.resolved - story.started
-            days.append(delta.days/story.points)
+            days.append(story.cycle_time/story.points)
         return numpy.std(numpy.array(days), ddof=1)
 
     def average_cycle_time_for_estimate(self, estimate):
@@ -475,10 +467,9 @@ class Kanban(object):
         if not grid.has_key(estimate):
             return None
         for story in grid[estimate]:
-            if not story.started or not story.resolved or not story.points:
+            if not story.cycle_time or not story.points:
                 continue
-            delta = story.resolved - story.started
-            days.append(delta.days)
+            days.append(story.cycle_time)
         return numpy.std(numpy.array(days))
 
     def minimum_atp(self, estimate):
@@ -489,8 +480,7 @@ class Kanban(object):
         for story in grid[estimate]:
             if not story.started or not story.resolved or not story.points:
                 continue
-            delta = story.resolved - story.started
-            days.append(delta.days)
+            days.append(story.cycle_time)
         if not days:
             return None
         return round(numpy.min(numpy.array(days)), 1)

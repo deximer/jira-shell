@@ -542,27 +542,27 @@ class KanbanTest(unittest.TestCase):
 
     def testContingency(self):
         release = Release()
-        release.add_story(make_story('NG-1', started=D20121201, resolved=D20121205,
-            points=3.0))
-        release.add_story(make_story('NG-2', started=D20121203, resolved=D20121205,
-            points=3.0))
-        release.add_story(make_story('NG-3', started=D20121205, resolved=D20121213,
-            points=3.0))
-        release.add_story(make_story('NG-4', started=D20121203, resolved=D20121213,
-            points=3.0))
+        release.add_story(make_story('NG-1', started=D20121201,
+            resolved=D20121205, points=3.0))
+        release.add_story(make_story('NG-2', started=D20121203,
+            resolved=D20121205, points=3.0))
+        release.add_story(make_story('NG-3', started=D20121205,
+            resolved=D20121213, points=3.0))
+        release.add_story(make_story('NG-4', started=D20121203,
+            resolved=D20121213, points=3.0))
         kanban = release.kanban()
         self.assertEqual(kanban.contingency_average('NG-1'), 2.5)
         self.assertEqual(kanban.contingency_inside('NG-1'), 0.0)
-        self.assertEqual(kanban.contingency_outside('NG-1'), 8.8)
+        self.assertEqual(kanban.contingency_outside('NG-1'), 7.7)
         self.assertEqual(kanban.contingency_inside('NG-2'), 0.0)
 
     def testContingencyNoCycleTimes(self):
         release = Release()
         kanban = release.kanban()
-        release.add_story(make_story('NG-1', type='72', points=2.0, started=None,
-            resolved=None))
-        release.add_story(make_story('NG-2', type='72', points=2.0, started=None,
-            resolved=None))
+        release.add_story(make_story('NG-1', type='72', points=2.0,
+            started=None, resolved=None))
+        release.add_story(make_story('NG-2', type='72', points=2.0,
+            started=None, resolved=None))
         self.assertEqual(kanban.contingency_average('NG-1'), None)
         
 
