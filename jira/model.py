@@ -102,7 +102,6 @@ class History(Folder):
                     created = datetime.datetime.fromtimestamp(time.mktime(
                         time.strptime(transaction['created'][:23],
                         '%Y-%m-%dT%H:%M:%S.%f')))
-                    print transaction['author']['displayName']
                     self.data.append((created,
                                       int(transition['from']),
                                       int(transition['to']),
