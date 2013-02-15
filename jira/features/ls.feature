@@ -115,7 +115,6 @@ Feature: list issues in a release
         And I do not see "NG-3" in the output
         And I do not see "NG-1" in the output
 
-
     Scenario: A user lists issues for a the MathML and status 6 and type 72
         Given I have the following release
         | key |

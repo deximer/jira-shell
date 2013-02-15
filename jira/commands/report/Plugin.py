@@ -14,6 +14,7 @@ class Command(BaseCommand):
         parser = argparse.ArgumentParser()
         parser.add_argument('team', nargs='?')
         parser.add_argument('-d', nargs='*', required=False)
+        parser.add_argument('-f', action='store_true', required=False)
         try:
             args = parser.parse_args(args)
         except:
@@ -55,20 +56,14 @@ class Command(BaseCommand):
         print 'Bugs             :', len(release.bugs())
         print '  Production     :', len(release.stories(type=['78']))
         print '    Open           :', len(release.resolved_stories(['78']))
-        print '    Avg Cycle Time :', kanban.average_lead_time(
-            type=['78'])
-        print '    m Cycle Time   :', kanban.median_lead_time(
-            type=['78'])
-        print '    Std Cycle Time :', kanban.stdev_lead_time(
-            type=['78'])
+        print '    Avg Cycle Time :', kanban.average_lead_time(type=['78'])
+        print '    m Cycle Time   :', kanban.median_lead_time(type=['78'])
+        print '    Std Cycle Time :', kanban.stdev_lead_time(type=['78'])
         print '  Development    :', len(release.stories(type=['1']))
         print '    Open           :', len(release.resolved_stories(['1']))
-        print '    Avg Cycle Time :', kanban.average_lead_time(
-            type=['1'])
-        print '    m Cycle Time   :', kanban.median_lead_time(
-            type=['1'])
-        print '    Std Cycle Time :', kanban.stdev_lead_time(
-            type=['1'])
+        print '    Avg Cycle Time :', kanban.average_lead_time(type=['1'])
+        print '    m Cycle Time   :', kanban.median_lead_time(type=['1'])
+        print '    Std Cycle Time :', kanban.stdev_lead_time(type=['1'])
         print
         print 'WIP by Status:'
         wip = release.wip_by_status()
@@ -82,19 +77,6 @@ class Command(BaseCommand):
             print key[:16].ljust(16), ':',  str(wip[key]['wip']).ljust(6), \
                 str(wip[key]['stories']).ljust(3), wip[key]['largest']
         print
-        bugs = release.upper_percentiles(0.85, ['1'])
-        bugs = []
-        if bugs:
-            print 'Development Bug Cycle Time 85th Percentile:'
-            for bug in bugs:
-                print '  ', bug.key, bug.lead_time, bug.scrum_team
-            print
-        stories = release.upper_percentiles(0.85, ['72'])
-        stories = []
-        if stories:
-            print 'Story Cycle Time 85th Percentile:'
-            for story in stories:
-                print '  ', story.key, story.cycle_time, story.scrum_team
         print 'Total Cycle Times by Status:'
         cycle_times_in_status = kanban.cycle_times_in_status()
         total = 0
