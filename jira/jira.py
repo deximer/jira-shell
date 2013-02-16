@@ -93,6 +93,13 @@ def help(jira, command):
         print
         print 'For help on a specific command type: help <command>'
         return
+    if command == '!':
+        print 'Print command history'
+        print 'Usage: ![#]'
+        print 'Example:'
+        print '    !'
+        print '    !2'
+        return
     print cmds[command].help
     print
     print 'Usage: %s' % cmds[command].usage
@@ -121,7 +128,7 @@ def main():
             dispatch(' '.join(arguments))
     elif options.shell:
         command = ''
-        print 'Jira Shell 0.1'
+        print 'Jira Shell 0.3'
         print 'Type "help" to get started. Type "quit" to exit.'
         while command != 'quit':
             command = shell()
@@ -131,9 +138,9 @@ def main():
                         index = command[1:]
                         command = command_history[int(index)]
                         if len(command_history) > 10:
-                            del command_history[-1]
+                            del command_history[0]
                 else:
-                    command_history.insert(0, command)
+                    command_history.append(command)
                 dispatch(command)
 
 if __name__ == '__main__':
