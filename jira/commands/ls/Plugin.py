@@ -48,6 +48,7 @@ class Command(BaseCommand):
               'CT:'.ljust(5), \
               'Type:'.ljust(5), \
               'Bugs:'.ljust(5), \
+              'Cont:'.ljust(5), \
               'Title:'
         issues = 0
         points = 0
@@ -126,6 +127,9 @@ class Command(BaseCommand):
             rework = str(len(story.links.get_links('1')))
             if rework == '0':
                 rework = ''
+            contingency = container.kanban().contingency_average(story.key)
+            if not contingency or story.status == 6:
+                contingency = ''
             print story.key[:10].ljust(10), \
                   team[:18].ljust(18), \
                   str(story.points).ljust(5) if story.points else ''.ljust(5), \
@@ -133,7 +137,8 @@ class Command(BaseCommand):
                   cycle_time.ljust(5), \
                   str(story.type).ljust(5), \
                   rework.ljust(5), \
-                  story.title[:20]
+                  str(contingency).ljust(5), \
+                  story.title[:14]
             issues += story.stories()
             if story.points and (story.type=='72' or story.type=='N/A'):
                 points += story.points
