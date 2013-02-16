@@ -69,6 +69,7 @@ def step(context, command):
         return context.release.get('NG-' + command.split(' ')[1])
     jira.request_issue = mock_request_issue
     jira.dispatch(command)
+    print '/%s > ' % '/'.join(dao.Jira.cache.cwd[1:])
 
 @then('The REPL displays "{command}"')
 def step(context, command):

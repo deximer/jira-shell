@@ -127,7 +127,14 @@ class Command(BaseCommand):
         count = [0]
         stories = [s for s in stories if s.started and s.scrum_team
            and s.scrum_team != 'Continuous Improvement ']
-        stories.sort(key=lambda x:tuple([getattr(x, key) for key in sorting]))
+        def compare(a, b):
+            if not a[0]:
+                return 1
+            if not b[0]:
+                return -1
+            return cmp(a, b)
+        stories.sort(key=lambda x:tuple([getattr(x, key) for key in sorting]),
+            cmp=compare)
         for story in stories:
             alldata.append(getattr(story, self.cycle_time))
             if not story.resolved:
@@ -141,6 +148,7 @@ class Command(BaseCommand):
             estimate_labels.append(story.scrum_team)
             developer_labels.append(story.developer)
             count.append(count[-1] + 1)
+            #count.append(getattr(story, sorting[0]))
 
         std = numpy.std([d for d in alldata if d])
         average = numpy.average([d for d in alldata if d])
