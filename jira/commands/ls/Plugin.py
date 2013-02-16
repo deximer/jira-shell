@@ -127,9 +127,10 @@ class Command(BaseCommand):
             rework = str(len(story.links.get_links('1')))
             if rework == '0':
                 rework = ''
-            contingency = container.kanban().contingency_average(story.key)
-            if not contingency or story.status == 6:
+            if story.status == 6:
                 contingency = ''
+            else:
+                contingency = container.kanban().contingency_average(story.key)
             print story.key[:10].ljust(10), \
                   team[:18].ljust(18), \
                   str(story.points).ljust(5) if story.points else ''.ljust(5), \
