@@ -129,10 +129,12 @@ class Command(BaseCommand):
                 rework = ''
             if story.status == 6:
                 contingency = ''
-            else:
+            elif getattr(container, 'kanban', None):
                 contingency = container.kanban().contingency_average(story.key)
                 if not contingency:
                     contingency = ''
+            else:
+                contingency = ''
             print story.key[:10].ljust(10), \
                   team[:18].ljust(18), \
                   str(story.points).ljust(5) if story.points else ''.ljust(5), \
