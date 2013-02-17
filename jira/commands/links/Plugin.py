@@ -5,12 +5,13 @@ from model import Release, KANBAN
 
 class Command(BaseCommand):
     help = "Render an issue's link graphs"
-    usage = 'links <issue_id> [-t <issue_type [...]>]'
+    usage = 'links <issue_id> [-i] [-t <issue_type [...]>]'
     options_help = '''    -t : Show only issues of the specified type
     -b : use bug traversal alogrithm (only descend development links)
+    -i : show incoming links (default is outgoing)
     '''
     examples = '''    links 12345
-    links NG-12345 -t 1 78
+    links NG-12345 -i -t 1 78
     links NG-12345 -b
     '''
 
