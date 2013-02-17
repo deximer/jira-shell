@@ -129,9 +129,9 @@ class Command(BaseCommand):
            and s.scrum_team != 'Continuous Improvement ']
         def compare(a, b):
             if not a[0]:
-                return 1
-            if not b[0]:
                 return -1
+            if not b[0]:
+                return 1
             return cmp(a, b)
         stories.sort(key=lambda x:tuple([getattr(x, key) for key in sorting]),
             cmp=compare)
