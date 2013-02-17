@@ -139,10 +139,10 @@ def main():
                     if len(command) > 1:
                         index = command[1:]
                         command = command_history[int(index)]
-                        if len(command_history) > 10:
-                            del command_history[0]
                 else:
                     command_history.append(command)
+                    if len(command_history) > 10:
+                        del command_history[0]
                 dispatch(command)
 
 if __name__ == '__main__':
