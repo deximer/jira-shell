@@ -15,6 +15,7 @@ class Command(BaseCommand):
     options_help = '''    -s : Show only issues with the specified status ("!" for exclusion)
     -t : Show only issues of the specified type ("!" for exclusion)
     -d : Show issues for only the specified developers
+    -o : Order (sort) results by
     -p : Show issues with the specified point estimates
     -b : Show issues with backflow (5 minute grace period)
     '''
@@ -30,6 +31,8 @@ class Command(BaseCommand):
             help='show only issues with the specified status (! for exclusion)')
         parser.add_argument('-t', nargs='*', required=False,
             help='show only issues of the specified type (! for exclusion)')
+        parser.add_argument('-o', nargs='*', required=False,
+            help='Sorting criteria')
         parser.add_argument('-p', nargs='*', required=False,
             help='show issues with the specified point estimates')
         parser.add_argument('-d', nargs='*', required=False,
@@ -74,7 +77,11 @@ class Command(BaseCommand):
                     show_type.append(arg)
         container = jira.cache.get_by_path(jira.cache.cwd)
         stories = [IDirectoryListItem(s) for s in container.values()]
-        for story in sorted(stories, key=lambda x: x.scrum_team):
+        if not args.o:
+            sorting = ['scrum_team']
+        else:
+            sorting = args.o
+        for story in sorted(stories, key=lambda x:tuple([getattr(x, key) for key in sorting])):
             try:
                 story = IDirectoryListItem(story)
             except TypeError:

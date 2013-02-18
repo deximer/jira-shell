@@ -313,11 +313,19 @@ class Jira(object):
             URL = URL[:-1]
         return self.json_to_object(urllib.urlopen(URL).read())
 
+    def pull_kyts(self):
+        jql = 'search?jql=project=KYTS+AND+status=Open+ORDER+BY+priority+DESC&expand=changelog'
+        issues = self.call_api(jql)
+        print 'Importing %d KYTS issues...' % len(issues['issues'])
+        for issue in issues['issues']:
+            print 'Make: %s' % issue['key']
+            import pdb; pdb.set_trace()
+            self.make_story(issue['key'], issue, True)
+
     def call_api(self, method):
         URL = 'http://%s:%s@jira.cengage.com/rest/api/2/%s' \
             % (MT_USER, MT_PASS, method)
         return self.json_to_object(urllib.urlopen(URL).read())
-
 
     def json_to_object(self, json_data):
         return json.loads(json_data)
