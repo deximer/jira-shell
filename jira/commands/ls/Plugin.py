@@ -77,10 +77,13 @@ class Command(BaseCommand):
                     show_type.append(arg)
         container = jira.cache.get_by_path(jira.cache.cwd)
         stories = [IDirectoryListItem(s) for s in container.values()]
-        if not args.o:
+        sorting = []
+        if stories and args.o:
+            for field in args.o:
+                if hasattr(stories[0], field):
+                    sorting.append(field)
+        if not sorting:
             sorting = ['scrum_team']
-        else:
-            sorting = args.o
         for story in sorted(stories, key=lambda x:tuple([getattr(x, key) for key in sorting])):
             try:
                 story = IDirectoryListItem(story)
