@@ -300,12 +300,16 @@ class KanbanTest(unittest.TestCase):
 
     def testAverageCycleTimeLife(self):
         release = Release()
-        release.add_story(make_story('NG-1', created=D20121201, resolved=D20121202))
-        release.add_story(make_story('NG-2', created=D20121201, resolved=D20121205))
-        release.add_story(make_story('NG-3', created=D20121201, resolved=D20121208))
-        release.add_story(make_story('NG-4', created=D20121201, resolved=D20121205))
+        release.add_story(make_story('NG-1', created=D20121201,
+            resolved=D20121202))
+        release.add_story(make_story('NG-2', created=D20121201,
+            resolved=D20121205))
+        release.add_story(make_story('NG-3', created=D20121201,
+            resolved=D20121208))
+        release.add_story(make_story('NG-4', created=D20121201,
+            resolved=D20121205))
         kanban = release.kanban()
-        self.assertEqual(kanban.average_lead_time(), 4.0)
+        self.assertEqual(kanban.average_lead_time(), 2.7)
 
     def testCycleTimesInStatus(self):
         release = Release()
@@ -319,42 +323,53 @@ class KanbanTest(unittest.TestCase):
 
     def testAverageCycleTime(self):
         release = Release()
-        release.add_story(make_story('NG-1', started=D20121201, resolved=D20121202))
-        release.add_story(make_story('NG-2', started=D20121201, resolved=D20121205))
-        release.add_story(make_story('NG-3', started=D20121201, resolved=D20121208))
-        release.add_story(make_story('NG-4', started=D20121201, resolved=D20121205))
+        release.add_story(make_story('NG-1', started=D20121201,
+            resolved=D20121202))
+        release.add_story(make_story('NG-2', started=D20121201,
+            resolved=D20121205))
+        release.add_story(make_story('NG-3', started=D20121201,
+            resolved=D20121208))
+        release.add_story(make_story('NG-4', started=D20121201,
+            resolved=D20121205))
         kanban = release.kanban()
-        self.assertEqual(kanban.average_cycle_time(), 4.0)
+        self.assertEqual(kanban.average_cycle_time(), 2.0)
 
     def testAverageCycleTimeNoScrumTeam(self):
         release = Release()
-        release.add_story(make_story('NG-1', started=D20121201, resolved=D20121202))
-        release.add_story(make_story('NG-2', started=D20121201, resolved=D20121205))
-        release.add_story(make_story('NG-3', started=D20121201, resolved=D20121208))
-        release.add_story(make_story('NG-4', started=D20121201, resolved=D20121205))
+        release.add_story(make_story('NG-1', started=D20121201,
+            resolved=D20121202))
+        release.add_story(make_story('NG-2', started=D20121201,
+            resolved=D20121205))
+        release.add_story(make_story('NG-3', started=D20121201,
+            resolved=D20121208))
+        release.add_story(make_story('NG-4', started=D20121201,
+            resolved=D20121205))
         del release['NG-1'].scrum_team
         kanban = release.kanban()
-        self.assertEqual(kanban.average_cycle_time(), 4.0)
+        self.assertEqual(kanban.average_cycle_time(), 2.0)
 
 
     def testAverageCycleTimeBugs(self):
         release = Release()
-        release.add_story(make_story('NG-1', started=D20121201, resolved=D20121203,
-            type='1'))
-        release.add_story(make_story('NG-2', started=D20121201, resolved=D20121208,
-            type='1'))
-        release.add_story(make_story('NG-3', started=D20121201, resolved=D20121208,
-            type='72'))
+        release.add_story(make_story('NG-1', started=D20121201,
+            resolved=D20121203, type='1'))
+        release.add_story(make_story('NG-2', started=D20121201,
+            resolved=D20121208, type='1'))
+        release.add_story(make_story('NG-3', started=D20121201,
+            resolved=D20121208, type='72'))
         kanban = release.kanban()
-        self.assertEqual(kanban.average_cycle_time(type=['1']), 4.5)
+        self.assertEqual(kanban.average_cycle_time(type=['1']), 2.0)
 
     def testMedianCycleTime(self):
         release = Release()
-        release.add_story(make_story('NG-1', started=D20121201, resolved=D20121203))
-        release.add_story(make_story('NG-2', started=D20121201, resolved=D20121208))
-        release.add_story(make_story('NG-3', started=D20121201, resolved=D20121213))
+        release.add_story(make_story('NG-1', started=D20121201,
+            resolved=D20121203))
+        release.add_story(make_story('NG-2', started=D20121201,
+            resolved=D20121208))
+        release.add_story(make_story('NG-3', started=D20121201,
+            resolved=D20121213))
         kanban = release.kanban()
-        self.assertEqual(kanban.median_cycle_time(), 7.0)
+        self.assertEqual(kanban.median_cycle_time(), 4.0)
 
     def testAverageCycleTimeOnlyBugs(self):
         release = Release()
@@ -375,13 +390,17 @@ class KanbanTest(unittest.TestCase):
 
     def testAverageCycleTimeStrictBaked(self):
         release = Release()
-        release.add_story(make_story('NG-1', started=D20121201, resolved=D20121202))
-        release.add_story(make_story('NG-2', started=D20121201, resolved=D20121203))
-        release.add_story(make_story('NG-3', started=D20121201, resolved=D20121208))
-        release.add_story(make_story('NG-4', started=D20121201, resolved=D20121213))
+        release.add_story(make_story('NG-1', started=D20121201,
+            resolved=D20121202))
+        release.add_story(make_story('NG-2', started=D20121201,
+            resolved=D20121203))
+        release.add_story(make_story('NG-3', started=D20121201,
+            resolved=D20121208))
+        release.add_story(make_story('NG-4', started=D20121201,
+            resolved=D20121213))
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.average_cycle_time(), 5.5)
+        self.assertEqual(kanban.average_cycle_time(), 3.0)
 
     def testVarianceCycleTime(self):
         release = Release()
@@ -409,7 +428,7 @@ class KanbanTest(unittest.TestCase):
             resolved=D20121213))
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.squared_cycle_times(), 36.0)
+        self.assertEqual(kanban.squared_cycle_times(), 27.0)
 
 
     def testStdevCycleTimeLife(self):
@@ -427,7 +446,7 @@ class KanbanTest(unittest.TestCase):
             resolved=D20121213))
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.stdev_lead_time(), 3.7)
+        self.assertEqual(kanban.stdev_lead_time(), 3.5)
 
     def testStdevCycleTimeStrictBaked(self):
         release = Release()
@@ -441,7 +460,7 @@ class KanbanTest(unittest.TestCase):
             resolved=D20121213))
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.stdev_cycle_time(), 3.7)
+        self.assertEqual(kanban.stdev_cycle_time(), 3.0)
 
     def testCycleTimePerPointStrictBaked(self):
         release = Release()
@@ -457,38 +476,38 @@ class KanbanTest(unittest.TestCase):
             points=3.0))
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.cycle_time_per_point(), 2.5)
+        self.assertEqual(kanban.cycle_time_per_point(), 1.9166666666666665)
 
     def testStdevCycleTimePerPointStrictBaked(self):
         xml = open('jira/tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
         release = Release()
-        release.add_story(make_story('NG-1', started=D20121201, resolved=D20121205,
-            points=2.0))
-        release.add_story(make_story('NG-2', started=D20121203, resolved=D20121205,
-            points=1.0))
-        release.add_story(make_story('NG-3', started=D20121205, resolved=D20121213,
-            points=3.0))
-        release.add_story(make_story('NG-4', started=D20121203, resolved=D20121213,
-            points=3.0))
+        release.add_story(make_story('NG-1', started=D20121201,
+            resolved=D20121205, points=2.0))
+        release.add_story(make_story('NG-2', started=D20121203,
+            resolved=D20121205, points=1.0))
+        release.add_story(make_story('NG-3', started=D20121205,
+            resolved=D20121213, points=3.0))
+        release.add_story(make_story('NG-4', started=D20121203,
+            resolved=D20121213, points=3.0))
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.stdev_cycle_time_per_point(),
-            0.6382847385042254)
+            0.68718427093627665)
 
     def testCycleTimeForComponent(self):
         release = Release()
-        release.add_story(make_story('NG-1', started=D20121201, resolved=D20121202,
-            scrum_team='Foo'))
-        release.add_story(make_story('NG-2', started=D20121201, resolved=D20121213,
-            scrum_team='Bar'))
-        release.add_story(make_story('NG-3', started=D20121201, resolved=D20121205,
-            scrum_team='Foo'))
-        release.add_story(make_story('NG-4', started=D20121201, resolved=D20121205,
-            scrum_team='Foo'))
+        release.add_story(make_story('NG-1', started=D20121201,
+            resolved=D20121202, scrum_team='Foo'))
+        release.add_story(make_story('NG-2', started=D20121201,
+            resolved=D20121213, scrum_team='Bar'))
+        release.add_story(make_story('NG-3', started=D20121201,
+            resolved=D20121205, scrum_team='Foo'))
+        release.add_story(make_story('NG-4', started=D20121201,
+            resolved=D20121205, scrum_team='Foo'))
         kanban = release.kanban()
-        self.assertEqual(kanban.average_cycle_time('Foo'), 3.0)
+        self.assertEqual(kanban.average_cycle_time('Foo'), 1.3)
 
     def testAverageCycleTimeForEstimate(self):
         release = Release()
