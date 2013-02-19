@@ -2,6 +2,7 @@ import unittest
 import json
 import transaction
 import datetime
+import time
 from ZODB.FileStorage import FileStorage
 from ZODB.DB import DB
 from ..dao import Jira, LocalDB
@@ -164,8 +165,6 @@ class JiraTest(unittest.TestCase):
         json_data = open('jira/tests/data/NG-13332.json').read()
         json_obj = self.jira.json_to_object(json_data)
         story = self.jira.make_story('NG-13332', json_obj)
-        import datetime
-        import time
         creation_date = datetime.datetime.fromtimestamp(time.mktime(
             time.strptime('2012-12-21T15:05:23.000-0500'[:23]
             , '%Y-%m-%dT%H:%M:%S.%f')))
