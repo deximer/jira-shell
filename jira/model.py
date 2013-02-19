@@ -195,7 +195,6 @@ class Story(Folder):
             return None
         cycle_time = rrule(DAILY, dtstart=self.started, until=resolved,
             byweekday=(MO, TU, WE, TH, FR)).count() - 1
-        print cycle_time
         if cycle_time < 0:
             return 0
         return cycle_time

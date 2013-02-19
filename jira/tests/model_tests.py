@@ -26,8 +26,8 @@ def make_story(key, points=1.0, status=3, scrum_team='foo', type='72',
     story.type = type
     story.created = created
     story.history = History()
-    story.history.data.append((started, 1, 3))
-    story.history.data.append((resolved, 3, 6))
+    story.history.data.append((started, 1, 3, 'Ann Doe'))
+    story.history.data.append((resolved, 3, 6, 'Joe Doe'))
     return story
 
 
@@ -134,20 +134,20 @@ class HistoryTest(unittest.TestCase):
 
     def testBackflowTrue(self):
         self.history.data = []
-        self.history.data.append((D20121201, 1, 3))
-        self.history.data.append((D20121203, 3, 1))
+        self.history.data.append((D20121201, 1, 3, 'Jane Doe'))
+        self.history.data.append((D20121203, 3, 1, 'Joe Doe'))
         self.assertTrue(self.history.backflow)
 
     def testBackflowFalse(self):
         self.history.data = []
-        self.history.data.append((D20121201, 1, 3))
-        self.history.data.append((D20121202, 3, 10090))
-        self.history.data.append((D20121203, 10090, 6))
+        self.history.data.append((D20121201, 1, 3, 'Jane Doe'))
+        self.history.data.append((D20121202, 3, 10090, 'Joe Doe'))
+        self.history.data.append((D20121203, 10090, 6, 'Bill Doe'))
         self.assertFalse(self.history.backflow)
 
     def testBackflowOneTransition(self):
         self.history.data = []
-        self.history.data.append((D20121201, 1, 3))
+        self.history.data.append((D20121201, 1, 3, 'Jane Doe'))
         self.assertFalse(self.history.backflow)
 
 
@@ -189,29 +189,29 @@ class StoryTest(unittest.TestCase):
     def testBackflow(self):
         story = make_story('NG-1')
         story.history.data = []
-        story.history.data.append((D20121201, 1, 3))
-        story.history.data.append((D20121203, 3, 1))
+        story.history.data.append((D20121201, 1, 3, 'Jane Doe'))
+        story.history.data.append((D20121203, 3, 1, 'Bill Doe'))
         self.assertTrue(story.backflow)
 
     def testBackflowGracePeriod(self):
         story = make_story('NG-1')
         story.history.data = []
         story.history.data.append(
-            (datetime.datetime(2012, 12, 1, 12, 30, 0), 1, 3))
+            (datetime.datetime(2012, 12, 1, 12, 30, 0), 1, 3, 'Jane Doe'))
         story.history.data.append(
-            (datetime.datetime(2012, 12, 1, 12, 34, 59), 3, 1))
+            (datetime.datetime(2012, 12, 1, 12, 34, 59), 3, 1, 'Joe Doe'))
         self.assertFalse(story.backflow) # 4 minutes 59 seconds
         story.history.data = []
         story.history.data.append(
-            (datetime.datetime(2012, 12, 1, 12, 30, 0), 1, 3))
+            (datetime.datetime(2012, 12, 1, 12, 30, 0), 1, 3, 'Nik Doe'))
         story.history.data.append(
-            (datetime.datetime(2012, 12, 1, 12, 35, 0), 3, 1))
+            (datetime.datetime(2012, 12, 1, 12, 35, 0), 3, 1, 'Joe Blow'))
         self.assertFalse(story.backflow) # 5 minutes
         story.history.data = []
         story.history.data.append(
-            (datetime.datetime(2012, 12, 1, 12, 30, 0), 1, 3))
+            (datetime.datetime(2012, 12, 1, 12, 30, 0), 1, 3, 'Phil Doe'))
         story.history.data.append(
-            (datetime.datetime(2012, 12, 1, 12, 35, 1), 3, 1))
+            (datetime.datetime(2012, 12, 1, 12, 35, 1), 3, 1, 'Bill Doe'))
         self.assertTrue(story.backflow) # 5 minutes 1 second
 
     def testCycleTimeWithWeekends(self):
@@ -987,14 +987,14 @@ class ReleaseTests(unittest.TestCase):
 
     def TestUpperPercentile(self):
         release = Release()
-        release.add_story(make_story('NG-1', type='1',created=None, started=D20121201,
-            resolved=D20121203))
-        release.add_story(make_story('NG-2', type='1',created=None, started=D20121201,
-            resolved=D20121205))
-        release.add_story(make_story('NG-3', type='1',created=None, started=D20121205,
-            resolved=D20121213))
-        release.add_story(make_story('NG-4', type='1',created=None, started=D20121201,
-            resolved=D20121213))
+        release.add_story(make_story('NG-1', type='1',created=None,
+            started=D20121201, resolved=D20121203))
+        release.add_story(make_story('NG-2', type='1',created=None,
+            started=D20121201, resolved=D20121205))
+        release.add_story(make_story('NG-3', type='1',created=None,
+            started=D20121205, resolved=D20121213))
+        release.add_story(make_story('NG-4', type='1',created=None,
+            started=D20121201, resolved=D20121213))
         upper85 = release.upper_percentiles(0.85, ['1'])
         self.assertEqual(len(upper85), 1)
         self.assertEqual(upper85[0].key, 'NG-4')
