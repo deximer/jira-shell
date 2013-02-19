@@ -43,7 +43,6 @@ class Command(BaseCommand):
         print 'Points in scope  :', round(release.total_points(), 1)
         print 'Points completed :', round(release.points_completed(), 1)
         print 'Total WIP        :', round(release.wip(), 1)
-        print 'PCE              :', kanban.process_cycle_efficiency()
         print 'Stories          :', release.total_stories()
         print '  Avg Size       :', round(release.average_story_size(), 1)
         print '  Std Dev        :', round(release.std_story_size(), 1)
@@ -68,12 +67,14 @@ class Command(BaseCommand):
         print
         print 'WIP by Status:'
         wip = release.wip_by_status()
+        print 'Status:', '           WIP:', '  #:'
         for key in wip:
             print key.ljust(16), ':', str(wip[key]['wip']).ljust(6), \
                 wip[key]['stories']
         print
         print 'WIP by Team:'
         wip = release.wip_by_component()
+        print 'Team:', '             WIP:', '  #:', ' Largest:'
         for key in wip:
             print key[:16].ljust(16), ':',  str(wip[key]['wip']).ljust(6), \
                 str(wip[key]['stories']).ljust(3), wip[key]['largest']
@@ -91,6 +92,7 @@ class Command(BaseCommand):
         for cycle_time in cycle_times:
             print cycle_time[0].ljust(5), ':', cycle_time[1]
         print 'Total :', total
+        print 'PCE   : %' + str(kanban.process_cycle_efficiency())
             
 
 
