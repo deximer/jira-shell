@@ -304,7 +304,7 @@ class Kanban(object):
             if component and component != story.scrum_team:
                 continue
             for transition in story.history.all:
-                if not transition[3]:
+                if not transition[3]: # days
                     continue
                 if not transition[1] in result.keys():
                     result[transition[1]] = transition[3]
@@ -524,6 +524,18 @@ class Kanban(object):
         if story.cycle_time:
             return round(outside - story.cycle_time, 1)
         return round(outside, 1)
+
+    def process_cycle_efficiency(self):
+        cycle_times = self.cycle_times_in_status()
+        value = nonvalue = 0
+        for status in cycle_times:
+            if status in [3, 10092]:
+                value += cycle_times[status]
+            elif status == 1: # ignore 'open'
+                continue
+            else:
+                nonvalue += cycle_times[status]
+        return round(value/float((value + nonvalue)), 2) * 100
 
 
 class Release(Folder):

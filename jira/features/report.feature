@@ -61,6 +61,7 @@ Feature: Report data required by the ExecReport.xls
         And I am in the directory "/1.0"
         When I enter the command "report -f"
         Then I see "Stories          : 3" in the output
+        And I see "PCE              : 62.0" in the output
         And I see "  Avg Size       : 3.7" in the output
         And I see "  Std Dev        : 2.1" in the output
         And I see "  Smallest       : 2.0" in the output

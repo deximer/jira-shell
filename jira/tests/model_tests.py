@@ -583,6 +583,23 @@ class KanbanTest(unittest.TestCase):
         release.add_story(make_story('NG-2', type='72', points=2.0,
             started=None, resolved=None))
         self.assertEqual(kanban.contingency_average('NG-1'), None)
+
+    def testProcesscycleEfficiency(self):
+        release = Release()
+        kanban = release.kanban()
+        release.add_story(make_story('NG-1', started=D20121201,
+            resolved=D20121205))
+        release.add_story(make_story('NG-2', started=D20121203,
+            resolved=D20121205))
+        release['NG-1'].history.data.append((D20121201, 1, 10089, 'Jane Doe'))
+        release['NG-1'].history.data.append((D20121202, 10089, 3, 'Jane Doe'))
+        release['NG-1'].history.data.append((D20121205, 3, 10092, 'Jane Doe'))
+        release['NG-1'].history.data.append((D20121213, 10092, 6, 'Jane Doe'))
+        release['NG-2'].history.data.append((D20121201, 1, 10089, 'Jane Doe'))
+        release['NG-2'].history.data.append((D20121202, 10089, 3, 'Jane Doe'))
+        release['NG-2'].history.data.append((D20121203, 3, 10092, 'Jane Doe'))
+        release['NG-2'].history.data.append((D20121205, 10092, 6, 'Jane Doe'))
+        self.assertEqual(kanban.process_cycle_efficiency(), 91.0)
         
 
 class ReleaseTests(unittest.TestCase):

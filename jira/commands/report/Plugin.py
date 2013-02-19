@@ -43,6 +43,7 @@ class Command(BaseCommand):
         print 'Points in scope  :', round(release.total_points(), 1)
         print 'Points completed :', round(release.points_completed(), 1)
         print 'Total WIP        :', round(release.wip(), 1)
+        print 'PCE              :', kanban.process_cycle_efficiency()
         print 'Stories          :', release.total_stories()
         print '  Avg Size       :', round(release.average_story_size(), 1)
         print '  Std Dev        :', round(release.std_story_size(), 1)
