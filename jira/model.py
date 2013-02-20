@@ -358,7 +358,7 @@ class Kanban(object):
         return numpy.median(numpy.array(days))
 
     def stdev_lead_time(self, component=None, type=['72']):
-        ''' Uses ddof=1 to sync std calc with excel's
+        ''' Uses ddof=0 because that is right and excel is wrong
         '''
         stories = self.release.stories(type)
         if not stories:
@@ -372,10 +372,10 @@ class Kanban(object):
             if not story.cycle_time:
                 continue
             cycle_times.append(story.cycle_time)
-        return round(numpy.std(numpy.array(cycle_times), ddof=1), 1)
+        return round(numpy.std(numpy.array(cycle_times), ddof=0), 1)
 
     def stdev_cycle_time(self, component=None):
-        ''' Uses ddof=1 to sync std calc with excel's
+        ''' Uses ddof=0 because that is right and excel is wrong
         '''
         if not self.release.stories():
             return None
@@ -386,7 +386,7 @@ class Kanban(object):
             if not story.started or not story.resolved:
                 continue
             cycle_times.append(story.cycle_time)
-        return round(numpy.std(numpy.array(cycle_times), ddof=1), 1)
+        return round(numpy.std(numpy.array(cycle_times), ddof=0), 1)
 
     def variance_cycle_time(self, component=None):
         if not self.release.stories():
@@ -438,7 +438,7 @@ class Kanban(object):
 
     def stdev_cycle_time_per_point(self, component=None):
         ''' See doc string for cycle_time_per_point re: calculations
-            Uses ddof=1 to sync std calc with excel's
+            Use ddof=0 becasue that is right and excel is wrong
         '''
         if not self.release.stories():
             return None
@@ -449,7 +449,7 @@ class Kanban(object):
             if not story.started or not story.resolved or not story.points:
                 continue
             days.append(story.cycle_time/story.points)
-        return numpy.std(numpy.array(days), ddof=1)
+        return numpy.std(numpy.array(days), ddof=0)
 
     def average_cycle_time_for_estimate(self, estimate):
         grid = self.release.stories_by_estimate()
@@ -658,13 +658,13 @@ class Release(Folder):
         return numpy.average(numpy.array(points))
 
     def std_story_size(self):
-        ''' Uses ddof=1 to sync std calc with excel's
+        ''' Uses ddof=0 because that is right and excel is wrong
         '''
         points = []
         for story in self.stories():
             if story.points:
                 points.append(story.points)
-        return numpy.std(numpy.array(points), ddof=1)
+        return numpy.std(numpy.array(points), ddof=0)
 
     def sort_by_size(self):
         return sorted(self.only_groomed_stories(),

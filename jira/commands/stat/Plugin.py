@@ -53,6 +53,8 @@ class Command(BaseCommand):
             print '% Variance:', '%' + str(round(percent_variance, 4) * 100)
         else:
             print '% Variance:', 'nan'
+        print 'ATP:', kanban.average_cycle_time(story.scrum_team)
+        print 'Minimum ATP:', kanban.minimum_atp(str(story.points))
         print 'Contingency:'
         print '    Inside:', kanban.contingency_inside(story.key)
         print '    Average:', kanban.contingency_average(story.key)
