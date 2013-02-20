@@ -195,7 +195,7 @@ class Command(BaseCommand):
             label,
             xy=(x, y), xytext=(10, yoffset),
             textcoords = 'offset points', ha='right', va='bottom', fontsize=8,
-            bbox = dict(boxstyle = 'round,pad=0.3', fc='cyan', alpha=0.5),
+            bbox = dict(boxstyle = 'round,pad=0.3', fc='cyan', alpha=0.1),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
             yoffset -= 10
         odd = True
@@ -214,7 +214,7 @@ class Command(BaseCommand):
             label,
             xy=(x, y), xytext=(10, yoffset),
             textcoords = 'offset points', ha='right', va='bottom', fontsize=8,
-            bbox = dict(boxstyle = 'round,pad=0.3', fc='cyan', alpha=0.5),
+            bbox = dict(boxstyle = 'round,pad=0.3', fc='cyan', alpha=0.1),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
             yoffset += 10
         pyplot.grid(True)
