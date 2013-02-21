@@ -64,7 +64,15 @@ class Command(BaseCommand):
             print 'Transition Log:'
             for t in story.history.all:
                 backflow = ''
+                skipped = ''
                 if t[1] in KANBAN and t[2] in KANBAN:
+                    steps = KANBAN.index(t[2]) - KANBAN.index(t[1])
+                    if steps == 2 and t[1] == 10089:
+                        skipped = ''
+                    elif steps > 1:
+                        if t[1] == 10089 or t[1] == 1:
+                            steps -= 1
+                        skipped = '-> skipped %d' % (steps - 1)
                     if KANBAN.index(t[1]) > KANBAN.index(t[2]):
                         backflow = '<- backflow'
                 if not t[3]:
@@ -73,7 +81,7 @@ class Command(BaseCommand):
                     days = str(t[3]).ljust(3)
                 name = t[4][:17].ljust(18) if t[4] else ''.ljust(18)
                 print '  %s, [%s], %s, %s -> %s %s' % (t[0], days, name,
-                    str(t[1]).ljust(5), str(t[2]).ljust(5), backflow)
+                    str(t[1]).ljust(5), str(t[2]).ljust(5), backflow or skipped)
         print
         for direction in ['out', 'in']:
             print 'Links %s:' % direction

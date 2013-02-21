@@ -127,7 +127,11 @@ class Command(BaseCommand):
             if not story.cycle_time:
                 cycle_time = ''
             elif not story.resolved:
-                cycle_time = str(story.cycle_time).ljust(3, '-') + '>'
+                cycle_time = str(story.cycle_time).ljust(3, '-')
+                if story.history.skipped:
+                    cycle_time += '}'
+                else:
+                    cycle_time += '>'
             else:
                 cycle_time = str(story.cycle_time)
             if story.backflow:
