@@ -151,6 +151,20 @@ class History(Folder):
             previous = date
         return False
 
+    def _get_skipped(self):
+        previous = None
+        for date, begin, end, days, name in self.all:
+            try:
+                steps = KANBAN.index(end) - KANBAN.index(begin)
+            except ValueError:
+                pass # Likely a state not in the KANBAN maybe from another
+                     # project, e.g. MTQA <- Ok, so check it knucklehead
+            if steps == 2 and begin == 10089:
+                return False
+            elif steps > 1:
+                return True
+        return False
+
     def _all(self):
         results = []
         previous_date = None
@@ -167,6 +181,7 @@ class History(Folder):
     resolved = property(_get_resolved)
     first_started = property(_get_first_started)
     backflow = property(_get_backflow)
+    skipped = property(_get_skipped)
     all = property(_all)
 
 class Story(Folder):

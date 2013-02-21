@@ -132,6 +132,22 @@ class HistoryTest(unittest.TestCase):
             time.strptime('2013-01-01T15:31:39.000','%Y-%m-%dT%H:%M:%S.%f')))
         self.assertEqual(self.history.first_started, started)
 
+    def testSkippedTrue(self):
+        self.history.data = []
+        self.history.data.append((D20121201, 1, 3, 'Jane Doe'))
+        self.assertTrue(self.history.skipped)
+
+    def testSkippedFalse(self):
+        self.history.data = []
+        self.history.data.append((D20121201, 1, 10089, 'Jane Doe'))
+        self.history.data.append((D20121201, 10089, 3, 'Jane Doe'))
+        self.history.data.append((D20121201, 3, 10090, 'Jane Doe'))
+        self.history.data.append((D20121201, 10090, 10104, 'Jane Doe'))
+        self.history.data.append((D20121201, 10104, 10092, 'Jane Doe'))
+        self.history.data.append((D20121201, 10092, 10036, 'Jane Doe'))
+        self.history.data.append((D20121201, 10036, 6, 'Jane Doe'))
+        self.assertFalse(self.history.skipped)
+
     def testBackflowTrue(self):
         self.history.data = []
         self.history.data.append((D20121201, 1, 3, 'Jane Doe'))
