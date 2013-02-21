@@ -19,23 +19,23 @@ Feature: Report data required by the ExecReport.xls
         When I enter the command "report"
         Then I see "Stories          : 3" in the output
         And I see "  Avg Size       : 3.7" in the output
-        And I see "  Std Dev        : 2.1" in the output
+        And I see "  Std Dev        : 1.7" in the output
         And I see "  Smallest       : 2.0" in the output
         And I see "  Largest        : 6.0" in the output
         And I see "  # In Process   : 2" in the output
         And I see "  Avg Cycle Time : 9.0" in the output
-        And I see "  Std Cycle Time : 5.0" in the output
+        And I see "  Std Cycle Time : 4.1" in the output
         And I see "  m Cycle Time   : 9.0" in the output
         And I see "  Total Variance : 16.7" in the output
         And I see "Bugs             : 3" in the output
         And I see "  Production     : 1" in the output
         And I see "    Avg Cycle Time : 5.0" in the output
         And I see "    m Cycle Time   : 10.0" in the output
-        And I see "    Std Cycle Time : nan" in the output
+        And I see "    Std Cycle Time : 0.0" in the output
         And I see "  Development    : 2" in the output
         And I see "    Avg Cycle Time : 1.5" in the output
         And I see "    m Cycle Time   : 2.0" in the output
-        And I see "    Std Cycle Time : 0.7" in the output
+        And I see "    Std Cycle Time : 0.5" in the output
         And I see "Points in scope  : 11.0" in the output
         And I see "Points completed : 2.0" in the output
         And I see "Total WIP        : 9" in the output
@@ -61,25 +61,25 @@ Feature: Report data required by the ExecReport.xls
         And I am in the directory "/1.0"
         When I enter the command "report -f"
         Then I see "Stories          : 3" in the output
-        And I see "PCE              : 62.0" in the output
+        And I see "PCE   : %62.0" in the output
         And I see "  Avg Size       : 3.7" in the output
-        And I see "  Std Dev        : 2.1" in the output
+        And I see "  Std Dev        : 1.7" in the output
         And I see "  Smallest       : 2.0" in the output
         And I see "  Largest        : 6.0" in the output
         And I see "  # In Process   : 2" in the output
         And I see "  Avg Cycle Time : 9.0" in the output
-        And I see "  Std Cycle Time : 5.0" in the output
+        And I see "  Std Cycle Time : 4.1" in the output
         And I see "  m Cycle Time   : 9.0" in the output
         And I see "  Total Variance : 16.7" in the output
         And I see "Bugs             : 3" in the output
         And I see "  Production     : 1" in the output
         And I see "    Avg Cycle Time : 5.0" in the output
         And I see "    m Cycle Time   : 10.0" in the output
-        And I see "    Std Cycle Time : nan" in the output
+        And I see "    Std Cycle Time : 0.0" in the output
         And I see "  Development    : 2" in the output
         And I see "    Avg Cycle Time : 1.5" in the output
         And I see "    m Cycle Time   : 2.0" in the output
-        And I see "    Std Cycle Time : 0.7" in the output
+        And I see "    Std Cycle Time : 0.5" in the output
         And I see "Points in scope  : 11.0" in the output
         And I see "Points completed : 2.0" in the output
         And I see "Total WIP        : 9" in the output

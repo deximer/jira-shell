@@ -177,6 +177,12 @@ class Jira(object):
 
     def refresh_cache(self, releases=['2.7'], links=True):
         keys = self.get_release_keys(releases)
+        release_keys = []
+        #for release in releases:
+        #    obj = self.cache.get_by_path('/NG/%s' % release)
+        #    release_keys.extend(obj.keys())
+        #orphans = [k for k in release_keys if k not in keys]
+        #keys.extend(orphans)
         factor = 120.0
         if links:
             factor = 12.0
