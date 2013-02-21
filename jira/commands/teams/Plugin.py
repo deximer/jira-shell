@@ -21,7 +21,7 @@ class Command(BaseCommand):
             print 'Error: Must navigate to a release. (hint: help cd)'
             return
         teams = container.tasked_teams()
-        print 'Team:'.ljust(25), '    Issues:'
+        print 'Team:'.ljust(25), '   Issues:', 'Max PCE:'
         for team in sorted(teams.keys()):
-            print team.ljust(25), ': ', str(teams[team])
+            print team.ljust(25), ': ', str(teams[team]).ljust(7), '%' + str(container.kanban().process_cycle_efficiency(component=team))
         print 'Total:', str(len(teams))

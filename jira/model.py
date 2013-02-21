@@ -540,8 +540,8 @@ class Kanban(object):
             return round(outside - story.cycle_time, 1)
         return round(outside, 1)
 
-    def process_cycle_efficiency(self):
-        cycle_times = self.cycle_times_in_status()
+    def process_cycle_efficiency(self, component=None, types=['72']):
+        cycle_times = self.cycle_times_in_status(component, types)
         value = nonvalue = 0
         for status in cycle_times:
             if status in [3, 10092]:
@@ -550,6 +550,8 @@ class Kanban(object):
                 continue
             else:
                 nonvalue += cycle_times[status]
+        if not value + nonvalue:
+            return 0
         return round(value/float((value + nonvalue)), 2) * 100
 
 
