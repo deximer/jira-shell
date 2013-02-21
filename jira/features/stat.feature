@@ -1,5 +1,5 @@
 Feature: List critial information about a specific issue
-         In order that I can view critical information about an issue
+         In order that I can answer questions about a specific issue
          As a user
          I want a command to list critical data for a specific issue
 

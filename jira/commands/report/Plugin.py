@@ -94,6 +94,3 @@ class Command(BaseCommand):
                 '%' + str(round(cycle_time[1]/float(total), 2) * 100)
         print 'Total :', total
         print 'Max PCE   : %' + str(kanban.process_cycle_efficiency())
-            
-
-
