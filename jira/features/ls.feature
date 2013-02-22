@@ -232,7 +232,7 @@ Feature: list issues in a release
         When I enter the command "ls"
         Then I see "  1  " in the output
         And I see "  6  " in the output
-        And I see "3           1" in the output
+        And I see "InPro       1" in the output
         And I see "-5" in the output
 
     Scenario: A user lists issues that have backflow
