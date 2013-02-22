@@ -5,7 +5,7 @@ from model import Release, humanize
 
 class Command(BaseCommand):
     help = 'Report on the current release'
-    usage = 'report [team]'
+    usage = 'report [team] [-d developer]'
     options_help = '''    -d : report on a specific developer'''
     exmamples = '''    report
     report App'''
