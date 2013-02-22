@@ -62,6 +62,7 @@ class Command(BaseCommand):
         if story.history.data:
             print
             print 'Transition Log:'
+            previous_date = None
             for t in story.history.all:
                 backflow = ''
                 skipped = ''
@@ -74,7 +75,10 @@ class Command(BaseCommand):
                             steps -= 1
                         skipped = '-> skipped %d' % (steps - 1)
                     if KANBAN.index(t[1]) > KANBAN.index(t[2]):
-                        backflow = '<- backflow'
+                        if previous_date and \
+                            (t[0] - previous_date).total_seconds() > 300:
+                            backflow = '<- backflow'
+                previous_date = t[0]
                 if not t[3]:
                     days = ''.ljust(3)
                 else:
