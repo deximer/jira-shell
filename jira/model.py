@@ -190,7 +190,7 @@ class History(Folder):
             results.append((transition[0], transition[1], transition[2], days,
                 transition[3]))
             previous_date = transition[0]
-        if results:
+        if results and results[-1][2] != 6:
             last = results[-1]
             del results[-1]
             results.append((last[0], last[1], last[2], \

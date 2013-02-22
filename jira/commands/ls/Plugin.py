@@ -84,7 +84,13 @@ class Command(BaseCommand):
                     sorting.append(field)
         if not sorting:
             sorting = ['scrum_team']
-        for story in sorted(stories, key=lambda x:tuple([getattr(x, key) for key in sorting])):
+        def compare(a, b):
+            if not a[0]:
+                return -1
+            if not b[0]:
+                return 1
+            return cmp(a, b)
+        for story in sorted(stories, key=lambda x:tuple([getattr(x, key) for key in sorting]), cmp=compare):
             try:
                 story = IDirectoryListItem(story)
             except TypeError:
