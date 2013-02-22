@@ -1,7 +1,7 @@
 import curses
 import argparse
 from ..base import BaseCommand
-from model import Release, KANBAN
+from model import Release, KANBAN, humanize
 
 class Command(BaseCommand):
     help = 'Print details of specified issues'
@@ -37,7 +37,7 @@ class Command(BaseCommand):
         print 'Team:', story.scrum_team
         print 'Developer:', story.developer
         print 'Points:', story.points
-        print 'Status:', story.status
+        print 'Status:', humanize(story.status)
         print 'Created:', story.created
         print 'Started:', story.started
         print 'Resolved:', story.resolved
@@ -81,7 +81,8 @@ class Command(BaseCommand):
                     days = str(t[3]).ljust(3)
                 name = t[4][:17].ljust(18) if t[4] else ''.ljust(18)
                 print '  %s, [%s], %s, %s -> %s %s' % (t[0], days, name,
-                    str(t[1]).ljust(5), str(t[2]).ljust(5), backflow or skipped)
+                    humanize(t[1]).ljust(5), humanize(t[2]).ljust(5), \
+                        backflow or skipped)
         print
         for direction in ['out', 'in']:
             print 'Links %s:' % direction

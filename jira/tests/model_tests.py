@@ -462,7 +462,7 @@ class KanbanTest(unittest.TestCase):
             resolved=D20121213))
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.stdev_lead_time(), 3.5)
+        self.assertEqual(kanban.stdev_lead_time(), 3.0)
 
     def testStdevCycleTimeStrictBaked(self):
         release = Release()
@@ -476,7 +476,7 @@ class KanbanTest(unittest.TestCase):
             resolved=D20121213))
         kanban = Kanban()
         kanban.add_release(release)
-        self.assertEqual(kanban.stdev_cycle_time(), 3.0)
+        self.assertEqual(kanban.stdev_cycle_time(), 2.6)
 
     def testCycleTimePerPointStrictBaked(self):
         release = Release()
@@ -510,7 +510,7 @@ class KanbanTest(unittest.TestCase):
         kanban = Kanban()
         kanban.add_release(release)
         self.assertEqual(kanban.stdev_cycle_time_per_point(),
-            0.68718427093627665)
+            0.59511903571190405)
 
     def testCycleTimeForComponent(self):
         release = Release()
@@ -792,7 +792,7 @@ class ReleaseTests(unittest.TestCase):
         release['NG-2'].type = '72'
         release['NG-3'].points = 8.0
         release['NG-3'].type = '72'
-        self.assertEqual(release.std_story_size(), 3.0550504633038931)
+        self.assertEqual(release.std_story_size(), 2.4944382578492941)
 
     def testSortBySize(self):
         release = Release()

@@ -5,7 +5,7 @@ from zope.component import adapts
 from zope.component import getGlobalSiteManager
 from ..base import BaseCommand
 from interfaces import IRelease, IStory, IProject
-from model import Story
+from model import Story, humanize
 
 gsm = getGlobalSiteManager()
 
@@ -152,7 +152,7 @@ class Command(BaseCommand):
             print story.key[:10].ljust(10), \
                   team[:18].ljust(18), \
                   str(story.points).ljust(5) if story.points else ''.ljust(5), \
-                  str(story.status).ljust(5), \
+                  humanize(story.status).ljust(5), \
                   cycle_time.ljust(5), \
                   str(story.type).ljust(5), \
                   rework.ljust(5), \

@@ -71,7 +71,7 @@ class DBTest(unittest.TestCase):
     def testGet(self):
         self.db.data['1.0'] = Release()
         self.db.data['1.0']['NG-1'] = Story('Issue 1')
-        self.assertEqual(self.db.get('NG-1').key, 'Issue 1')
+        self.assertEqual(self.db.get('NG-1')[0].key, 'Issue 1')
 
 
 class JiraTest(unittest.TestCase):

@@ -43,6 +43,21 @@ STATUS_CLOSED = 6
 KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_REOPENED, STATUS_IN_PROGRESS,
     STATUS_COMPLETED, STATUS_QA_READY, STATUS_QA_ACTIVE, STATUS_VERIFIED,
     STATUS_CLOSED]
+HUMAN_STATUS = {1     : 'Open',
+                10089 : 'Ready',
+                3     : 'InPro',
+                4     : 'ReOpn',
+                10090 : 'QaCmp',
+                10104 : 'QaRdy',
+                10109 : '10109',
+                10092 : 'QaAct',
+                10036 : 'RdyPo',
+                6     : 'Closd',}
+
+def humanize(status):
+    if HUMAN_STATUS.has_key(status):
+        return HUMAN_STATUS[status]
+    return str(status)
 
 class Link(Folder):
     def __init__(self, story, type):

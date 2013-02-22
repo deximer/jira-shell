@@ -1,7 +1,7 @@
 Feature: List the scrum teams that are participating in a release
-         In order that I can quickly identify the scrum teams in a release
+         In order that I can identify which teams are active in a release
          As a user
-         I want a method to quickly display the scrum teams in a release
+         I want a method to display the scrum teams working a release
 
     Scenario: A user views the the scrum teams with assigned work in a release
         Given I have the following release

@@ -1,7 +1,7 @@
 import curses
 import argparse
 from ..base import BaseCommand
-from model import Release, KANBAN
+from model import Release, KANBAN, humanize
 
 class Command(BaseCommand):
     help = "Render an issue's link graphs"
@@ -39,13 +39,13 @@ class Command(BaseCommand):
             self.args.t = ['1']
         print 'Release:'.ljust(15), 'Typ:', 'Stat:', ' Relationship Tree:'
         print ''.join(story.fix_versions).ljust(15)[:15], \
-            str(story.type).ljust(4), str(story.status).ljust(6), story.key
+            str(story.type).ljust(4), humanize(story.status).ljust(6), story.key
         if story.links.get_links(directions=self.direction):
             for link in story.links.get_links(directions=self.direction):
                 if not self.args.t or link.type in self.args.t:
                     print ''.join(link.fix_versions).ljust(15)[:15], \
                         str(link.type).ljust(4), \
-                        str(link.status).ljust(6),'\%s %s' % (self.arrow,
+                        humanize(link.status).ljust(6),'\%s %s' % (self.arrow,
                             link.key)
                 if self.args.b and link.type not in self.args.t:
                     continue
@@ -57,7 +57,7 @@ class Command(BaseCommand):
                 continue
             if not self.args.t or link.type in self.args.t:
                 print ''.join(link.fix_versions).ljust(15)[:15], \
-                    str(link.type).ljust(4), str(link.status).ljust(6), \
+                    str(link.type).ljust(4), humanize(link.status).ljust(6), \
                     ''.ljust(len(indent[:-1])), '\%s %s' % (self.arrow, 
                         link.key)
             if self.args.b and link.type not in self.args.t:
