@@ -90,7 +90,8 @@ class Command(BaseCommand):
             if not b[0]:
                 return 1
             return cmp(a, b)
-        for story in sorted(stories, key=lambda x:tuple([getattr(x, key) for key in sorting]), cmp=compare):
+        for story in sorted(stories, key=lambda x:tuple([getattr(x, key) \
+            for key in sorting]), cmp=compare):
             try:
                 story = IDirectoryListItem(story)
             except TypeError:
