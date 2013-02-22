@@ -190,6 +190,11 @@ class History(Folder):
             results.append((transition[0], transition[1], transition[2], days,
                 transition[3]))
             previous_date = transition[0]
+        if results:
+            last = results[-1]
+            del results[-1]
+            results.append((last[0], last[1], last[2], \
+                (datetime.datetime.now() - last[0]).days, last[4]))
         return results
 
     started = property(_get_started)

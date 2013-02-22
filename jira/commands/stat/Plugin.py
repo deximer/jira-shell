@@ -79,7 +79,10 @@ class Command(BaseCommand):
                     days = ''.ljust(3)
                 else:
                     days = str(t[3]).ljust(3)
-                name = t[4][:17].ljust(18) if t[4] else ''.ljust(18)
+                try:
+                    name = t[4][:17].ljust(18) if t[4] else ''.ljust(18)
+                except:
+                    import pdb; pdb.set_trace()
                 print '  %s, [%s], %s, %s -> %s %s' % (t[0], days, name,
                     humanize(t[1]).ljust(5), humanize(t[2]).ljust(5), \
                         backflow or skipped)
