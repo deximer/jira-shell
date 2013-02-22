@@ -1,7 +1,7 @@
 import argparse
 import copy
 from ..base import BaseCommand
-from model import Release
+from model import Release, humanize
 
 class Command(BaseCommand):
     help = 'Report on the current release'
@@ -69,8 +69,8 @@ class Command(BaseCommand):
         wip = release.wip_by_status()
         print 'Status:', '           WIP:', '  #:'
         for key in wip:
-            print key.ljust(16), ':', str(wip[key]['wip']).ljust(6), \
-                wip[key]['stories']
+            print humanize(int(key)).ljust(16), ':', \
+                str(wip[key]['wip']).ljust(6), wip[key]['stories']
         print
         print 'WIP by Team:'
         wip = release.wip_by_component()
@@ -90,7 +90,8 @@ class Command(BaseCommand):
             cycle_times.append((str(status), cycle_times_in_status[status]))
         cycle_times.sort(key=lambda x:x[1], reverse=True)
         for cycle_time in cycle_times:
-            print cycle_time[0].ljust(5), ':', str(cycle_time[1]).ljust(4), \
+            print humanize(int(cycle_time[0])).ljust(5), ':', \
+                str(cycle_time[1]).ljust(4), \
                 '%' + str(round(cycle_time[1]/float(total), 2) * 100)
         print 'Total :', total
         print 'Max PCE   : %' + str(kanban.process_cycle_efficiency())
