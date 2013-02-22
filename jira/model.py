@@ -130,6 +130,20 @@ class History(Folder):
                 results.append(transition[0])
         return results
 
+    def get_takt_time(self, start, end):
+        ''' This method needs to locate the first attempt and connect it
+            with a finish, or handle a backflow condition, skip ahead condition
+            etc. It then needs to return as many takt completions. partial
+            attempts, etc. How we measure takt time nees to be decided
+        '''
+        start_date = self.get_transition(start)
+        if not start_date:
+            return None
+        end_date = self.get_transition(end)
+        if not end_date:
+            return None
+        return None # Not implemented
+
     def _get_started(self):
         start_dates = self.get_transition(3)
         open_dates = self.get_transition(1)

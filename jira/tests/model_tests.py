@@ -109,6 +109,10 @@ class HistoryTest(unittest.TestCase):
     def testGetTransitionOutOfBounds(self):
         self.assertEqual(self.history.get_transition('x'), [])
 
+    def testGetTaktTime(self):
+        # This is not impl. See method in model.py for details
+        self.assertEqual(self.history.get_takt_time(3, 10092), None)
+
     def testStarted(self):
         started = datetime.datetime.fromtimestamp(time.mktime(
             time.strptime('2013-01-01T15:31:39.000','%Y-%m-%dT%H:%M:%S.%f')))
