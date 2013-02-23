@@ -344,13 +344,15 @@ class Kanban(object):
             return None
         return round(numpy.average(numpy.array(days)), 1)
 
-    def cycle_times_in_status(self, component=None, type=['72']):
+    def cycle_times_in_status(self, component=None, type=['72'], points=[]):
         stories = self.release.stories(type=type)
         if not stories:
             return None
         result = {}
         for story in stories:
             if component and component != story.scrum_team:
+                continue
+            if points and story.points not in points:
                 continue
             for transition in story.history.all:
                 if not transition[3]: # days
@@ -574,7 +576,7 @@ class Kanban(object):
             return round(outside - story.cycle_time, 1)
         return round(outside, 1)
 
-    def process_cycle_efficiency(self, component=None, types=['72']):
+    def process_cycle_efficiency(self, component=None, types=['72'], points=[]):
         cycle_times = self.cycle_times_in_status(component, types)
         value = nonvalue = 0
         for status in cycle_times:
