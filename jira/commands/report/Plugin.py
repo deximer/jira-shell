@@ -93,5 +93,5 @@ class Command(BaseCommand):
             print humanize(int(cycle_time[0])).ljust(5), ':', \
                 str(cycle_time[1]).ljust(4), \
                 '%' + str(round(cycle_time[1]/float(total), 2) * 100)
-        print 'Total :', total
-        print 'Max PCE   : %' + str(kanban.process_cycle_efficiency())
+        print 'Total   :', total
+        print 'Max PCE : %' + str(kanban.process_cycle_efficiency())
