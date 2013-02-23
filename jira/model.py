@@ -577,7 +577,7 @@ class Kanban(object):
         return round(outside, 1)
 
     def process_cycle_efficiency(self, component=None, types=['72'], points=[]):
-        cycle_times = self.cycle_times_in_status(component, types)
+        cycle_times = self.cycle_times_in_status(component, types, points)
         value = nonvalue = 0
         for status in cycle_times:
             if status in [3, 10092]:
