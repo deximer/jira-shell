@@ -17,6 +17,7 @@ class Command(BaseCommand):
     -k : chart using or surpressing specific issue keys
     -p : chart for estimate value 
     -f : calculate cycle times from the first in process date (default is last)
+    -e : group stories by thier estimate values (show estimate/ct correlation))
     -s : sorting criteria
     -t : specify chart type (default is cycle times)
     -x : export graph to a file (valid extensions are pdf, png, or jpg)
@@ -31,6 +32,7 @@ class Command(BaseCommand):
         parser.add_argument('team', nargs='?')
         parser.add_argument('-t', nargs='*', required=False)
         parser.add_argument('-d', nargs='*', required=False)
+        parser.add_argument('-e', action='store_true', required=False)
         parser.add_argument('-p', nargs='*', required=False)
         parser.add_argument('-s', nargs='*', required=False)
         parser.add_argument('-k', nargs='*', required=False)
@@ -38,46 +40,48 @@ class Command(BaseCommand):
         parser.add_argument('-x', nargs='*', required=False)
         parser.add_argument('-f', action='store_true', required=False)
         try:
-            args = parser.parse_args(args)
+            self.args = parser.parse_args(args)
         except:
             return
         self.release = jira.cache.get_by_path(jira.cache.cwd)
         if not isinstance(self.release, Release):
             print 'Error: Must navigate to a release. (hint: help cd)'
             return
-        if args.f:
+        if self.args.f:
             self.cycle_time = 'aggregate_cycle_time'
         else:
             self.cycle_time = 'cycle_time'
-        if args.team:
+        if self.args.team:
             stories = [s for s in self.release.stories()
-                if s.scrum_team and s.scrum_team[:len(args.team)] == args.team]
+                if s.scrum_team and s.scrum_team[:len(self.args.team)] \
+                    == self.args.team]
             self.release = Release()
             for story in stories:
                 self.release.add_story(story)
-        if args.d:
+        if self.args.d:
             stories = [s for s in self.release.stories()
-                if s.developer and s.developer[:len(args.d[0])] == args.d[0]]
+                if s.developer and s.developer[:len(self.args.d[0])] \
+                    == self.args.d[0]]
             self.release = Release()
             for story in stories:
                 self.release.add_story(story)
-        if args.p:
+        if self.args.p:
             stories = [s for s in self.release.stories()
-                if s.points and s.points == float(args.p[0])]
+                if s.points and s.points == float(self.args.p[0])]
             self.release = Release()
             for story in stories:
                 self.release.add_story(story)
-        if args.c:
-            cycle_time = int(args.c[0])
+        if self.args.c:
+            cycle_time = int(self.args.c[0])
             stories = [s for s in self.release.stories()
                 if getattr(s, self.cycle_time) < cycle_time]
             self.release = Release()
             for story in stories:
                 self.release.add_story(story)
-        if args.k:
+        if self.args.k:
             hide_keys = []
             show_keys = []
-            for k in args.k:
+            for k in self.args.k:
                 if k[0] == '!':
                     hide_keys.append('NG-' + k[1:])
                 else:
@@ -94,8 +98,8 @@ class Command(BaseCommand):
                 self.release = Release()
                 for story in stories:
                     self.release.add_story(story)
-        if args.x:
-            self.file = args.x[0]
+        if self.args.x:
+            self.file = self.args.x[0]
         else:
             self.file = None
         if not self.release.stories():
@@ -104,16 +108,16 @@ class Command(BaseCommand):
         kanban = self.release.kanban()
         stories = self.release.stories(type='72')
         stories.sort(key=lambda i:i.key)
-        if args.s:
-            sorting = args.s
+        if self.args.s:
+            sorting = self.args.s
             if 'cycle_time' not in sorting:
                 sorting.append('cycle_time')
         else:
             sorting = ['points', 'scrum_team', 'cycle_time']
-        if not args.t or args.t == 'cycles':
+        if not self.args.t or self.args.t == 'cycles':
             self.cycles(stories, sorting)
         else:
-            print 'Unknown chart type: %s' % args.t[0]
+            print 'Unknown chart type: %s' % self.args.t[0]
 
     def cycles(self, stories, sorting):
         data = []
@@ -147,8 +151,10 @@ class Command(BaseCommand):
             labels.append(story.key)
             estimate_labels.append(story.scrum_team)
             developer_labels.append(story.developer)
-            count.append(count[-1] + 1)
-            #count.append(getattr(story, sorting[0]))
+            if self.args.e:
+                count.append(getattr(story, sorting[0]))
+            else:
+                count.append(count[-1] + 1)
 
         std = numpy.std([d for d in alldata if d])
         average = numpy.average([d for d in alldata if d])
