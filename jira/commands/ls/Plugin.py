@@ -44,15 +44,6 @@ class Command(BaseCommand):
             args = parser.parse_args(args)
         except:
             return
-        print 'Key'.ljust(10), \
-              'Team:'.ljust(18), \
-              'Pts:'.ljust(5), \
-              'Stat:'.ljust(5), \
-              'CT:'.ljust(5), \
-              'Type:'.ljust(5), \
-              'Bugs:'.ljust(5), \
-              'Cont:'.ljust(5), \
-              'Title:'
         issues = 0
         points = 0
         epic_points = 0
@@ -63,10 +54,25 @@ class Command(BaseCommand):
         show_status = []
         if args.s:
             for arg in args.s:
-                if arg[:1] == '!':
-                    hide_status.append(int(arg[1:]))
-                else:
-                    show_status.append(int(arg))
+                try:
+                    if arg[:1] == '!':
+                        hide_status.append(int(arg[1:]))
+                    else:
+                        show_status.append(int(arg))
+                except ValueError:
+                    if arg[:1] == '!':
+                        arg = arg[1:]
+                    print 'Error: %s is an invalid status' % arg
+                    return
+        print 'Key'.ljust(10), \
+              'Team:'.ljust(18), \
+              'Pts:'.ljust(5), \
+              'Stat:'.ljust(5), \
+              'CT:'.ljust(5), \
+              'Type:'.ljust(5), \
+              'Bugs:'.ljust(5), \
+              'Cont:'.ljust(5), \
+              'Title:'
         hide_type = []
         show_type = []
         if args.t:

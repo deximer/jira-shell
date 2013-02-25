@@ -39,6 +39,21 @@ Feature: list issues in a release
         And I do not see "NG-4" in the output
         And I do not see "NG-2" in the output
 
+    Scenario: A user tries to list issues but uses an invalid status
+        Given I have the following release
+        | key |
+        | 1.0 |
+        And I have the following issues in the release
+        | key  | title | status |
+        | NG-1 | Foo 1 | 3      |
+        | NG-2 | Bar 2 | 6      |
+        | NG-3 | Baz 3 | 3      |
+        | NG-4 | Baz 4 | 1      |
+        And I am in the directory "/1.0"
+        When I enter the command "ls -s invalid"
+        Then I see "Error: invalid is an invalid status" in the output
+        And I do not see "Team:" in the output
+
     Scenario: A user lists issues of type 72 in the release
         Given I have the following release
         | key |
