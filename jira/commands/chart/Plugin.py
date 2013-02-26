@@ -1,6 +1,8 @@
 import argparse
 import copy
 import numpy
+import pylab
+import scipy
 import warnings
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
@@ -127,8 +129,12 @@ class Command(BaseCommand):
         if bins < 10:
             bins = 10
         cycle_times = [s.cycle_time for s in stories if s.cycle_time]
-        pyplot.hist(cycle_times, bins)
-        pyplot.show(block=False)
+        param = scipy.stats.norm.fit(cycle_times)
+        x = numpy.linspace(min(cycle_times), max(cycle_times), 200)
+        pdf_fitted = scipy.stats.norm.pdf(x, loc=param[0], scale=param[1])
+        pylab.plot(x, pdf_fitted, 'r-', label='Fitted')
+        pylab.hist(cycle_times, bins, normed=True, alpha=.3)
+        pylab.show(block=False)
 
     def cycles(self, stories, sorting):
         data = []
