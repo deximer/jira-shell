@@ -29,6 +29,7 @@ Command line tools for Jira.""",
       install_requires=[
           'BeautifulSoup',
           'numpy',
+          'scipy',
           'matplotlib',
           'zope.component',
           'transaction',

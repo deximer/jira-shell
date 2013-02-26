@@ -1,4 +1,5 @@
 import numpy
+from scipy import stats
 import transaction
 import time
 import datetime
@@ -702,6 +703,13 @@ class Release(Folder):
             if story.status == 6 and story.points:
                 points += story.points
         return points
+
+    def skew(self):
+        points = []
+        for story in self.stories():
+            if story.points:
+                points.append(story.points)
+        return stats.skew(points)
 
     def average_story_size(self):
         points = []
