@@ -664,6 +664,13 @@ class Release(Folder):
         total = self.aggregate_developer_cycle_time()
         return round(total/float(len(developers.keys())/2.0), 1)
 
+    def stdev_developer_cycle_time(self):
+        developers = self.developers()
+        cycle_times = []
+        for developer in developers:
+            cycle_times.append(sum([s.cycle_time for s in developers[developer] if s.cycle_time]))
+        return round(numpy.std(cycle_times), 1)
+
     def stories(self, type=['72']):
         return [story for story in self.values() if story.type in type]
 

@@ -56,6 +56,7 @@ class Command(BaseCommand):
         print '  Total Variance :', kanban.variance_cycle_time()
         print '  Total Dev CT   :', release.aggregate_developer_cycle_time()
         print '  Avg Dev CT     :', release.average_developer_cycle_time()
+        print '  Std Dev CT     :', release.stdev_developer_cycle_time()
         print 'Bugs             :', len(release.bugs())
         print '  Production     :', len(release.stories(type=['78']))
         print '    Open           :', len(release.resolved_stories(['78']))
