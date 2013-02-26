@@ -709,7 +709,7 @@ class Release(Folder):
         for story in self.stories():
             if story.points:
                 points.append(story.points)
-        return stats.skewtest(points)
+        return stats.skew(points)
 
     def average_story_size(self):
         points = []
