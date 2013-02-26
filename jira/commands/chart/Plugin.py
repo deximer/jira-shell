@@ -30,7 +30,7 @@ class Command(BaseCommand):
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
         parser.add_argument('team', nargs='?')
-        parser.add_argument('-t', nargs='*', required=False)
+        parser.add_argument('-t', nargs='?', required=False)
         parser.add_argument('-d', nargs='*', required=False)
         parser.add_argument('-e', action='store_true', required=False)
         parser.add_argument('-p', nargs='*', required=False)
@@ -114,10 +114,18 @@ class Command(BaseCommand):
                 sorting.append('cycle_time')
         else:
             sorting = ['points', 'scrum_team', 'cycle_time']
-        if not self.args.t or self.args.t == 'cycles':
+
+        if self.args.t == 'hist':
+            self.histogram(stories)
+        elif not self.args.t or self.args.t == 'cycles':
             self.cycles(stories, sorting)
         else:
             print 'Unknown chart type: %s' % self.args.t[0]
+
+    def histogram(self, stories):
+        cycle_times = [s.cycle_time for s in stories if s.cycle_time]
+        count, bins, ignored = pyplot.hist(cycle_times, 30)
+        pyplot.show()
 
     def cycles(self, stories, sorting):
         data = []
