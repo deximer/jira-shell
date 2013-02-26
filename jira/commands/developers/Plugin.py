@@ -20,10 +20,10 @@ class Command(BaseCommand):
         if not isinstance(container, Release):
             print 'Error: Must navigate to a release. (hint: help cd)'
             return
-        print 'Developer:'.ljust(25), '   Stories:'
+        print 'Developer:'.ljust(25), '   Stories: Aggregate Cycle Time:'
         developers = container.developers()
         for developer in sorted(developers.keys()):
             if not developer:
                 continue
-            print developer.ljust(25), ': ', developers[developer]
+            print developer.ljust(25), ': ', str(len(developers[developer])).ljust(8), str(sum([s.cycle_time for s in developers[developer] if s.cycle_time]))
         print 'Total:', str(len(developers))

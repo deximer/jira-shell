@@ -18,11 +18,12 @@ D20121208 = datetime.datetime(2012, 12, 8, 16, 0, 0)
 D20121213 = datetime.datetime(2012, 12, 13, 17, 0, 0)
 
 def make_story(key, points=1.0, status=3, scrum_team='foo', type='72',
-        created=D20121201, started=D20121202, resolved=D20121203):
+        created=D20121201, started=D20121202, resolved=D20121203, dev='joe'):
     story = Story(key)
     story.points = points
     story.status = status
     story.scrum_team = scrum_team
+    story.developer = 'joe'
     story.type = type
     story.created = created
     story.history = History()
@@ -722,8 +723,28 @@ class ReleaseTests(unittest.TestCase):
         release['NG-4'].type = '72'
         release['NG-4'].developer = 'joe'
         self.assertEqual(len(release.developers().keys()), 2)
-        self.assertEqual(release.developers()['joe'], 3)
-        self.assertEqual(release.developers()['ann'], 1)
+        self.assertEqual(len(release.developers()['joe']), 3)
+        self.assertEqual(len(release.developers()['ann']), 1)
+
+    def testAggregateDeveloperCycleTime(self):
+        release = Release()
+        release.add_story(make_story('NG-1', started=D20121201,
+            resolved=D20121203, dev='ann'))
+        release.add_story(make_story('NG-2', started=D20121201,
+            resolved=D20121208, dev='ann'))
+        release.add_story(make_story('NG-3', started=D20121205,
+            resolved=D20121213, dev='nik'))
+        self.assertEqual(release.aggregate_developer_cycle_time(), 10)
+
+    def testAverageDeveloperCycleTime(self):
+        release = Release()
+        release.add_story(make_story('NG-1', started=D20121201,
+            resolved=D20121203, dev='ann'))
+        release.add_story(make_story('NG-2', started=D20121201,
+            resolved=D20121208, dev='ann'))
+        release.add_story(make_story('NG-3', started=D20121205,
+            resolved=D20121213, dev='nik'))
+        self.assertEqual(release.average_developer_cycle_time(), 5.2)
 
     def testOnlyStories(self):
         release = Release()

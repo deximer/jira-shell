@@ -9,6 +9,7 @@ import links
 import ls
 import refresh
 import report
+import simulate
 import stat
 import teams
 import top

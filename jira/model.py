@@ -646,10 +646,23 @@ class Release(Folder):
         developers = {}
         for story in self.stories():
             if story.developer not in developers:
-                developers[story.developer] = 1
+                developers[story.developer] = [story]
             else:
-                developers[story.developer] += 1
+                developers[story.developer].append(story)
         return developers
+
+    def aggregate_developer_cycle_time(self):
+        developers = self.developers()
+        total = 0
+        for developer in developers:
+            total += sum([
+                s.cycle_time for s in developers[developer] if s.cycle_time])
+        return total
+
+    def average_developer_cycle_time(self):
+        developers = self.developers()
+        total = self.aggregate_developer_cycle_time()
+        return round(total/float(len(developers.keys())/2.0), 1)
 
     def stories(self, type=['72']):
         return [story for story in self.values() if story.type in type]
