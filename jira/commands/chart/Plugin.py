@@ -123,9 +123,12 @@ class Command(BaseCommand):
             print 'Unknown chart type: %s' % self.args.t[0]
 
     def histogram(self, stories):
+        bins = len(stories)/5
+        if bins < 10:
+            bins = 10
         cycle_times = [s.cycle_time for s in stories if s.cycle_time]
-        count, bins, ignored = pyplot.hist(cycle_times, 30)
-        pyplot.show()
+        pyplot.hist(cycle_times, bins)
+        pyplot.show(block=False)
 
     def cycles(self, stories, sorting):
         data = []
