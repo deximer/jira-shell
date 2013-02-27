@@ -72,7 +72,9 @@ simulate -a I -d F -s I -p I -b I -c I'''
             release = jira.cache.get_by_path(jira.cache.cwd)
             kanban = release.kanban()
         except:
-            pass
+            if not self.args.a:
+                print 'Error: you must be in a release to execute simulate without all parameters specified'
+                return
         if self.args.a:
             average = float(self.args.a)
         else:

@@ -49,3 +49,8 @@ Feature: Release simulation
         Then I see "Work Load:" in the output
         And I see "Starting Pair Capacity:" in the output
         And I see "Ending Pair Capacity:" in the output
+
+    Scenario: A user enters unparamiterized simulate while not in a release
+        Given I am in the directory "/"
+        When I enter the command "simulate"
+        Then I see "Error: you must be in a release to execute simulate without all parameters specified" in the output
