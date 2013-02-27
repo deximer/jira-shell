@@ -13,11 +13,11 @@ class Command(BaseCommand):
     usage = 'simulate -a I -d F -s I -p I -b I -c I'
     options_help = '''    -a : Average cycle time of simulated release
     -b : Average developer bandwidth to simulate, in cycle time
-    -v : Standard deviation of developer bandwidth to simulate, in cycle time
     -d : Standard deviation of cycle time of simulated release
+    -p : Number of developer pairs to simulate
+    -v : Standard deviation of developer bandwidth to simulate, in cycle time
     -s : Number of stories to simulate
     -c : Number of simulations to run
-    -p : Number of developer pairs to simulate
     -z : Print simulation history
     -x : Execute a simulation from the history
     -i : Print information about a previous simulation
