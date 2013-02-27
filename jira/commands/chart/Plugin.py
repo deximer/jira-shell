@@ -21,7 +21,7 @@ class Command(BaseCommand):
     -f : calculate cycle times from the first in process date (default is last)
     -e : group stories by thier estimate values (show estimate/ct correlation))
     -s : sorting criteria
-    -t : specify chart type (default is cycle times)
+    -t : specify chart type: cycle (default) || hist
     -x : export graph to a file (valid extensions are pdf, png, or jpg)
     '''
     examples = '''    chart

@@ -724,12 +724,12 @@ class Release(Folder):
                 points += story.points
         return points
 
-    def skew(self):
+    def skew_cycle_time(self):
         points = []
         for story in self.stories():
-            if story.points:
-                points.append(story.points)
-        return stats.skew(points)
+            if story.cycle_time:
+                points.append(story.cycle_time)
+        return round(stats.skew(points), 1)
 
     def average_story_size(self):
         points = []

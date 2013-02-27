@@ -46,12 +46,12 @@ class Command(BaseCommand):
         print 'Stories          :', release.total_stories()
         print '  Avg Size       :', round(release.average_story_size(), 1)
         print '  Std Dev        :', round(release.std_story_size(), 1)
-        print '  Skew           :', release.skew()
         print '  Smallest       :', release.sort_by_size()[-1].points
         print '  Largest        :', release.sort_by_size()[0].points
         print '  # In Process   :', release.stories_in_process()
         print '  Avg Cycle Time :', kanban.average_cycle_time()
         print '  Std Cycle Time :', kanban.stdev_cycle_time()
+        print '  Skew           :', release.skew_cycle_time()
         print '  m Cycle Time   :', kanban.median_cycle_time()
         print '  Total Variance :', kanban.variance_cycle_time()
         print '  Total Dev CT   :', release.aggregate_developer_cycle_time()
