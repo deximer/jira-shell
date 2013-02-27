@@ -72,7 +72,7 @@ simulate -a I -d F -s I -p I -b I -c I'''
             release = jira.cache.get_by_path(jira.cache.cwd)
             kanban = release.kanban()
         except:
-            if not self.args.a:
+            if not self.all_params_specified(args):
                 print 'Error: you must be in a release to execute simulate without all parameters specified'
                 return
         if self.args.a:
@@ -158,3 +158,8 @@ simulate -a I -d F -s I -p I -b I -c I'''
         print
         print command
 
+    def all_params_specified(self, args):
+        for param in ['-a', '-b', '-d', '-p', '-v', '-s']:
+            if not param in args:
+                return False
+        return True
