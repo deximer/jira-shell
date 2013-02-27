@@ -139,8 +139,12 @@ def main():
             if command and command != 'quit':
                 if command[:1] == '!':
                     if len(command) > 1:
-                        index = command[1:]
-                        command = command_history[int(index)]
+                        try:
+                            index = int(command[1:])
+                            command = command_history[int(index)]
+                        except:
+                            print 'Error: invalid history index'
+                            continue
                 else:
                     command_history.append(command)
                     if len(command_history) > 10:
