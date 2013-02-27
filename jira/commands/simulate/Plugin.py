@@ -135,9 +135,9 @@ class Command(BaseCommand):
                 end_pairs[k] = round(end_pairs[k], 1)
             simulations[sim]['runs'][c]['end_pairs'] = end_pairs
             if fail:
-                print 'Fail -> ', 'Sum:', str(int(sum(tasks))).ljust(4), 'Capacity:', str(int(capacity)).ljust(5), 'Cap Remaining:', '%' + str(round(sum(pairs.values())/capacity, 2)* 100).ljust(5), 'Max:', str(round(max(pairs.values()), 1)).ljust(5), 'Missed:', round(missed, 1)
+                print 'Fail -> ', 'Work:', str(int(sum(tasks))).ljust(4), 'Capacity:', str(int(capacity)).ljust(5), 'Cap Remaining:', '%' + str(round(sum(pairs.values())/capacity, 2)* 100).ljust(5), 'Max:', str(round(max(pairs.values()), 1)).ljust(5), 'Missed:', round(missed, 1)
             else:
-                print '        ', 'Sum:', str(int(sum(tasks))).ljust(4), 'Capacity:', str(int(capacity)).ljust(5), 'Cap Remaining:', '%' + str(round(sum(pairs.values())/capacity, 2)* 100).ljust(5), 'Max:', round(max(pairs.values()), 1)
+                print '        ', 'Work:', str(int(sum(tasks))).ljust(4), 'Capacity:', str(int(capacity)).ljust(5), 'Cap Remaining:', '%' + str(round(sum(pairs.values())/capacity, 2)* 100).ljust(5), 'Max:', round(max(pairs.values()), 1)
 
         print
         command = 'simulate -s %d -a %.1f -d %.1f -p %d -b %.1f -v %.1f -c %d' % (stories, average, std, num_pairs, bandwidth,  std_dev_ct, count)
