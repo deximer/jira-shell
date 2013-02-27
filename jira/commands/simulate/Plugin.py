@@ -45,7 +45,10 @@ simulate -a I -d F -s I -p I -b I -c I'''
             return
         if self.args.z:
             for key in sorted(simulations.keys()):
-                print key, ':', simulations[key]['command']
+                failures = len([s for s in simulations[key]['runs'].values()
+                    if not s['success']])
+                print key, ':', simulations[key]['command'].ljust(63), \
+                      'Fails:', str(failures)
             return
         if self.args.x:
             Command().run(jira, simulations[int(self.args.x)][
@@ -55,7 +58,8 @@ simulate -a I -d F -s I -p I -b I -c I'''
             key = int(self.args.i[0])
             run = int(self.args.i[1])
             print key, ':', simulations[key]['command']
-            print 'Run %d of %d runs' % (run, len(simulations[key]['runs'].keys()))
+            print 'Run %d of %d runs' % (
+                run, len(simulations[key]['runs'].keys()))
             print 'Work Load:'
             print
             print simulations[key]['runs'][run]['tasks']
@@ -67,13 +71,18 @@ simulate -a I -d F -s I -p I -b I -c I'''
             print 'Ending Pair Capacity:'
             print
             print simulations[key]['runs'][run]['end_pairs']
+            print
+            if simulations[key]['runs'][run]['success']:
+                print 'Simulation Succeeded'
+            else:
+                print 'Simulation Failed'
             return
         try:
             release = jira.cache.get_by_path(jira.cache.cwd)
             kanban = release.kanban()
         except:
             if not self.all_params_specified(args):
-                print 'Error: you must be in a release to execute simulate without all parameters specified'
+                print 'Error: you must be in a release to run simulate without all parameters specified'
                 return
         if self.args.a:
             average = float(self.args.a)
@@ -148,6 +157,7 @@ simulate -a I -d F -s I -p I -b I -c I'''
                           sum(pairs.values())/capacity, 2)* 100).ljust(5), \
                       'Max:', str(round(max(pairs.values()), 1)).ljust(5), \
                       'Missed:', round(missed, 1)
+                simulations[sim]['runs'][c]['success'] = False
             else:
                 print '        ', \
                       'Work:', str(int(sum(tasks))).ljust(4), \
@@ -155,8 +165,9 @@ simulate -a I -d F -s I -p I -b I -c I'''
                       'Cap Remaining:', '%' + str(round(
                           sum(pairs.values())/capacity, 2)* 100).ljust(5), \
                       'Max:', round(max(pairs.values()), 1)
+                simulations[sim]['runs'][c]['success'] = True
         print
-        print command
+        print 'Command:', command
 
     def all_params_specified(self, args):
         for param in ['-a', '-b', '-d', '-p', '-v', '-s']:
