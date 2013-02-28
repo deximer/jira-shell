@@ -1,12 +1,21 @@
 import argparse
 import copy
+import datetime
 import numpy
 import pylab
 import scipy
+import transaction
+import dao
+from persistent.list import PersistentList
 from ..base import BaseCommand
-from model import Release
+from model import Release, Project, Story, History
 
 simulations = {}
+
+if not 'SIMS' in dao.Jira.cache.data:
+    transaction.begin()
+    dao.Jira.cache.data['SIMS'] = Project('SIMS', 'simulations')
+    transaction.commit()
 
 class Command(BaseCommand):
     help = 'Simulate a release'
@@ -39,6 +48,7 @@ simulate -a I -d F -s I -p I -b I -c I'''
         parser.add_argument('-z', action='store_true', required=False)
         parser.add_argument('-x', nargs='?', required=False)
         parser.add_argument('-i', nargs='*', required=False)
+        parser.add_argument('-y', action='store_true', required=False)
         try:
             self.args = parser.parse_args(args)
         except:
@@ -112,6 +122,10 @@ simulate -a I -d F -s I -p I -b I -c I'''
             std_dev_ct = float(self.args.v)
         else:
             std_dev_ct = release.stdev_developer_cycle_time()
+        if self.args.y:
+            self.make_release(average, std, stories, bandwidth, count,
+                num_pairs, std_dev_ct)
+            return
 
         command = 'simulate -s %d -a %.1f -d %.1f -p %d -b %.1f -v %.1f -c %d' \
             % (stories, average, std, num_pairs, bandwidth,  std_dev_ct, count)
@@ -174,3 +188,53 @@ simulate -a I -d F -s I -p I -b I -c I'''
             if not param in args:
                 return False
         return True
+
+    def make_release(self, average, std, stories, bandwidth, count, num_pairs,
+        std_dev_ct):
+        release = Release()
+        sim = len(simulations.keys()) + 1
+        command = 'simulate -s %d -a %.1f -d %.1f -p %d -b %.1f -v %.1f -c %d' \
+            % (stories, average, std, num_pairs, bandwidth,  std_dev_ct, count)
+        simulations[sim] = {'runs': {}}
+        simulations[sim]['command'] = command
+        release.version = 'SIM-%d' % sim
+        transaction.begin()
+        dao.Jira.cache.data['SIMS'][release.version] = release
+        transaction.commit()
+        tasks = scipy.stats.norm.rvs(loc=average, scale=std, size=stories)
+        dev_capacity = scipy.stats.norm.rvs(loc=bandwidth,
+            scale=std_dev_ct, size=num_pairs*2)
+        dev_capacity = [a+b for a, b in zip(dev_capacity[1::2],
+            dev_capacity[::2])]
+        tasks = [round(task, 1) if task >= 0 else 0. for task in tasks]
+        simulations[sim]['runs'][0] = {}
+        simulations[sim]['runs'][0]['tasks'] = copy.copy(tasks)
+        pairs = dict((k, round(v, 1)) for (k, v) in zip(xrange(num_pairs),
+            dev_capacity))
+        simulations[sim]['runs'][0]['pairs'] = copy.copy(pairs)
+        capacity = sum(pairs.values())
+        count = 1
+        for task in tasks:
+            story = Story('SIM-X%d' % count)
+            story.id = count
+            story.title = 'Story %d for simulation %d' % (count, sim)
+            story.fix_versions = PersistentList()
+            story.fix_versions.append('SIM-%d' % sim)
+            story.history = History()
+            story.created = datetime.datetime.now()
+            story.type = '72'
+            story.assignee = None
+            story.developer = None
+            story.scrum_team = None
+            story.points = None
+            story.status = 1
+            story.project = 'SIMS'
+            transaction.begin()
+            release[story.key] = story
+            transaction.commit()
+            transaction.begin()
+            docid = dao.Jira.cache.document_map.add(
+                ['sim', story.project, story.fix_versions[0], story.key])
+            dao.Jira.cache.catalog.index_doc(docid, story)
+            transaction.commit()
+            count += 1
