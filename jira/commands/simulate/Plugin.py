@@ -145,8 +145,7 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
                 num_pairs, teams, std_dev_ct, avg_pts, std_pts)
             return
 
-        command = 'simulate -s %d -a %.1f -d %.1f -p %d -b %.1f -v %.1f -c %d' \
-            % (stories, average, std, num_pairs, bandwidth,  std_dev_ct, count)
+        command = 'simulate -s %d -a %.1f -d %.1f -p %d -b %.1f -v %.1f -t %d -c %d' % (stories, average, std, num_pairs, bandwidth,  std_dev_ct, teams, count)
         sim = len(simulations.keys()) + 1
         simulations[sim] = {'runs': {}}
         simulations[sim]['command'] = command
@@ -154,7 +153,8 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
             tasks = scipy.stats.norm.rvs(loc=average, scale=std, size=stories)
             dev_capacity = scipy.stats.norm.rvs(loc=bandwidth,
                 scale=std_dev_ct, size=num_pairs*2)
-            dev_capacity = [a+b for a, b in zip(dev_capacity[1::2], dev_capacity[::2])]
+            dev_capacity = [a+b for a, b in zip(dev_capacity[1::2],
+                dev_capacity[::2])]
             tasks = [round(task, 1) if task >= 0 else 0. for task in tasks]
             simulations[sim]['runs'][c] = {}
             simulations[sim]['runs'][c]['tasks'] = copy.copy(tasks)
@@ -207,31 +207,37 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
                 return False
         return True
 
+    def get_estimates(self, avg, std, count):
+        estimates = scipy.stats.norm.rvs(loc=avg, scale=std, size=count)
+        return [round(e, 2) if e >= 0 else 0. for e in estimates]
+
+    def get_pairs(self, avg, std, count):
+        devs = scipy.stats.norm.rvs(loc=avg, scale=std, size=count*2)
+        return [a+b for a, b in zip(devs[1::2], devs[::2])]
+
     def make_release(self, average, std, stories, bandwidth, count, num_pairs,
         teams, std_dev_ct, avg_pts, std_pts):
         release = Release()
-        sim = len(simulations.keys()) + 1
+        release.version = 'SIM-%d' % (len(dao.Jira.cache.data['SIMS']) + 1)
+        transaction.begin()
+        dao.Jira.cache.data['SIMS'][release.version] = release
+        transaction.commit()
+
+        tasks = scipy.stats.norm.rvs(loc=average, scale=std, size=stories)
+        tasks = [round(task, 1) if task >= 0 else 0. for task in tasks]
+        points = self.get_estimates(avg_pts, std_pts, stories)
+        dev_capacity = self.get_pairs(bandwidth, std_dev_ct, num_pairs)
+
         command = 'simulate -s %d -a %.1f -d %.1f -p %d -b %.1f -v %.1f -c %d' \
             % (stories, average, std, num_pairs, bandwidth,  std_dev_ct, count)
         simulations[sim] = {'runs': {}}
         simulations[sim]['command'] = command
-        release.version = 'SIM-%d' % sim
-        transaction.begin()
-        dao.Jira.cache.data['SIMS'][release.version] = release
-        transaction.commit()
-        tasks = scipy.stats.norm.rvs(loc=average, scale=std, size=stories)
-        points = scipy.stats.norm.rvs(loc=avg_pts, scale=std_pts, size=stories)
-        points = [abs(p) for p in points]
-        dev_capacity = scipy.stats.norm.rvs(loc=bandwidth,
-            scale=std_dev_ct, size=num_pairs*2)
-        dev_capacity = [a+b for a, b in zip(dev_capacity[1::2],
-            dev_capacity[::2])]
-        tasks = [round(task, 1) if task >= 0 else 0. for task in tasks]
         simulations[sim]['runs'][0] = {}
         simulations[sim]['runs'][0]['tasks'] = copy.copy(tasks)
         pairs = dict((k, round(v, 1)) for (k, v) in zip(xrange(num_pairs),
             dev_capacity))
         simulations[sim]['runs'][0]['pairs'] = copy.copy(pairs)
+
         capacity = sum(pairs.values())
         count = 1
         for estimate in points:
@@ -246,7 +252,7 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
             story.type = '72'
             story.assignee = None
             story.developer = None
-            story.scrum_team = 'Team %d' % int(random.random() * teams)
+            story.scrum_team = 'Sim Team %d' % int(random.random() * teams)
             story.status = 1
             story.project = 'SIMS'
             transaction.begin()
@@ -258,3 +264,20 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
             dao.Jira.cache.catalog.index_doc(docid, story)
             transaction.commit()
             count += 1
+
+        for day in xrange(20):
+            fail = False
+            tasked = False
+            index = 0
+            for task in sorted(tasks, reverse=True):
+                missed = 0
+                for pair in pairs.keys():
+                    if pairs[pair] >= task:
+                        pairs[pair] -= task
+                        tasked = True
+                        break
+                if not tasked:
+                    missed = task
+                    fail = True
+                    break
+                tasked = False
