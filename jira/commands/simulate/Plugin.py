@@ -1,4 +1,5 @@
 import argparse
+import random
 import copy
 import datetime
 import numpy
@@ -20,19 +21,21 @@ if not 'SIMS' in dao.Jira.cache.data:
 class Command(BaseCommand):
     help = 'Simulate a release'
     usage = '''    simulate
-simulate -a I -d F -s I -p I -b I -c I'''
+simulate -a I -d F -s I -p I -b I -c I -t I'''
     options_help = '''    -a : Average cycle time of simulated release
-    -b : Average developer bandwidth to simulate, in cycle time
     -d : Standard deviation of cycle time of simulated release
+    -e : Average and standard deviation of estimates
+    -b : Average developer bandwidth to simulate, in cycle time
     -p : Number of developer pairs to simulate
     -v : Standard deviation of developer bandwidth to simulate, in cycle time
     -s : Number of stories to simulate
+    -t : Number of teams to simulate
     -c : Number of simulations to run
     -z : Print simulation history
     -x : Execute a simulation from the history
     -i : Print information about a previous simulation
     '''
-    examples = '''    simulate -a 7.9 -d 9.1 -s 136 -p 19 -b 33 -v 23 -c 10
+    examples = '''    simulate -a 7.9 -d 9.1 -s 136 -p 19 -b 33 -v 23 -t 1 -c 10
     '''
 
     def run(self, jira, args):
@@ -41,7 +44,9 @@ simulate -a I -d F -s I -p I -b I -c I'''
         parser.add_argument('-a', nargs='?', required=False)
         parser.add_argument('-b', nargs='?', required=False)
         parser.add_argument('-d', nargs='?', required=False)
+        parser.add_argument('-e', nargs='*', required=False)
         parser.add_argument('-s', nargs='?', required=False)
+        parser.add_argument('-t', nargs='?', required=False)
         parser.add_argument('-c', nargs='?', required=False)
         parser.add_argument('-p', nargs='?', required=False)
         parser.add_argument('-v', nargs='?', required=False)
@@ -91,6 +96,8 @@ simulate -a I -d F -s I -p I -b I -c I'''
             release = jira.cache.get_by_path(jira.cache.cwd)
             kanban = release.kanban()
         except:
+            release = None
+            kanban = None
             if not self.all_params_specified(args):
                 print 'Error: you must be in a release to run simulate without all parameters specified'
                 return
@@ -102,10 +109,21 @@ simulate -a I -d F -s I -p I -b I -c I'''
             std = float(self.args.d)
         else:
             std = kanban.stdev_cycle_time()
+        if self.args.e:
+            avg_pts = float(self.args.e[0])
+            std_pts = float(self.args.e[1])
+        else:
+            if release:
+                avg_pts = release.average_story_size()
+                std_pts = release.std_story_size()
         if self.args.s:
             stories = int(self.args.s)
         else:
             stories = release.total_stories()
+        if self.args.t:
+            teams = int(self.args.t)
+        else:
+            teams = len(release.tasked_teams())
         if self.args.b:
             bandwidth = float(self.args.b)
         else:
@@ -124,7 +142,7 @@ simulate -a I -d F -s I -p I -b I -c I'''
             std_dev_ct = release.stdev_developer_cycle_time()
         if self.args.y:
             self.make_release(average, std, stories, bandwidth, count,
-                num_pairs, std_dev_ct)
+                num_pairs, teams, std_dev_ct, avg_pts, std_pts)
             return
 
         command = 'simulate -s %d -a %.1f -d %.1f -p %d -b %.1f -v %.1f -c %d' \
@@ -184,13 +202,13 @@ simulate -a I -d F -s I -p I -b I -c I'''
         print 'Command:', command
 
     def all_params_specified(self, args):
-        for param in ['-a', '-b', '-d', '-p', '-v', '-s']:
+        for param in ['-a', '-b', '-d', '-p', '-v', '-s', '-t']:
             if not param in args:
                 return False
         return True
 
     def make_release(self, average, std, stories, bandwidth, count, num_pairs,
-        std_dev_ct):
+        teams, std_dev_ct, avg_pts, std_pts):
         release = Release()
         sim = len(simulations.keys()) + 1
         command = 'simulate -s %d -a %.1f -d %.1f -p %d -b %.1f -v %.1f -c %d' \
@@ -202,6 +220,8 @@ simulate -a I -d F -s I -p I -b I -c I'''
         dao.Jira.cache.data['SIMS'][release.version] = release
         transaction.commit()
         tasks = scipy.stats.norm.rvs(loc=average, scale=std, size=stories)
+        points = scipy.stats.norm.rvs(loc=avg_pts, scale=std_pts, size=stories)
+        points = [abs(p) for p in points]
         dev_capacity = scipy.stats.norm.rvs(loc=bandwidth,
             scale=std_dev_ct, size=num_pairs*2)
         dev_capacity = [a+b for a, b in zip(dev_capacity[1::2],
@@ -214,9 +234,10 @@ simulate -a I -d F -s I -p I -b I -c I'''
         simulations[sim]['runs'][0]['pairs'] = copy.copy(pairs)
         capacity = sum(pairs.values())
         count = 1
-        for task in tasks:
+        for estimate in points:
             story = Story('SIM-X%d' % count)
             story.id = count
+            story.points = int(estimate)
             story.title = 'Story %d for simulation %d' % (count, sim)
             story.fix_versions = PersistentList()
             story.fix_versions.append('SIM-%d' % sim)
@@ -225,8 +246,7 @@ simulate -a I -d F -s I -p I -b I -c I'''
             story.type = '72'
             story.assignee = None
             story.developer = None
-            story.scrum_team = None
-            story.points = None
+            story.scrum_team = 'Team %d' % int(random.random() * teams)
             story.status = 1
             story.project = 'SIMS'
             transaction.begin()
