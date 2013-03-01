@@ -19,7 +19,8 @@ class Command(BaseCommand):
     -k : chart using or surpressing specific issue keys
     -p : chart for estimate value 
     -f : calculate cycle times from the first in process date (default is last)
-    -e : group stories by thier estimate values (show estimate/ct correlation))
+    -g : group stories by this strategy (default || estimate || resolved)
+    -l : label points
     -s : sorting criteria
     -t : specify chart type: cycle (default) || hist
     -x : export graph to a file (valid extensions are pdf, png, or jpg)
@@ -32,15 +33,16 @@ class Command(BaseCommand):
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
         parser.add_argument('team', nargs='?')
-        parser.add_argument('-t', nargs='?', required=False)
+        parser.add_argument('-c', nargs='*', required=False)
         parser.add_argument('-d', nargs='*', required=False)
-        parser.add_argument('-e', action='store_true', required=False)
+        parser.add_argument('-f', action='store_true', required=False)
+        parser.add_argument('-g', nargs='?', required=False)
+        parser.add_argument('-l', action='store_true', required=False)
+        parser.add_argument('-k', nargs='*', required=False)
         parser.add_argument('-p', nargs='*', required=False)
         parser.add_argument('-s', nargs='*', required=False)
-        parser.add_argument('-k', nargs='*', required=False)
-        parser.add_argument('-c', nargs='*', required=False)
+        parser.add_argument('-t', nargs='?', required=False)
         parser.add_argument('-x', nargs='*', required=False)
-        parser.add_argument('-f', action='store_true', required=False)
         try:
             self.args = parser.parse_args(args)
         except:
@@ -168,8 +170,16 @@ class Command(BaseCommand):
             labels.append(story.key)
             estimate_labels.append(story.scrum_team)
             developer_labels.append(story.developer)
-            if self.args.e:
-                count.append(getattr(story, sorting[0]))
+            if self.args.g and not self.args.g == 'default':
+                if self.args.g == 'estimate':
+                    count.append(getattr(story, sorting[0]))
+                elif self.args.g == 'resolved':
+                    if story.resolved:
+                        count.append(story.resolved)
+                    elif story.started:
+                        count.append(story.started)
+                    else:
+                        count.append(datetme.datetime.now())
             else:
                 count.append(count[-1] + 1)
 
@@ -195,6 +205,14 @@ class Command(BaseCommand):
         pyplot.plot(count[1:], nslw, '.', linestyle=':', color='y')
         pyplot.plot(count[1:], nsll, 'o', linestyle='-', color='r')
         pyplot.plot(count[1:], avg, '',linestyle='-.',  markerfacecolor='None')
+
+        if not self.args.l:
+            if self.file:
+                pyplot.savefig(self.file, bbox=0)
+            else:
+                pyplot.show(block=False)
+            return
+
         for label, x, y in zip(labels, count[1:], alldata):
             pyplot.annotate(
             label,
