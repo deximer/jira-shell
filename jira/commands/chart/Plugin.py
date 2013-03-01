@@ -16,6 +16,7 @@ class Command(BaseCommand):
         ' [-p point] [-c cycle_time] [-x file_name.ext] [-f]'
     options_help = '''    -c : specify cycle time outlier limit
     -d : chart for developer
+    -e : include estimates subplot
     -k : chart using or surpressing specific issue keys
     -p : chart for estimate value 
     -f : calculate cycle times from the first in process date (default is last)
@@ -35,6 +36,7 @@ class Command(BaseCommand):
         parser.add_argument('team', nargs='?')
         parser.add_argument('-c', nargs='*', required=False)
         parser.add_argument('-d', nargs='*', required=False)
+        parser.add_argument('-e', action='store_true', required=False)
         parser.add_argument('-f', action='store_true', required=False)
         parser.add_argument('-g', nargs='?', required=False)
         parser.add_argument('-l', action='store_true', required=False)
@@ -196,8 +198,9 @@ class Command(BaseCommand):
             nslw.append(average - (std * 2))
             nsll.append(average - (std * 3))
             avg.append(average)
-        gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1]) 
-        pyplot.subplot(gs[0])
+        if self.args.e:
+            gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1]) 
+            pyplot.subplot(gs[0])
         pyplot.plot(count[1:], data, '*', color='g')
         pyplot.plot(count[1:], wip, '^', color='r')
         pyplot.plot(count[1:], nsul, 'o', linestyle='-', color='r')
@@ -206,14 +209,10 @@ class Command(BaseCommand):
         pyplot.plot(count[1:], nsll, 'o', linestyle='-', color='r')
         pyplot.plot(count[1:], avg, '',linestyle='-.',  markerfacecolor='None')
 
-        if not self.args.l:
-            if self.file:
-                pyplot.savefig(self.file, bbox=0)
-            else:
-                pyplot.show(block=False)
-            return
-
         for label, x, y in zip(labels, count[1:], alldata):
+            if not self.args.l:
+                if y < std * 3 + average:
+                    continue
             pyplot.annotate(
             label,
             xy=(x, y), xytext=(-10,10),
@@ -223,6 +222,8 @@ class Command(BaseCommand):
         yoffset = -10
         odd = True
         for label, x, y in zip(developer_labels, count[1:], nsll):
+            if not self.args.l:
+                continue
             if odd:
                 odd = False
             else:
@@ -242,6 +243,11 @@ class Command(BaseCommand):
         odd = True
         yoffset = 10
         for label, x, y in zip(developer_labels, count[1:], nsul):
+            if not self.args.l:
+                continue
+            if not self.args.l:
+                if y < std * 3:
+                    continue
             if odd:
                 odd = False
                 continue
@@ -258,13 +264,23 @@ class Command(BaseCommand):
             bbox = dict(boxstyle = 'round,pad=0.3', fc='cyan', alpha=0.1),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
             yoffset += 10
+
+        if not self.args.e:
+            if self.file:
+                pyplot.savefig(self.file, bbox=0)
+            else:
+                pyplot.show(block=False)
+            return
+
         pyplot.grid(True)
         pyplot.subplot(gs[1])
-        pyplot.plot(count[1:], estimates, 'o', linestyle='-', color='b')
+        pyplot.plot(count[1:], estimates, 'o', linestyle='', color='b')
         previous_label = ''
         label_count = 0
         elevated = True
         for label, x, y in zip(estimate_labels, count[1:], estimates):
+            if not self.args.l:
+                continue
             if label == previous_label:
                 label_count += 1
                 continue
