@@ -35,7 +35,7 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
     -x : Execute a simulation from the history
     -i : Print information about a previous simulation
     '''
-    examples = '''    simulate -a 7.9 -d 9.1 -s 136 -p 19 -b 33 -v 23 -t 1 -c 10
+    examples = '''    simulate -a 7.9 -d 9.1 -s 136 -p 19 -b 33 -v 23 -t 1 -c 10 -e 2.2 1.2
     '''
 
     def run(self, jira, args):
