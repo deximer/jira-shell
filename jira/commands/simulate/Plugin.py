@@ -218,7 +218,8 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
     def make_release(self, average, std, stories, bandwidth, count, num_pairs,
         teams, std_dev_ct, avg_pts, std_pts):
         release = Release()
-        release.version = 'SIM-%d' % (len(dao.Jira.cache.data['SIMS']) + 1)
+        sim = len(dao.Jira.cache.data['SIMS']) + 1
+        release.version = 'SIM-%d' % sim
         transaction.begin()
         dao.Jira.cache.data['SIMS'][release.version] = release
         transaction.commit()
