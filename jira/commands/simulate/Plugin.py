@@ -156,7 +156,7 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
                 scale=std_dev_ct, size=num_pairs*2)
             dev_capacity = [a+b for a, b in zip(dev_capacity[1::2],
                 dev_capacity[::2])]
-            tasks = [round(task, 1) if task >= 0 else 0. for task in tasks]
+            tasks = [round(abs(task), 1) for task in tasks]
             simulations[sim]['runs'][c] = {}
             simulations[sim]['runs'][c]['tasks'] = copy.copy(tasks)
             pairs = dict((k, round(v, 1)) for (k, v) in zip(xrange(num_pairs),
