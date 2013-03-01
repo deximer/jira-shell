@@ -141,8 +141,9 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
         else:
             std_dev_ct = release.stdev_developer_cycle_time()
         if self.args.y:
-            self.make_release(average, std, stories, bandwidth, count,
+            key = self.make_release(average, std, stories, bandwidth, count,
                 num_pairs, teams, std_dev_ct, avg_pts, std_pts)
+            print 'Created simulate release at: /SIMS/%s' % key
             return
 
         command = 'simulate -s %d -a %.1f -d %.1f -p %d -b %.1f -v %.1f -t %d -c %d' % (stories, average, std, num_pairs, bandwidth,  std_dev_ct, teams, count)
@@ -282,3 +283,5 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
                     fail = True
                     break
                 tasked = False
+        
+        return release.version
