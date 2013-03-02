@@ -14,7 +14,7 @@ class Command(BaseCommand):
             args = parser.parse_args(args)
         except:
             return
-        if not args.dir:
+        if not args.dir or (len(args.dir) == 1 and args.dir[0] == '/'):
             jira.cache.cwd = ['/']
             return
         import copy
@@ -23,6 +23,8 @@ class Command(BaseCommand):
             if dir == '..':
                 if len(jira.cache.cwd) > 1:
                     del jira.cache.cwd[-1]
+            elif dir == '':
+                jira.cache.cwd = ['/']
             else:
                 jira.cache.cwd.append(dir)
                 try:
