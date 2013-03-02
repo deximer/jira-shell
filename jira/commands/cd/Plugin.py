@@ -14,6 +14,9 @@ class Command(BaseCommand):
             args = parser.parse_args(args)
         except:
             return
+        if not args.dir:
+            jira.cache.cwd = ['/']
+            return
         import copy
         backup_cwd = copy.copy(jira.cache.cwd)
         for dir in args.dir.split('/'):
