@@ -225,7 +225,8 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
         dao.Jira.cache.data['SIMS'][release.version] = release
         transaction.commit()
 
-        tasks = scipy.stats.norm.rvs(loc=average, scale=std, size=stories)
+        #tasks = scipy.stats.norm.rvs(loc=average, scale=std, size=stories)
+        tasks = numpy.random.gumbel(loc=average, scale=std, size=stories)
         tasks = [round(task, 1) if task >= 0 else 0. for task in tasks]
         points = self.get_estimates(avg_pts, std_pts, stories)
         dev_capacity = self.get_pairs(bandwidth, std_dev_ct, num_pairs)
@@ -250,12 +251,19 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
             story.fix_versions = PersistentList()
             story.fix_versions.append('SIM-%d' % sim)
             story.history = History()
+            ct = numpy.random.gumbel(loc=average, scale=std) + 1
+            months = int((ct / 30)  ) + 3 # TODO: Fix this
+            days = int(ct % 30) + 1
+            started = datetime.datetime(2013, 3, 1, 12, 0, 0)
+            resolved = datetime.datetime(2013, months, days, 12, 0, 0)
+            story.history.data.append((started, 1, 3, 'Sim PO 1'))
+            story.history.data.append((resolved, 3, 6, 'Sim Dev 1'))
+            story.status = 6
             story.created = datetime.datetime.now()
             story.type = '72'
             story.assignee = None
             story.developer = None
             story.scrum_team = 'Sim Team %d' % int(random.random() * teams)
-            story.status = 1
             story.project = 'SIMS'
             transaction.begin()
             release[story.key] = story
