@@ -23,7 +23,7 @@ class Command(BaseCommand):
     -g : group stories by this strategy (default || estimate || resolved)
     -l : label points
     -s : sorting criteria
-    -t : specify chart type: cycle (default) || hist
+    -t : specify chart type: cycle (default) || hist || arrival
     -x : export graph to a file (valid extensions are pdf, png, or jpg)
     '''
     examples = '''    chart
@@ -123,6 +123,8 @@ class Command(BaseCommand):
 
         if self.args.t == 'hist':
             self.histogram(stories)
+        elif self.args.t == 'arrival':
+            self.arrivals(stories)
         elif not self.args.t or self.args.t == 'cycles':
             self.cycles(stories, sorting)
         else:
@@ -139,6 +141,32 @@ class Command(BaseCommand):
         pylab.plot(x, pdf_fitted, 'r-', label='Fitted')
         pylab.hist(cycle_times, bins, normed=True, alpha=.3)
         pylab.show(block=False)
+
+    def arrivals(self, stories):
+        arrivals = self.release.kanban().state_arrival_interval(6)
+        dates = [a['date'] for a in arrivals]
+        arrivals = [round(a['interval']/60./60., 1) for a in arrivals]
+        average = numpy.average([arrivals])
+        std = numpy.std([arrivals])
+        nsul = []
+        nsuw = []
+        nsll = []
+        nslw = []
+        avg = []
+        count =[1] 
+        for x in arrivals:
+            nsul.append(average + (std * 3))
+            nsuw.append(average + (std * 2))
+            nslw.append(average - (std * 2))
+            nsll.append(average - (std * 3))
+            avg.append(average)
+        pyplot.plot(dates, arrivals, '*', color='g')
+        pyplot.plot(dates, nsul, 'o', linestyle='-', color='r')
+        pyplot.plot(dates, nsuw, '.', linestyle=':', color='y')
+        pyplot.plot(dates, nslw, '.', linestyle=':', color='y')
+        pyplot.plot(dates, nsll, 'o', linestyle='-', color='r')
+        pyplot.plot(dates, avg, '',linestyle='-.',  markerfacecolor='None')
+        pyplot.show(block=False)
 
     def cycles(self, stories, sorting):
         data = []

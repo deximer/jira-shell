@@ -99,3 +99,34 @@ class Command(BaseCommand):
                 '%' + str(round(cycle_time[1]/float(total), 2) * 100)
         print 'Total   :', total
         print 'Max PCE : %' + str(kanban.process_cycle_efficiency())
+        print
+        print 'Average Cycle Time in Status:'
+        print '  Status:', 'Average:', 'Stdev:'
+        averages = kanban.average_times_in_status()
+        stds = kanban.std_times_in_status()
+        for key in averages:
+            print ' ', humanize(key).ljust(7), str(averages[key]).ljust(8), stds[key]
+        print
+        print 'Arrival Times for Status:'
+        print '  Status:', 'Average:', 'Stdev:'
+        averages = kanban.average_arrival_for_status()
+        stds = kanban.std_arrival_for_status()
+        for key in averages:
+            print ' ', humanize(key).ljust(7), str(averages[key]).ljust(8), stds[key]
+        print
+        print 'State Transition Probabilities:'
+        states = kanban.state_transition_probabilities()
+        print 'Status: ', 'Stories:', 'Days:', 'Avg:', 'Std:'
+        for state in states:
+            print humanize(state) + ':'
+            for exit in states[state]:
+                print '  ', humanize(exit).ljust(5), str(len(states[state][exit]['days'])).ljust(8), str(sum(states[state][exit]['days'])).ljust(5), str(states[state][exit]['average']).ljust(5), states[state][exit]['std']
+
+        intervals = kanban.all_state_arrival_intervals()
+        print
+        print 'Arrival Intervals:'
+        for state in intervals:
+            print humanize(state).ljust(5), \
+                  str(intervals[state]['average']).ljust(5), \
+                  intervals[state]['std']
+

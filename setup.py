@@ -25,6 +25,7 @@ Command line tools for Jira.""",
       test_suite='nose.collector',
       tests_require=[
           'nose',
+          'behave',
       ],
       install_requires=[
           'BeautifulSoup',
