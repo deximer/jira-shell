@@ -153,7 +153,6 @@ class Command(BaseCommand):
         nsll = []
         nslw = []
         avg = []
-        count =[1] 
         for x in arrivals:
             nsul.append(average + (std * 3))
             nsuw.append(average + (std * 2))

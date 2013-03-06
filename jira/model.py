@@ -464,6 +464,8 @@ class Kanban(object):
         dates = []
         for story in self.release.stories():
             dates.extend([d for d in story.history.get_transition_to(state)])
+        if not dates:
+            return []
         dates.sort()
         deltas = [{'date': dates[0], 'interval': 0}]
         previous = dates[0]
@@ -478,9 +480,10 @@ class Kanban(object):
         for state in KANBAN:
             deltas = self.state_arrival_interval(state)
             result[state] = {'deltas': deltas,
-                             'average': round(numpy.average([d['interval'] for d in deltas])/60./60., 3),
-                             'std': round(numpy.std([d['interval'] for d in deltas])/60./60., 3)}
-        import pdb; pdb.set_trace()
+                             'average': round(numpy.average(
+                                 [d['interval'] for d in deltas])/60./60., 3),
+                             'std': round(numpy.std(
+                                 [d['interval'] for d in deltas])/60./60., 3)}
         return result
 
     def average_cycle_time(self, component=None, type=['72']):

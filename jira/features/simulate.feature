@@ -5,7 +5,7 @@ Feature: Release simulation
 
     Scenario: A user simulates a theoretical release
         Given I am in the directory "/"
-        When I enter the command "simulate -a 7.9 -d 9.1 -s 136 -p 19 -b 33 -v 23 -c 1"
+        When I enter the command "simulate -a 7.9 -d 9.1 -s 136 -p 19 -b 33 -v 23 -t 1 -c 10 -e 2.2 1.2"
         Then I see "Work:" in the output
         And I see "Capacity:" in the output
         And I see "-s 136" in the output
