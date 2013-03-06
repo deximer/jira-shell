@@ -208,15 +208,18 @@ class History(Folder):
         days = None
         for transition in self.data:
             if previous_date:
-                days = (transition[0] - previous_date).days
+                days = rrule(DAILY, dtstart=previous_date, until=transition[0],
+                            byweekday=(MO, TU, WE, TH, FR)).count() - 1
             results.append((transition[0], transition[1], transition[2], days,
                 transition[3]))
             previous_date = transition[0]
         if results and results[-1][2] != 6:
             last = results[-1]
             del results[-1]
-            results.append((last[0], last[1], last[2], \
-                (datetime.datetime.now() - last[0]).days, last[4]))
+            days = rrule(DAILY, dtstart=previous_date,
+                until=datetime.datetime.now(), byweekday=(
+                MO, TU, WE, TH, FR)).count() - 1
+            results.append((last[0], last[1], last[2], days, last[4]))
         return results
 
     started = property(_get_started)
@@ -365,6 +368,7 @@ class Kanban(object):
             for transition in story.history.all:
                 if not transition[3]: # days
                     continue
+                print transition[3]
                 if not transition[1] in result.keys():
                     result[transition[1]] = transition[3]
                 else:
@@ -807,7 +811,7 @@ class Release(Folder):
     def average_developer_cycle_time(self):
         developers = self.developers()
         total = self.aggregate_developer_cycle_time()
-        return round(total/float(len(developers.keys())/2.0), 1)
+        return round(total/float(len(developers.keys())), 1)
 
     def stdev_developer_cycle_time(self):
         developers = self.developers()

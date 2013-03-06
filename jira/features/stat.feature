@@ -66,7 +66,7 @@ Feature: List critial information about a specific issue
         | 13/9/8 | 3    | 6  |
         When I enter the command "stat NG-2"
         Then I see "2013-09-01 12:30:00, [   ], Jane Doe          , Open  -> InPro" in the output
-        And I see "2013-09-08 12:30:00, [7  ], Jane Doe          , InPro -> Closd" in the output
+        And I see "2013-09-08 12:30:00, [4  ], Jane Doe          , InPro -> Closd" in the output
 
     Scenario: A user views the transition log for an issue with backflow
         Given I have the following issues in the release
