@@ -368,7 +368,6 @@ class Kanban(object):
             for transition in story.history.all:
                 if not transition[3]: # days
                     continue
-                print transition[3]
                 if not transition[1] in result.keys():
                     result[transition[1]] = transition[3]
                 else:

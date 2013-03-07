@@ -127,6 +127,6 @@ class Command(BaseCommand):
         print 'Arrival Intervals:'
         for state in intervals:
             print humanize(state).ljust(5), \
-                  str(intervals[state]['average']).ljust(5), \
+                  str(intervals[state]['average']).ljust(7), \
                   intervals[state]['std']
 

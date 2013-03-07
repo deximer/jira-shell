@@ -43,7 +43,7 @@ class Command(BaseCommand):
         parser.add_argument('-k', nargs='*', required=False)
         parser.add_argument('-p', nargs='*', required=False)
         parser.add_argument('-s', nargs='*', required=False)
-        parser.add_argument('-t', nargs='?', required=False)
+        parser.add_argument('-t', nargs='*', required=False)
         parser.add_argument('-x', nargs='*', required=False)
         try:
             self.args = parser.parse_args(args)
@@ -121,11 +121,14 @@ class Command(BaseCommand):
         else:
             sorting = ['points', 'scrum_team', 'cycle_time']
 
-        if self.args.t == 'hist':
+        if self.args.t and self.args.t[0] == 'hist':
             self.histogram(stories)
-        elif self.args.t == 'arrival':
-            self.arrivals(stories)
-        elif not self.args.t or self.args.t == 'cycles':
+        elif self.args.t and self.args.t[0] == 'arrival':
+            if len(self.args.t) == 2:
+                self.arrivals(stories, int(self.args.t[1]))
+            else:
+                self.arrivals(stories)
+        elif not self.args.t or self.args.t[0] == 'cycles':
             self.cycles(stories, sorting)
         else:
             print 'Unknown chart type: %s' % self.args.t[0]
@@ -142,8 +145,8 @@ class Command(BaseCommand):
         pylab.hist(cycle_times, bins, normed=True, alpha=.3)
         pylab.show(block=False)
 
-    def arrivals(self, stories):
-        arrivals = self.release.kanban().state_arrival_interval(6)
+    def arrivals(self, stories, state=6):
+        arrivals = self.release.kanban().state_arrival_interval(state)
         dates = [a['date'] for a in arrivals]
         arrivals = [round(a['interval']/60./60., 1) for a in arrivals]
         average = numpy.average([arrivals])
