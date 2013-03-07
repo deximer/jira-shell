@@ -23,12 +23,13 @@ class Command(BaseCommand):
     -g : group stories by this strategy (default || estimate || resolved)
     -l : label points
     -s : sorting criteria
-    -t : specify chart type: cycle (default) || hist || arrival
+    -t : specify chart type: cycle (default) || hist || arrival [state]
     -x : export graph to a file (valid extensions are pdf, png, or jpg)
     '''
     examples = '''    chart
     chart App
     chart -k !1234
+    chart -t arrival 10090
     chart -s scrum_team points'''
 
     def run(self, jira, args):
