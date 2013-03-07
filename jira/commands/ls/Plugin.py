@@ -177,7 +177,7 @@ class Command(BaseCommand):
             if story.points and story.type=='71':
                 epic_points += story.points
         if epic_points:
-            print 'Total Issues: %d, Epic Points %d, Story Points: %d' \
+            print 'Total Issues: %d, Epic Points: %d, Story Points: %d' \
                 % (issues, epic_points, points)
         else:
             print 'Total Issues: %d, Story Points: %d' % (issues, points)
