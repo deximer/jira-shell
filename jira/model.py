@@ -142,7 +142,7 @@ class History(Folder):
         ''' This method needs to locate the first attempt and connect it
             with a finish, or handle a backflow condition, skip ahead condition
             etc. It then needs to return as many takt completions. partial
-            attempts, etc. How we measure takt time nees to be decided
+            attempts, etc. How we measure takt time needs to be decided
         '''
         start_date = self.get_transition_to(start)
         if not start_date:
