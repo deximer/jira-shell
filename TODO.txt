@@ -1,0 +1,31 @@
+Simulate is not realistic:
+  1. Start day ticker, fully task pairs. Increment day, check cycle times, etc.
+    - But some devs have "capacity" beyond the number of days in a release
+  2. Group pairs into teams
+  3. Group stories into streams to feed the teams
+  4. Implement cost of moving a team member
+  5. Model rework
+  6. Calculate developer cycle time badwidth using PCE only, not total CT
+  7. Calculate a typical deveveloper day
+    - Meetings
+    - Lunch
+    - Goofing off
+  8. Calculate relative developer effectiveness per hour
+
+Create a set of records
+Apply a calculation strategy
+Ask questions
+
+Algo: Account for weekends/no weekends
+Data: Account for cycle time span
+Data: Account for date range
+
+Define how to calculate data
+Create a set of data
+Ask questions
+Methods query active defintions
+
+For example,
+
+avg lead time: from and to cycles; issue types
+
