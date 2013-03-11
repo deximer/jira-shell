@@ -35,7 +35,7 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
     -x : Execute a simulation from the history
     -i : Print information about a previous simulation
     '''
-    examples = '''    simulate -a 7.9 -d 9.1 -s 136 -p 19 -b 33 -v 23 -t 1 -c 10
+    examples = '''    simulate -a 7.9 -d 9.1 -s 136 -p 19 -b 33 -v 23 -t 1 -c 10 -e 2.2 1.2
     '''
 
     def run(self, jira, args):
@@ -141,8 +141,9 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
         else:
             std_dev_ct = release.stdev_developer_cycle_time()
         if self.args.y:
-            self.make_release(average, std, stories, bandwidth, count,
+            key = self.make_release(average, std, stories, bandwidth, count,
                 num_pairs, teams, std_dev_ct, avg_pts, std_pts)
+            print 'Created simulate release at: /SIMS/%s' % key
             return
 
         command = 'simulate -s %d -a %.1f -d %.1f -p %d -b %.1f -v %.1f -t %d -c %d' % (stories, average, std, num_pairs, bandwidth,  std_dev_ct, teams, count)
@@ -155,7 +156,7 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
                 scale=std_dev_ct, size=num_pairs*2)
             dev_capacity = [a+b for a, b in zip(dev_capacity[1::2],
                 dev_capacity[::2])]
-            tasks = [round(task, 1) if task >= 0 else 0. for task in tasks]
+            tasks = [round(abs(task), 1) for task in tasks]
             simulations[sim]['runs'][c] = {}
             simulations[sim]['runs'][c]['tasks'] = copy.copy(tasks)
             pairs = dict((k, round(v, 1)) for (k, v) in zip(xrange(num_pairs),
@@ -218,12 +219,14 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
     def make_release(self, average, std, stories, bandwidth, count, num_pairs,
         teams, std_dev_ct, avg_pts, std_pts):
         release = Release()
-        release.version = 'SIM-%d' % (len(dao.Jira.cache.data['SIMS']) + 1)
+        sim = len(dao.Jira.cache.data['SIMS']) + 1
+        release.version = 'SIM-%d' % sim
         transaction.begin()
         dao.Jira.cache.data['SIMS'][release.version] = release
         transaction.commit()
 
-        tasks = scipy.stats.norm.rvs(loc=average, scale=std, size=stories)
+        #tasks = scipy.stats.norm.rvs(loc=average, scale=std, size=stories)
+        tasks = numpy.random.gumbel(loc=average, scale=std, size=stories)
         tasks = [round(task, 1) if task >= 0 else 0. for task in tasks]
         points = self.get_estimates(avg_pts, std_pts, stories)
         dev_capacity = self.get_pairs(bandwidth, std_dev_ct, num_pairs)
@@ -248,12 +251,19 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
             story.fix_versions = PersistentList()
             story.fix_versions.append('SIM-%d' % sim)
             story.history = History()
+            ct = numpy.random.gumbel(loc=average, scale=std) + 1
+            months = int((ct / 30)  ) + 3 # TODO: Fix this
+            days = int(ct % 30) + 1
+            started = datetime.datetime(2013, 3, 1, 12, 0, 0)
+            resolved = datetime.datetime(2013, months, days, 12, 0, 0)
+            story.history.data.append((started, 1, 3, 'Sim PO 1'))
+            story.history.data.append((resolved, 3, 6, 'Sim Dev 1'))
+            story.status = 6
             story.created = datetime.datetime.now()
             story.type = '72'
             story.assignee = None
             story.developer = None
             story.scrum_team = 'Sim Team %d' % int(random.random() * teams)
-            story.status = 1
             story.project = 'SIMS'
             transaction.begin()
             release[story.key] = story
@@ -281,3 +291,5 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
                     fail = True
                     break
                 tasked = False
+        
+        return release.version

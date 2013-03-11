@@ -23,7 +23,7 @@ def make_story(key, points=1.0, status=3, scrum_team='foo', type='72',
     story.points = points
     story.status = status
     story.scrum_team = scrum_team
-    story.developer = 'joe'
+    story.developer = dev
     story.type = type
     story.created = created
     story.history = History()
@@ -102,13 +102,14 @@ class HistoryTest(unittest.TestCase):
     def testCorrectNumberOfTransitions(self):
         self.assertEqual(len(self.history.data), 4)
 
-    def testGetTransition(self):
+    def testGetTransitionTo(self):
         expected_date = datetime.datetime.fromtimestamp(time.mktime(
             time.strptime('2013-01-04T09:36:22.000','%Y-%m-%dT%H:%M:%S.%f')))
-        self.assertEqual(self.history.get_transition(10090)[0], expected_date)
+        self.assertEqual(self.history.get_transition_to(
+            10090)[0], expected_date)
 
-    def testGetTransitionOutOfBounds(self):
-        self.assertEqual(self.history.get_transition('x'), [])
+    def testGetTransitionToOutOfBounds(self):
+        self.assertEqual(self.history.get_transition_to('x'), [])
 
     def testGetTaktTime(self):
         # This is not impl. See method in model.py for details
@@ -334,12 +335,16 @@ class KanbanTest(unittest.TestCase):
 
     def testCycleTimesInStatus(self):
         release = Release()
-        release.add_story(make_story('NG-1', started=D20121201, resolved=D20121202))
-        release.add_story(make_story('NG-2', started=D20121201, resolved=D20121205))
-        release.add_story(make_story('NG-3', started=D20121201, resolved=D20121208))
-        release.add_story(make_story('NG-4', started=D20121201, resolved=D20121205))
+        release.add_story(make_story('NG-1', started=D20121201,
+            resolved=D20121202))
+        release.add_story(make_story('NG-2', started=D20121201,
+            resolved=D20121205))
+        release.add_story(make_story('NG-3', started=D20121201,
+            resolved=D20121208))
+        release.add_story(make_story('NG-4', started=D20121201,
+            resolved=D20121205))
         kanban = release.kanban()
-        self.assertEqual(kanban.cycle_times_in_status()[3], 16)
+        self.assertEqual(kanban.cycle_times_in_status()[3], 7)
 
     def testCycleTimesInStatusByPoints(self):
         release = Release()
@@ -348,11 +353,24 @@ class KanbanTest(unittest.TestCase):
         release.add_story(make_story('NG-2', started=D20121201,
             resolved=D20121205, points=3))
         release.add_story(make_story('NG-3', started=D20121201,
-            resolved=D20121208, points=1))
+            resolved=D20121208, points=3))
         release.add_story(make_story('NG-4', started=D20121201,
             resolved=D20121205, points=2))
         kanban = release.kanban()
         self.assertEqual(kanban.cycle_times_in_status(points=[3])[3], 5)
+
+    def testAverageTimesInStatus(self):
+        release = Release()
+        release.add_story(make_story('NG-1', started=D20121201, # 1d
+            resolved=D20121203))
+        release.add_story(make_story('NG-2', started=D20121201, # 2d
+            resolved=D20121205))
+        release.add_story(make_story('NG-3', started=D20121201, # 5d
+            resolved=D20121208))
+        release.add_story(make_story('NG-4', started=D20121201, # 2d
+            resolved=D20121205))
+        kanban = release.kanban()
+        self.assertEqual(kanban.average_times_in_status()[3], 2.7)
 
     def testAverageCycleTime(self):
         release = Release()
@@ -632,7 +650,7 @@ class KanbanTest(unittest.TestCase):
         release['NG-2'].history.data.append((D20121202, 10089, 3, 'Jane Doe'))
         release['NG-2'].history.data.append((D20121203, 3, 10092, 'Jane Doe'))
         release['NG-2'].history.data.append((D20121205, 10092, 6, 'Jane Doe'))
-        self.assertEqual(kanban.process_cycle_efficiency(), 91.0)
+        self.assertEqual(kanban.process_cycle_efficiency(), 117.0)
         
 
 class ReleaseTests(unittest.TestCase):
@@ -738,13 +756,13 @@ class ReleaseTests(unittest.TestCase):
 
     def testAverageDeveloperCycleTime(self):
         release = Release()
-        release.add_story(make_story('NG-1', started=D20121201,
-            resolved=D20121203, dev='ann'))
-        release.add_story(make_story('NG-2', started=D20121201,
+        release.add_story(make_story('NG-1', started=D20121201, #Sat - Tue 1d
+            resolved=D20121205, dev='ann'))
+        release.add_story(make_story('NG-2', started=D20121201, #Sat - Sat 5d
             resolved=D20121208, dev='ann'))
-        release.add_story(make_story('NG-3', started=D20121205,
-            resolved=D20121213, dev='nik'))
-        self.assertEqual(release.average_developer_cycle_time(), 5.2)
+        release.add_story(make_story('NG-3', started=D20121203, #Mon - Sat 4d
+            resolved=D20121208, dev='nik'))
+        self.assertEqual(release.average_developer_cycle_time(), 5.0)
 
     def testOnlyStories(self):
         release = Release()
@@ -991,8 +1009,6 @@ class ReleaseTests(unittest.TestCase):
         release['NG-2'].points = 2.0
         release['NG-2'].type = '72'
         release['NG-2'].scrum_team = None
-        for story in release.stories():
-            print story.scrum_team
         self.assertEqual(release.wip_by_component()['Some Team']['wip'], 5.0)
         self.assertEqual(release.wip_by_component()['Everything Else']['wip']
             , 2.0)

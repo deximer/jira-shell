@@ -56,8 +56,11 @@ def step(context, some_file):
 
 @given('I am in the directory "{command}"')
 def step(context, command):
-    dao.Jira.cache.cwd = command.split('/')
-    dao.Jira.cache.cwd[0] = '/'
+    if command == '/':
+        dao.Jira.cache.cwd = ['/']
+    else:
+        dao.Jira.cache.cwd = command.split('/')
+        dao.Jira.cache.cwd[0] = '/'
 
 @when('I enter the command "{command}"')
 def step(context, command):

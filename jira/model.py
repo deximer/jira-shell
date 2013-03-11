@@ -124,7 +124,14 @@ class History(Folder):
                                       transaction['author']['displayName']))
                     previous_date = created
 
-    def get_transition(self, state):
+    def get_transition_from(self, state):
+        results = []
+        for transition in self.data:
+            if transition[1] == state:
+                results.append(transition[0])
+        return results
+
+    def get_transition_to(self, state):
         results = []
         for transition in self.data:
             if transition[2] == state:
@@ -137,17 +144,17 @@ class History(Folder):
             etc. It then needs to return as many takt completions. partial
             attempts, etc. How we measure takt time nees to be decided
         '''
-        start_date = self.get_transition(start)
+        start_date = self.get_transition_to(start)
         if not start_date:
             return None
-        end_date = self.get_transition(end)
+        end_date = self.get_transition_to(end)
         if not end_date:
             return None
         return None # Not implemented
 
     def _get_started(self):
-        start_dates = self.get_transition(3)
-        open_dates = self.get_transition(1)
+        start_dates = self.get_transition_to(3)
+        open_dates = self.get_transition_to(1)
         if start_dates:
             if open_dates and (open_dates[-1] - start_dates[-1]).days > 0:
                 return None
@@ -155,13 +162,13 @@ class History(Folder):
         return None
 
     def _get_resolved(self):
-        dates = self.get_transition(6)
+        dates = self.get_transition_to(6)
         if dates:
             return dates[-1]
         return None
 
     def _get_first_started(self):
-        start_dates = self.get_transition(3)
+        start_dates = self.get_transition_to(3)
         if start_dates:
             return start_dates[0]
         return None
@@ -201,15 +208,18 @@ class History(Folder):
         days = None
         for transition in self.data:
             if previous_date:
-                days = (transition[0] - previous_date).days
+                days = rrule(DAILY, dtstart=previous_date, until=transition[0],
+                            byweekday=(MO, TU, WE, TH, FR)).count() - 1
             results.append((transition[0], transition[1], transition[2], days,
                 transition[3]))
             previous_date = transition[0]
         if results and results[-1][2] != 6:
             last = results[-1]
             del results[-1]
-            results.append((last[0], last[1], last[2], \
-                (datetime.datetime.now() - last[0]).days, last[4]))
+            days = rrule(DAILY, dtstart=previous_date,
+                until=datetime.datetime.now(), byweekday=(
+                MO, TU, WE, TH, FR)).count() - 1
+            results.append((last[0], last[1], last[2], days, last[4]))
         return results
 
     started = property(_get_started)
@@ -362,6 +372,121 @@ class Kanban(object):
                     result[transition[1]] = transition[3]
                 else:
                     result[transition[1]] += transition[3]
+        return result
+
+    def average_times_in_status(self, component=None, type=['72'], points=[]):
+        stories = self.release.stories(type=type)
+        if not stories:
+            return None
+        result = {}
+        for story in stories:
+            if component and component != story.scrum_team:
+                continue
+            if points and story.points not in points:
+                continue
+            for transition in story.history.all:
+                if not transition[3]: # days
+                    continue
+                if not transition[1] in result.keys():
+                    result[transition[1]] = [transition[3]]
+                else:
+                    result[transition[1]].append(transition[3])
+        averages = {}
+        for key in result.keys():
+            averages[key] = round(numpy.average(result[key]), 1)
+        return averages
+
+    def std_times_in_status(self, component=None, type=['72'], points=[]):
+        stories = self.release.stories(type=type)
+        if not stories:
+            return None
+        result = {}
+        for story in stories:
+            if component and component != story.scrum_team:
+                continue
+            if points and story.points not in points:
+                continue
+            for transition in story.history.all:
+                if not transition[3]: # days
+                    continue
+                if not transition[1] in result.keys():
+                    result[transition[1]] = [transition[3]]
+                else:
+                    result[transition[1]].append(transition[3])
+        averages = {}
+        for key in result.keys():
+            averages[key] = round(numpy.std(result[key]), 1)
+        return averages
+
+    def average_arrival_for_status(self, component=None, type=['72'],
+        points=[]):
+        stories = self.release.stories(type=type)
+        if not stories:
+            return None
+        result = {}
+        for story in stories:
+            if component and component != story.scrum_team:
+                continue
+            if points and story.points not in points:
+                continue
+            for transition in story.history.all:
+                if not transition[3]: # days
+                    continue
+                if not transition[2] in result.keys():
+                    result[transition[2]] = [transition[3]]
+                else:
+                    result[transition[2]].append(transition[3])
+        averages = {}
+        for key in result.keys():
+            averages[key] = round(numpy.average(result[key]), 1)
+        return averages
+
+    def std_arrival_for_status(self, component=None, type=['72'], points=[]):
+        stories = self.release.stories(type=type)
+        if not stories:
+            return None
+        result = {}
+        for story in stories:
+            if component and component != story.scrum_team:
+                continue
+            if points and story.points not in points:
+                continue
+            for transition in story.history.all:
+                if not transition[3]: # days
+                    continue
+                if not transition[2] in result.keys():
+                    result[transition[2]] = [transition[3]]
+                else:
+                    result[transition[2]].append(transition[3])
+        averages = {}
+        for key in result.keys():
+            averages[key] = round(numpy.std(result[key]), 1)
+        return averages
+
+    def state_arrival_interval(self, state):
+        dates = []
+        for story in self.release.stories():
+            dates.extend([d for d in story.history.get_transition_to(state)])
+        if not dates:
+            return []
+        dates.sort()
+        deltas = [{'date': dates[0], 'interval': 0}]
+        previous = dates[0]
+        for date in dates[1:]:
+            deltas.append({'date': date,
+                           'interval': (date - previous).total_seconds()})
+            previous = date
+        return deltas
+
+    def all_state_arrival_intervals(self):
+        result = {}
+        for state in KANBAN:
+            deltas = self.state_arrival_interval(state)
+            result[state] = {'deltas': deltas,
+                             'average': round(numpy.average(
+                                 [d['interval'] for d in deltas])/60./60., 3),
+                             'std': round(numpy.std(
+                                 [d['interval'] for d in deltas])/60./60., 3)}
         return result
 
     def average_cycle_time(self, component=None, type=['72']):
@@ -526,6 +651,29 @@ class Kanban(object):
             days.append(story.cycle_time)
         return numpy.std(numpy.array(days))
 
+    def state_transition_probabilities(self):
+        stories = self.release.stories()
+        result = {}
+        for story in stories:
+            for transition in story.history.all:
+                if not transition[3]:
+                    continue
+                if not result.has_key(transition[1]):
+                    result[transition[1]] = {transition[2]: {
+                        'days': [transition[3]]}}
+                elif not result[transition[1]].has_key(transition[2]):
+                    result[transition[1]][transition[2]] = {
+                        'days': [transition[3]]}
+                else:
+                    result[transition[1]][transition[2]]['days'].append(
+                        transition[3])
+        for transition in result.values():
+            for t in transition.values():
+                t['average'] = round(numpy.average(t['days']), 1)
+                t['std'] = round(numpy.std(t['days']), 1)
+
+        return result
+
     def minimum_atp(self, estimate):
         grid = self.release.stories_by_estimate()
         days = []
@@ -662,13 +810,14 @@ class Release(Folder):
     def average_developer_cycle_time(self):
         developers = self.developers()
         total = self.aggregate_developer_cycle_time()
-        return round(total/float(len(developers.keys())/2.0), 1)
+        return round(total/float(len(developers.keys())), 1)
 
     def stdev_developer_cycle_time(self):
         developers = self.developers()
         cycle_times = []
         for developer in developers:
-            cycle_times.append(sum([s.cycle_time for s in developers[developer] if s.cycle_time]))
+            cycle_times.append(sum([s.cycle_time for s in developers[developer]
+                if s.cycle_time]))
         return round(numpy.std(cycle_times), 1)
 
     def stories(self, type=['72']):

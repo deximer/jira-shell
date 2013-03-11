@@ -16,31 +16,36 @@ class Command(BaseCommand):
         ' [-p point] [-c cycle_time] [-x file_name.ext] [-f]'
     options_help = '''    -c : specify cycle time outlier limit
     -d : chart for developer
+    -e : include estimates subplot
     -k : chart using or surpressing specific issue keys
     -p : chart for estimate value 
     -f : calculate cycle times from the first in process date (default is last)
-    -e : group stories by thier estimate values (show estimate/ct correlation))
+    -g : group stories by this strategy (default || estimate || resolved)
+    -l : label points
     -s : sorting criteria
-    -t : specify chart type: cycle (default) || hist
+    -t : specify chart type: cycle (default) || hist || arrival [state]
     -x : export graph to a file (valid extensions are pdf, png, or jpg)
     '''
     examples = '''    chart
     chart App
     chart -k !1234
+    chart -t arrival 10090
     chart -s scrum_team points'''
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
         parser.add_argument('team', nargs='?')
-        parser.add_argument('-t', nargs='?', required=False)
+        parser.add_argument('-c', nargs='*', required=False)
         parser.add_argument('-d', nargs='*', required=False)
         parser.add_argument('-e', action='store_true', required=False)
+        parser.add_argument('-f', action='store_true', required=False)
+        parser.add_argument('-g', nargs='?', required=False)
+        parser.add_argument('-l', action='store_true', required=False)
+        parser.add_argument('-k', nargs='*', required=False)
         parser.add_argument('-p', nargs='*', required=False)
         parser.add_argument('-s', nargs='*', required=False)
-        parser.add_argument('-k', nargs='*', required=False)
-        parser.add_argument('-c', nargs='*', required=False)
+        parser.add_argument('-t', nargs='*', required=False)
         parser.add_argument('-x', nargs='*', required=False)
-        parser.add_argument('-f', action='store_true', required=False)
         try:
             self.args = parser.parse_args(args)
         except:
@@ -117,9 +122,14 @@ class Command(BaseCommand):
         else:
             sorting = ['points', 'scrum_team', 'cycle_time']
 
-        if self.args.t == 'hist':
+        if self.args.t and self.args.t[0] == 'hist':
             self.histogram(stories)
-        elif not self.args.t or self.args.t == 'cycles':
+        elif self.args.t and self.args.t[0] == 'arrival':
+            if len(self.args.t) == 2:
+                self.arrivals(stories, int(self.args.t[1]))
+            else:
+                self.arrivals(stories)
+        elif not self.args.t or self.args.t[0] == 'cycles':
             self.cycles(stories, sorting)
         else:
             print 'Unknown chart type: %s' % self.args.t[0]
@@ -135,6 +145,31 @@ class Command(BaseCommand):
         pylab.plot(x, pdf_fitted, 'r-', label='Fitted')
         pylab.hist(cycle_times, bins, normed=True, alpha=.3)
         pylab.show(block=False)
+
+    def arrivals(self, stories, state=6):
+        arrivals = self.release.kanban().state_arrival_interval(state)
+        dates = [a['date'] for a in arrivals]
+        arrivals = [round(a['interval']/60./60., 1) for a in arrivals]
+        average = numpy.average([arrivals])
+        std = numpy.std([arrivals])
+        nsul = []
+        nsuw = []
+        nsll = []
+        nslw = []
+        avg = []
+        for x in arrivals:
+            nsul.append(average + (std * 3))
+            nsuw.append(average + (std * 2))
+            nslw.append(average - (std * 2))
+            nsll.append(average - (std * 3))
+            avg.append(average)
+        pyplot.plot(dates, arrivals, '*', color='g')
+        pyplot.plot(dates, nsul, 'o', linestyle='-', color='r')
+        pyplot.plot(dates, nsuw, '.', linestyle=':', color='y')
+        pyplot.plot(dates, nslw, '.', linestyle=':', color='y')
+        pyplot.plot(dates, nsll, 'o', linestyle='-', color='r')
+        pyplot.plot(dates, avg, '',linestyle='-.',  markerfacecolor='None')
+        pyplot.show(block=False)
 
     def cycles(self, stories, sorting):
         data = []
@@ -168,8 +203,16 @@ class Command(BaseCommand):
             labels.append(story.key)
             estimate_labels.append(story.scrum_team)
             developer_labels.append(story.developer)
-            if self.args.e:
-                count.append(getattr(story, sorting[0]))
+            if self.args.g and not self.args.g == 'default':
+                if self.args.g == 'estimate':
+                    count.append(getattr(story, sorting[0]))
+                elif self.args.g == 'resolved':
+                    if story.resolved:
+                        count.append(story.resolved)
+                    elif story.started:
+                        count.append(story.started)
+                    else:
+                        count.append(datetme.datetime.now())
             else:
                 count.append(count[-1] + 1)
 
@@ -186,8 +229,9 @@ class Command(BaseCommand):
             nslw.append(average - (std * 2))
             nsll.append(average - (std * 3))
             avg.append(average)
-        gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1]) 
-        pyplot.subplot(gs[0])
+        if self.args.e:
+            gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1]) 
+            pyplot.subplot(gs[0])
         pyplot.plot(count[1:], data, '*', color='g')
         pyplot.plot(count[1:], wip, '^', color='r')
         pyplot.plot(count[1:], nsul, 'o', linestyle='-', color='r')
@@ -195,7 +239,11 @@ class Command(BaseCommand):
         pyplot.plot(count[1:], nslw, '.', linestyle=':', color='y')
         pyplot.plot(count[1:], nsll, 'o', linestyle='-', color='r')
         pyplot.plot(count[1:], avg, '',linestyle='-.',  markerfacecolor='None')
+
         for label, x, y in zip(labels, count[1:], alldata):
+            if not self.args.l:
+                if y < std * 3 + average:
+                    continue
             pyplot.annotate(
             label,
             xy=(x, y), xytext=(-10,10),
@@ -205,6 +253,8 @@ class Command(BaseCommand):
         yoffset = -10
         odd = True
         for label, x, y in zip(developer_labels, count[1:], nsll):
+            if not self.args.l:
+                continue
             if odd:
                 odd = False
             else:
@@ -224,6 +274,11 @@ class Command(BaseCommand):
         odd = True
         yoffset = 10
         for label, x, y in zip(developer_labels, count[1:], nsul):
+            if not self.args.l:
+                continue
+            if not self.args.l:
+                if y < std * 3:
+                    continue
             if odd:
                 odd = False
                 continue
@@ -240,13 +295,23 @@ class Command(BaseCommand):
             bbox = dict(boxstyle = 'round,pad=0.3', fc='cyan', alpha=0.1),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
             yoffset += 10
+
+        if not self.args.e:
+            if self.file:
+                pyplot.savefig(self.file, bbox=0)
+            else:
+                pyplot.show(block=False)
+            return
+
         pyplot.grid(True)
         pyplot.subplot(gs[1])
-        pyplot.plot(count[1:], estimates, 'o', linestyle='-', color='b')
+        pyplot.plot(count[1:], estimates, 'o', linestyle='', color='b')
         previous_label = ''
         label_count = 0
         elevated = True
         for label, x, y in zip(estimate_labels, count[1:], estimates):
+            if not self.args.l:
+                continue
             if label == previous_label:
                 label_count += 1
                 continue

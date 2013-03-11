@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import transaction
 from ..base import BaseCommand
 
 class Command(BaseCommand):
@@ -14,6 +15,16 @@ class Command(BaseCommand):
         try:
             args = parser.parse_args(args)
         except:
+            return
+
+        if args.commands and args.commands[0] == 'del':
+            if len(args.commands) > 1:
+                for obj in args.commands[1:]:
+                    transaction.begin()
+                    del jira.cache.data[''.join(jira.cache.cwd[1:])][obj]
+                    transaction.commit()
+                    print 'Deleted: %s' % \
+                        (''.join(jira.cache.cwd[1:]) + '/' + obj)
             return
 
         for command in args.commands:
