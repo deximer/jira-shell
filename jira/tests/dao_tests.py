@@ -138,10 +138,6 @@ class JiraTest(unittest.TestCase):
         keys = self.jira.get_release_keys(['1.0'])
         self.assertEqual(keys[0], 'NG-13809')
 
-    def testGetReleaseData(self):
-        keys = self.jira.get_release_data(['1.0'])
-        self.assertEqual(keys[0]['key'], 'NG-13809')
-
     def testGetStory(self):
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(

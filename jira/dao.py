@@ -205,20 +205,6 @@ class Jira(object):
                 '&startAt=0&maxResults=10000&fields=key')['issues'])
         return [i['key'] for i in issues]
 
-    def get_release_data(self, releases):
-        if len(releases) > 1:
-            notice = 'Retrieving release keys for %s' % ', '.join(releases[:-1])
-            notice += ' and %s' % releases[-1]
-        else:
-            notice = 'Retrieving release keys for %s' % releases[0]
-        print notice
-        issues = []
-        for release in releases:
-            issues.extend(self.call_api('search?' \
-                'jql=project%20=%20ng%20AND%20fixVersion="' + release + '"' \
-                '&startAt=0&maxResults=10000&fields=key')['issues'])
-        return issues
-
     def get_story(self, key, refresh=False, links=True):
         story = self.cache.get(key)
         if story and not refresh:
