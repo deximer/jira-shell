@@ -113,8 +113,8 @@ class LocalDB(object):
             del path[0]
         else:
             obj = self.get_by_path(self.cwd)
-        for dir in path:
-            obj = obj[dir]
+        for directory in path:
+            obj = obj[directory]
         return obj
 
 
@@ -325,7 +325,6 @@ class Jira(object):
         print 'Importing %d KYTS issues...' % len(issues['issues'])
         for issue in issues['issues']:
             print 'Make: %s' % issue['key']
-            import pdb; pdb.set_trace()
             self.make_story(issue['key'], issue, True)
 
     def call_api(self, method):
