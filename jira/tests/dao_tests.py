@@ -51,23 +51,6 @@ class DBTest(unittest.TestCase):
         self.db.cwd = ['/', '1.0']
         self.assertEqual(self.db.get_by_path('NG-1'), 'Issue 1')
 
-    def testKeys(self):
-        self.db.data['1.0'] = 'Foo'
-        self.assertEqual(len(self.db.keys()), 1)
-
-    def testKeysNested(self):
-        self.db.data['test1.0'] = Release()
-        self.db.data['test1.0']['NG-test1'] = Story('Issue 1')
-        self.assertEqual(len(self.db.keys()), 2)
-
-    def testKeysDeepNested(self):
-        self.db.data['1.0'] = {}
-        self.db.data['1.0']['NG-1'] = 'Issue 1'
-        self.db.data['1.0']['NG-2'] = 'Issue 2'
-        self.db.data['1.0']['Nest'] = {}
-        self.db.data['1.0']['Nest']['NG-3'] = 'Issue 3'
-        self.assertEqual(len(self.db.keys()), 5)
-    
     def testGet(self):
         self.db.data['1.0'] = Release()
         self.db.data['1.0']['NG-1'] = Story('Issue 1')

@@ -67,16 +67,6 @@ class LocalDB(object):
         self.db.close()
         self.fs.close()
 
-    def keys(self, obj=None, results=[]):
-        if obj is None:
-            obj = self.data
-        for key in obj:
-            if not key in results:
-                results.append(key)
-            if hasattr(obj[key], 'has_key'):
-                self.keys(obj[key], results)
-        return results
-
     def get(self, key, context=None):
         key = self.process_raw_key(key)
         results = self.catalog.search(key=key)
