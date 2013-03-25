@@ -124,6 +124,7 @@ def main():
     p = optparse.OptionParser()
     p.add_option('--command', '-c', action='store_true', dest='command')
     p.add_option('--shell', '-s', action='store_true', dest='shell')
+    p.add_option('--web', '-w', action='store_true', dest='web')
     options, arguments = p.parse_args()
     if options.command:
         commands = arguments[0].split(';')
@@ -150,6 +151,20 @@ def main():
                     if len(command_history) > 10:
                         del command_history[0]
                 dispatch(command)
+    elif options.web:
+        import BaseHTTPServer
+        from SimpleHTTPServer import SimpleHTTPRequestHandler
+        class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write('Foo...')
+                return
+        httpd = BaseHTTPServer.HTTPServer(('127.0.0.1', 9876), Handler)
+        sa =httpd.socket.getsockname()
+        print 'Started server on', sa[0], 'port', sa[1], '...'
+        httpd.serve_forever()
 
 if __name__ == '__main__':
     main()
