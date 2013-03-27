@@ -190,6 +190,7 @@ class History(Folder):
 
     def _get_skipped(self):
         previous = None
+        steps = 0
         for date, begin, end, days, name in self.all:
             try:
                 steps = KANBAN.index(end) - KANBAN.index(begin)

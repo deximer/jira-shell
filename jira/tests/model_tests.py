@@ -154,6 +154,11 @@ class HistoryTest(unittest.TestCase):
         self.history.data.append((D20121201, 10036, 6, 'Jane Doe'))
         self.assertFalse(self.history.skipped)
 
+    def testSkippedForeignState(self):
+        self.history.data = []
+        self.history.data.append((D20121201, 1, 9999, 'Jane Doe'))
+        self.assertFalse(self.history.skipped)
+
     def testBackflowTrue(self):
         self.history.data = []
         self.history.data.append((D20121201, 1, 3, 'Jane Doe'))
