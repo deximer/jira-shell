@@ -133,7 +133,7 @@ def main():
             dispatch(' '.join(arguments))
     elif options.shell:
         command = ''
-        print 'Jira Shell 0.3'
+        print 'Jira Shell 0.4'
         print 'Type "help" to get started. Type "quit" to exit.'
         while command != 'quit':
             command = shell()
