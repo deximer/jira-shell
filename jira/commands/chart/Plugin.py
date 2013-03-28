@@ -106,7 +106,7 @@ class Command(BaseCommand):
                 for story in stories:
                     self.release.add_story(story)
         if self.args.x:
-            self.file = self.args.x[0]
+            self.file = 'cycles-%s.%s' % (self.release.version, self.args.x[0])
         else:
             self.file = None
         if not self.release.stories():

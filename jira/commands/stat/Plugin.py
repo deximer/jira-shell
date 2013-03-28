@@ -18,8 +18,8 @@ class Command(BaseCommand):
             print 'Error: please supply a single id'
             return
         parser = argparse.ArgumentParser()
-        args = parser.parse_args(args)
         parser.add_argument('key')
+        args = parser.parse_args(args)
         story = jira.cache.get(args.key)
         if not story:
             print 'Error: story key %s not found' % args.key
