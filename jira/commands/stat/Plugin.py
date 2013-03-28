@@ -14,9 +14,12 @@ class Command(BaseCommand):
         if not args:
             print 'Error: you must specify an issue key'
             return
+        elif len(args) > 1:
+            print 'Error: please supply a single id'
+            return
         parser = argparse.ArgumentParser()
-        parser.add_argument('key')
         args = parser.parse_args(args)
+        parser.add_argument('key')
         story = jira.cache.get(args.key)
         if not story:
             print 'Error: story key %s not found' % args.key
