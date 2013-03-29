@@ -60,12 +60,6 @@ def humanize(status):
         return HUMAN_STATUS[status]
     return str(status)
 
-class Link(Folder):
-    def __init__(self, story, type):
-        super(Link, self).__init__()
-        self.target = story
-        self.type = type
-
 
 class Links(Folder):
     def __init__(self):

@@ -94,10 +94,6 @@ class JiraTest(unittest.TestCase):
         self.assertEqual(self.jira.auth, self.AUTH)
         self.assertEqual(self.jira.cwd, ['/'])
 
-    def testFormatRequest(self):
-        self.assertEqual(self.jira.format_request('test/path.html'),
-            'http://user:pass@jira.cengage.com/test/path.html')
-
     def testGetRelease(self):
         release = Release()
         release.version = '1.0'

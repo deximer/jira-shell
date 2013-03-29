@@ -67,6 +67,11 @@ class LocalDB(object):
         self.db.close()
         self.fs.close()
 
+    def process_raw_key(self, key):
+        if key.isdigit():
+            key = 'NG-%s' % key
+        return key.strip()
+
     def get(self, key, context=None):
         key = self.process_raw_key(key)
         results = self.catalog.search(key=key)
@@ -77,11 +82,6 @@ class LocalDB(object):
                 path[0] = '/'
                 stories.append(self.get_by_path(path))
         return stories
-
-    def process_raw_key(self, key):
-        if key.isdigit():
-            key = 'NG-%s' % key
-        return key.strip()
 
     def cwd_contents(self):
         if self.cwd[-1] == '/':
@@ -122,9 +122,6 @@ class Jira(object):
             for key in self.cache.root().keys():
                 contents.append(self.cache.root()[key])
             return {'releases': contents}
-
-    def format_request(self, path):
-        return 'http://%s@%s/%s' % (self.auth, self.server, path)
 
     def get_release(self, version=None):
         if not version:

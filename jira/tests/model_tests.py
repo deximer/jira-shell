@@ -4,8 +4,8 @@ import datetime
 import json
 from ZODB.FileStorage import FileStorage
 from ZODB.DB import DB
-from ..model import Story, Release, Projects, Project, Kanban, History, Links, \
-    Link
+from ..model import Story, Release, Projects, Project, Kanban, History, Links
+
 from ..dao import Jira
 from  xml.etree import ElementTree as ET
 from persistent.mapping import PersistentMapping
@@ -31,21 +31,6 @@ def make_story(key, points=1.0, status=3, scrum_team='foo', type='72',
     story.history.data.append((resolved, 3, 6, 'Joe Doe'))
     return story
 
-
-class LinkTests(unittest.TestCase):
-    def setUp(self):
-        self.story = Story('NG-1')
-        self.link = Link(self.story, 'Cloners')
-
-    def tearDown(self):
-        del self.link
-
-    def testObjectCreation(self):
-        self.assertTrue(self.link is not None)
-
-    def testCreateLink(self):
-        self.assertEqual(self.link.target, self.story)
-        self.assertEqual(self.link.type, 'Cloners')
 
 class LinksTests(unittest.TestCase):
     def setUp(self):
