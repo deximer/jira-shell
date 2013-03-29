@@ -732,7 +732,7 @@ class Kanban(object):
         for status in cycle_times:
             if status in (3, 10092):
                 value += cycle_times[status]
-            elif status in (1, 10089): # ignore 'open' and 'ready'
+            elif status in (1, 10089, 6): # ignore 'open' and 'ready'
                 continue
             else:
                 nonvalue += cycle_times[status]

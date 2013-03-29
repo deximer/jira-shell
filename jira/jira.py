@@ -54,28 +54,14 @@ def shell():
     return raw_input('/%s > ' % '/'.join(Jira.cache.cwd[1:]))
 
 def dispatch(command):
-    table = {'report': cmds['report'].run,
-             'teams': cmds['teams'].run,
-             'developers': cmds['developers'].run,
-             'ls': cmds['ls'].run,
-             'cd': cmds['cd'].run,
-             'simulate': cmds['simulate'].run,
-             'stat': cmds['stat'].run,
-             'links': cmds['links'].run,
-             'top': cmds['top'].run,
-             'legend': cmds['legend'].run,
-             'db': cmds['db'].run,
-             'export': cmds['export'].run,
-             'import': cmds['import'].run,
-             'refresh': cmds['refresh'].run,
-             'chart': cmds['chart'].run,
-             'help': help,
-             '!': history,
-            }
     args = command.split()[1:]
     command = command.split()[0]
-    if command in table.keys():
-        table[command](connect_to_jira(), args)
+    if command == 'help':
+        help(connect_to_jira(), args)
+    elif command == '!':
+        history(connect_to_jira(), args)
+    elif command in cmds.keys():
+        cmds[command].run(connect_to_jira(), args)
     else:
         print '%s: command not found' % command
 
