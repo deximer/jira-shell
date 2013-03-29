@@ -730,9 +730,9 @@ class Kanban(object):
         cycle_times = self.cycle_times_in_status(component, types, points)
         value = nonvalue = 0
         for status in cycle_times:
-            if status in [3, 10092]:
+            if status in (3, 10092):
                 value += cycle_times[status]
-            elif status == 1: # ignore 'open'
+            elif status in (1, 10089): # ignore 'open' and 'ready'
                 continue
             else:
                 nonvalue += cycle_times[status]
