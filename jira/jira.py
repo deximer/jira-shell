@@ -5,23 +5,15 @@ from BeautifulSoup import BeautifulSoup as BS
 from model import Release, Story, Projects, Project
 from dao import Jira, MT_USER, MT_PASS
 import commands
+import os
 
-cmds = {'top': commands.top.Plugin.Command(),
-        'ls': commands.ls.Plugin.Command(),
-        'cd': commands.cd.Plugin.Command(),
-        'chart': commands.chart.Plugin.Command(),
-        'export': commands.export.Plugin.Command(),
-        'import': commands.importer.Plugin.Command(),
-        'report': commands.report.Plugin.Command(),
-        'simulate': commands.simulate.Plugin.Command(),
-        'stat': commands.stat.Plugin.Command(),
-        'links': commands.links.Plugin.Command(),
-        'teams': commands.teams.Plugin.Command(),
-        'legend': commands.legend.Plugin.Command(),
-        'db': commands.db.Plugin.Command(),
-        'developers': commands.developers.Plugin.Command(),
-        'refresh': commands.refresh.Plugin.Command(),
-       }
+
+command_plugins = {}
+for command in os.listdir('/'.join(commands.__file__.split('/')[:-1])):
+    if command in ('base.py', 'base.pyc', '__init__.py', '__init__.pyc'):
+        continue
+    exec compile('command_plugins["%s"] = commands.%s.Plugin.Command()' \
+        % (command, command), '<string>', 'exec')
 
 command_history = []
 
@@ -60,8 +52,8 @@ def dispatch(command):
         help(connect_to_jira(), args)
     elif command == '!':
         history(connect_to_jira(), args)
-    elif command in cmds.keys():
-        cmds[command].run(connect_to_jira(), args)
+    elif command in command_plugins.keys():
+        command_plugins[command].run(connect_to_jira(), args)
     else:
         print '%s: command not found' % command
 
@@ -78,8 +70,8 @@ def help(jira, command):
     if command == 'commands':
         print 'Available commands:'
         print
-        for command in cmds.keys():
-            print command.ljust(10), ':', cmds[command].help
+        for command in command_plugins.keys():
+            print command.ljust(10), ':', command_plugins[command].help
         print
         print 'For help on a specific command type: help <command>'
         return
@@ -90,15 +82,15 @@ def help(jira, command):
         print '    !'
         print '    !2'
         return
-    print cmds[command].help
+    print command_plugins[command].help
     print
-    print 'Usage: %s' % cmds[command].usage
-    if cmds[command].options_help:
+    print 'Usage: %s' % command_plugins[command].usage
+    if command_plugins[command].options_help:
         print 'Options:'
-        print cmds[command].options_help
-    if cmds[command].examples:
+        print command_plugins[command].options_help
+    if command_plugins[command].examples:
         print 'Examples:'
-        print cmds[command].examples
+        print command_plugins[command].examples
 
 def history(jira, command):
     count = 0
