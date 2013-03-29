@@ -655,7 +655,7 @@ class KanbanTest(unittest.TestCase):
         release['NG-2'].history.data.append((D20121202, 10089, 3, 'Jane Doe'))
         release['NG-2'].history.data.append((D20121203, 3, 10092, 'Jane Doe'))
         release['NG-2'].history.data.append((D20121205, 10092, 6, 'Jane Doe'))
-        self.assertEqual(kanban.process_cycle_efficiency(), 117.0)
+        self.assertEqual(kanban.process_cycle_efficiency(), 100.0)
         
 
 class ReleaseTests(unittest.TestCase):

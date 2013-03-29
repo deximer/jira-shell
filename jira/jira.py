@@ -7,7 +7,6 @@ from dao import Jira, MT_USER, MT_PASS
 import commands
 import os
 
-
 command_plugins = {}
 for command in os.listdir('/'.join(commands.__file__.split('/')[:-1])):
     if command in ('base.py', 'base.pyc', '__init__.py', '__init__.pyc'):
@@ -19,28 +18,6 @@ for command in os.listdir('/'.join(commands.__file__.split('/')[:-1])):
         print 'Warning: failed to load command plugin "%s"' % command
 
 command_history = []
-
-NG_CURRENT_RELEASE = 'http://%s:%s@jira.cengage.com/sr/' \
-    'jira.issueviews:searchrequest-xml/24756/SearchRequest-24756.xml?' \
-    'tempMax=10000' % (MT_USER, MT_PASS)
-NG_NEXT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?tempMax=10000'
-ISSUE='http://mindtap.user:m1ndtap@jira.cengage.com/si/jira.issueviews:issue-xml/%s/%s.xml'
-ITEMS = './/*/item'
-PROJECTS = 'http://mindtap.user:m1ndtap@jira.cengage.com/secure/BrowseProjects.jspa#all'
-
-cwd = ['/']
-
-def request_projects():
-    page = urllib.urlopen(PROJECTS).read()
-    soup = BS(page)
-    names = soup.find('tbody', {'class' : 'projects-list'}).findAll('td')[::4]
-    codes = soup.find('tbody', {'class' : 'projects-list'}).findAll('td')[1::4]
-    owner = soup.find('tbody', {'class' : 'projects-list'}).findAll('td')[2::4]
-    projects = Projects()
-    for count in range(0, len(names)):
-        projects.add(Project(names[count].text, codes[count].text,
-            owner[count].text))
-    return projects
 
 def connect_to_jira():
     return Jira('jira.cengage.com', 'mindtap.user:m1ndtap')
