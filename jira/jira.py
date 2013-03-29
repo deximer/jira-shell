@@ -12,8 +12,11 @@ command_plugins = {}
 for command in os.listdir('/'.join(commands.__file__.split('/')[:-1])):
     if command in ('base.py', 'base.pyc', '__init__.py', '__init__.pyc'):
         continue
-    exec compile('command_plugins["%s"] = commands.%s.Plugin.Command()' \
-        % (command, command), '<string>', 'exec')
+    try:
+        exec compile('command_plugins["%s"] = commands.%s.Plugin.Command()' \
+            % (command, command), '<string>', 'exec')
+    except AttributeError:
+        print 'Warning: failed to load command plugin "%s"' % command
 
 command_history = []
 
