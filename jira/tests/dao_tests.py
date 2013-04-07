@@ -9,9 +9,24 @@ from ..dao import Jira, LocalDB
 from ..model import Release, Story
 
 class DBTest(unittest.TestCase):
+    SERVER = 'jira.cengage.com'
+    AUTH = 'user:pass'
+
     def setUp(self):
         LocalDB.cache_file = 'db/test_cache.fs'
         self.db = LocalDB()
+        def mock_request_page(url, refresh=False):
+            return open('jira/tests/data/rss.xml').read()
+        def mock_call_rest(key, expand=['changelog']):
+            return json.loads(open(
+                'jira/tests/data/rest_changelog.json').read())
+        def mock_call_api(method):
+            return json.loads(open(
+                'jira/tests/data/release_keys.json').read())
+        self.jira = Jira('jira.cengage.com', 'user:pass')
+        self.jira.call_rest = mock_call_rest
+        self.jira.call_api = mock_call_api
+        self.jira.request_page = mock_request_page
 
     def tearDown(self):
         self.db.close_db()
@@ -52,9 +67,11 @@ class DBTest(unittest.TestCase):
         self.assertEqual(self.db.get_by_path('NG-1'), 'Issue 1')
 
     def testGet(self):
-        self.db.data['1.0'] = Release()
-        self.db.data['1.0']['NG-1'] = Story('Issue 1')
-        self.assertEqual(self.db.get('NG-1')[0].key, 'Issue 1')
+        json_data = open('jira/tests/data/NG-13332.json').read()
+        json_obj = self.jira.json_to_object(json_data)
+        self.jira.make_story('NG-13332', json_obj)
+        results = self.db.get('NG-13332')
+        self.assertEqual(results[0].key, 'NG-13332')
 
 
 class JiraTest(unittest.TestCase):
