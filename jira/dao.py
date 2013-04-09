@@ -191,6 +191,7 @@ class Jira(object):
         story.type = data['fields']['issuetype']['id']
         story.assignee = data['fields']['assignee']
         story.developer = data['fields']['customfield_13435']
+        story.rank = data['fields']['customfield_12242']
         story.scrum_team = None
         if data['fields'].has_key('customfield_11261'):
             if data['fields']['customfield_11261']:
