@@ -97,13 +97,37 @@ def main():
             command = shell()
             if command and command != 'quit':
                 if command[:1] == '!':
-                    if len(command) > 1:
+                    args = command.split('-')[1:]
+                    bang = command.split('-')[0].strip()
+                    execute = []
+                    if len(bang) > 1:
                         try:
-                            index = int(command[1:])
+                            index = int(bang[1:])
                             command = command_history[int(index)]
+                            hist_args = command.split('-')[1:]
+                            execute.append(command.split('-')[0].strip())
+                            save_history = False
+                            for harg in hist_args:
+                                replaced = False
+                                for arg in args:
+                                    if arg[0] == harg[0]:
+                                        execute.append('-' + arg.strip())
+                                        replaced = True
+                                        save_history = True
+                                if not replaced:
+                                    execute.append('-' + harg.strip())
                         except:
                             print 'Error: invalid history index'
                             continue
+                        for arg in args:
+                            if arg not in hist_args:
+                                execute.append('-' + arg)
+                                save_history = True
+                        command = ' '.join(execute)
+                        if save_history:
+                            command_history.append(command)
+                            if len(command_history) > 10:
+                                del command_history[0]
                 else:
                     command_history.append(command)
                     if len(command_history) > 10:
