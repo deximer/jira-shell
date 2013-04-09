@@ -120,7 +120,7 @@ def main():
                             print 'Error: invalid history index'
                             continue
                         for arg in args:
-                            if arg not in hist_args:
+                            if '-' + arg not in execute:
                                 execute.append('-' + arg)
                                 save_history = True
                         command = ' '.join(execute)
