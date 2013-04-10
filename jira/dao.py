@@ -192,6 +192,17 @@ class Jira(object):
         story.assignee = data['fields']['assignee']
         story.developer = data['fields']['customfield_13435']
         story.rank = data['fields']['customfield_12242']
+        if 'customfield_10722' in data['fields'] and data['fields'][
+            'customfield_10722']:
+            story.root_cause = data['fields']['customfield_10722'][
+                'value'].strip()
+        else:
+            story.root_cause = ''
+        if 'customfield_13330' in data['fields'] and data['fields'][
+            'customfield_13330']:
+            story.root_cause_details = data['fields']['customfield_13330']
+        else:
+            story.root_cause_details = ''
         story.scrum_team = None
         if data['fields'].has_key('customfield_11261'):
             if data['fields']['customfield_11261']:

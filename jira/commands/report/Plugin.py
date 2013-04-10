@@ -130,3 +130,15 @@ class Command(BaseCommand):
                   str(intervals[state]['average']).ljust(7), \
                   intervals[state]['std']
 
+        print
+        print 'Root Causes:'
+        causes = {}
+        for story in release.bugs():
+            if story.root_cause not in causes:
+                causes[story.root_cause] = [story.key]
+            else:
+                causes[story.root_cause].append(story.key)
+        causes['Not Specified'] = causes['']
+        del causes['']
+        for cause in causes:
+            print cause, ':', len(causes[cause])
