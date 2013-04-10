@@ -125,13 +125,13 @@ def main():
                                 save_history = True
                         command = ' '.join(execute)
                         if save_history:
-                            command_history.append(command)
+                            command_history.insert(0, command)
                             if len(command_history) > 10:
-                                del command_history[0]
+                                del command_history[10:]
                 else:
-                    command_history.append(command)
+                    command_history.insert(0, command)
                     if len(command_history) > 10:
-                        del command_history[0]
+                        del command_history[10:]
                 dispatch(command)
     elif options.web:
         import BaseHTTPServer
