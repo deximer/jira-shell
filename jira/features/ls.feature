@@ -298,3 +298,13 @@ Feature: list issues in a release
         When I enter the command "ls"
         Then I see "Epic Points: 3" in the output
 
+    Scenario: A user lists the contents of an issue
+        Given I have the following release
+        | key |
+        | 1.0 |
+        And I have the following issues in the release
+        | key  | title |
+        | NG-1 | Foo 1 |
+        And I am in the directory "/1.0/NG-1"
+        When I enter the command "ls"
+        Then I see "links      N/A" in the output
