@@ -96,8 +96,8 @@ class Command(BaseCommand):
         print
         for direction in ['out', 'in']:
             print 'Links %s:' % direction
-            for links in story.links[direction]:
+            for links in story['links'][direction]:
                 print '  %s:' % links
-                for link in story.links[direction][links].values():
+                for link in story['links'][direction][links].values():
                     print '    %s %s %s' % (link.key, link.type,
                         link.title[:60])

@@ -9,7 +9,7 @@ from repoze.folder import Folder
 from persistent import Persistent
 from persistent.mapping import PersistentMapping
 from persistent.list import PersistentList
-from interfaces import IRelease, IStory, IProject, IKanban
+from interfaces import IRelease, IStory, ILinks, IProject, IKanban
 
 NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
     'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
@@ -62,10 +62,14 @@ def humanize(status):
 
 
 class Links(Folder):
+    implements(ILinks)
+
     def __init__(self):
         super(Links, self).__init__()
-        self['out'] = PersistentMapping()
-        self['in'] = PersistentMapping()
+        self['out'] = Folder()
+        self['in'] = Folder()
+        self['out'].key = 'out'
+        self['in'].key = 'in'
 
     def has_link(self, key):
         for link in self.all:
@@ -229,7 +233,7 @@ class Story(Folder):
 
     def __init__(self, key=None):
         super(Story, self).__init__()
-        self.links = Links()
+        self['links'] = Links()
         self.key = key
 
     def _get_cycle_time_with_weekends(self):

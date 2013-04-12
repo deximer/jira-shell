@@ -40,8 +40,8 @@ class Command(BaseCommand):
         print 'Release:'.ljust(15), 'Typ:', 'Stat:', ' Relationship Tree:'
         print ''.join(story.fix_versions).ljust(15)[:15], \
             str(story.type).ljust(4), humanize(story.status).ljust(6), story.key
-        if story.links.get_links(directions=self.direction):
-            for link in story.links.get_links(directions=self.direction):
+        if story['links'].get_links(directions=self.direction):
+            for link in story['links'].get_links(directions=self.direction):
                 if not self.args.t or link.type in self.args.t:
                     print ''.join(link.fix_versions).ljust(15)[:15], \
                         str(link.type).ljust(4), \
@@ -52,7 +52,7 @@ class Command(BaseCommand):
                 self.recurse_links(link, [link.key])
 
     def recurse_links(self, issue, indent):
-        for link in issue.links.get_links(directions=self.direction):
+        for link in issue['links'].get_links(directions=self.direction):
             if link.key in indent:
                 continue
             if not self.args.t or link.type in self.args.t:
@@ -62,7 +62,7 @@ class Command(BaseCommand):
                         link.key)
             if self.args.b and link.type not in self.args.t:
                 continue
-            if link.links.get_links(directions=self.direction):
+            if link['links'].get_links(directions=self.direction):
                 indent.append(link.key)
                 self.recurse_links(link, indent)
                 del indent[0]

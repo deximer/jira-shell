@@ -3,9 +3,10 @@ import argparse
 from zope.interface import Interface, implements
 from zope.component import adapts
 from zope.component import getGlobalSiteManager
+from repoze.folder.interfaces import IFolder
 from ..base import BaseCommand
-from interfaces import IRelease, IStory, IProject
-from model import Story, humanize
+from interfaces import IRelease, IStory, IProject, ILinks
+from model import humanize
 
 gsm = getGlobalSiteManager()
 
@@ -151,7 +152,7 @@ class Command(BaseCommand):
                 cycle_time = '<' + cycle_time
             else:
                 cycle_time = ' ' + cycle_time
-            rework = str(len(story.links.get_links('1')))
+            rework = str(len(story['links'].get_links('1')))
             if rework == '0':
                 rework = ''
             if story.status == 6:
@@ -187,7 +188,7 @@ class IDirectoryListItem(Interface):
     pass
 
 
-class ProjectAdapter(object):
+class ProjectAdapter(dict):
     implements(IDirectoryListItem)
     adapts(IProject)
 
@@ -210,13 +211,13 @@ class ProjectAdapter(object):
             def get_links(self, link_type):
                 result = []
                 return result
-        self.links = FakeLinks(self.project)
+        self['links'] = FakeLinks(self.project)
 
     def stories(self):
         return 0
 
 
-class ReleaseAdapter(object):
+class ReleaseAdapter(dict):
     implements(IDirectoryListItem)
     adapts(IRelease)
 
@@ -239,20 +240,21 @@ class ReleaseAdapter(object):
             def get_links(self, link_type):
                 result = []
                 for s in self.release.stories():
-                    result.append(s.links.get_links(link_type))
+                    result.append(s['links'].get_links(link_type))
                 return result
-        self.links = FakeLinks(self.release)
+        self['links'] = FakeLinks(self.release)
 
     def stories(self):
         return len(self.release.stories())
 
 
-class StoryAdapter(object):
+class StoryAdapter(dict):
     implements(IDirectoryListItem)
     adapts(IStory)
 
     def __init__(self, story):
         self.story = story
+        self['links'] = story['links']
 
     def __getattr__(self, attr):
         return getattr(self.story, attr)
@@ -261,6 +263,66 @@ class StoryAdapter(object):
         return 1
 
 
+class LinksAdapter(dict):
+    implements(IDirectoryListItem)
+    adapts(ILinks)
+
+    def __init__(self, links):
+        self.project = links
+        self.key = 'links'
+        self.scrum_team = 'N/A'
+        self.cycle_time = 'N/A'
+        self.started = 'N/A'
+        self.resolved = 'N/A'
+        self.points = None
+        self.status = None
+        self.type = 'N/A'
+        self.title = 'Links'
+        self.backflow = False
+        class FakeLinks:
+            def __init__(self, project):
+                self.project = project
+
+            def get_links(self, link_type):
+                result = []
+                return result
+        self['links'] = FakeLinks(self.project)
+
+    def stories(self):
+        return 0
+
+
+class FolderAdapter(dict):
+    implements(IDirectoryListItem)
+    adapts(IFolder)
+
+    def __init__(self, folder):
+        self.folder = folder
+        self.key = folder.key
+        self.scrum_team = 'N/A'
+        self.cycle_time = 'N/A'
+        self.started = 'N/A'
+        self.resolved = 'N/A'
+        self.points = None
+        self.status = None
+        self.type = 'N/A'
+        self.title = 'Links out'
+        self.backflow = False
+        class FakeLinks:
+            def __init__(self, folder):
+                self.folder = folder
+
+            def get_links(self, link_type):
+                result = []
+                return result
+        self['links'] = FakeLinks(self.folder)
+
+    def stories(self):
+        return 0
+
+
 gsm.registerAdapter(ReleaseAdapter)
 gsm.registerAdapter(ProjectAdapter)
 gsm.registerAdapter(StoryAdapter)
+gsm.registerAdapter(LinksAdapter)
+gsm.registerAdapter(FolderAdapter)

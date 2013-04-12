@@ -98,6 +98,8 @@ def make_story(row):
     story = model.Story()
     story.key = row['key']
     story.title = row['title']
+    story.root_cause = ''
+    story.root_cause_details = ''
     story.components = []
     if 'team' in row.headings:
         story.scrum_team = row['team']
@@ -148,6 +150,6 @@ def add_history(issue, date, start, end):
     issue.history.data.append((date, int(start), int(end), 'Jane Doe'))
 
 def add_link(parent, child):
-    if 'Related' not in parent.links['out']:
-        parent.links['out']['Related'] = PersistentMapping()
-    parent.links['out']['Related'][child.key] = child
+    if 'Related' not in parent['links']['out']:
+        parent['links']['out']['Related'] = PersistentMapping()
+    parent['links']['out']['Related'][child.key] = child

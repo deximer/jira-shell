@@ -7,6 +7,7 @@ import transaction
 from xml.etree import ElementTree as ET
 from ZODB.DB import DB
 from ZODB.FileStorage import FileStorage
+from repoze.folder import Folder
 from persistent.list import PersistentList
 from persistent.mapping import PersistentMapping
 
@@ -243,35 +244,37 @@ class Jira(object):
             if link.has_key('outwardIssue'):
                 type = link['type']['name']
                 key = link['outwardIssue']['key']
-                if not type in story.links['out'].keys():
-                    story.links['out'][type] = PersistentMapping()
+                if not type in story['links']['out'].keys():
+                    story['links']['out'][type] = Folder()
+                    story['links']['out'][type].key = type
                     transaction.commit()
                     s = self.get_story(key)
                     if not s:
                         continue
-                    story.links['out'][type][key] = s
+                    story['links']['out'][type][key] = s
                 else:
-                    if not key in story.links['out'][type].keys():
+                    if not key in story['links']['out'][type].keys():
                         s = self.get_story(key)
                         if not s:
                             continue
-                        story.links['out'][type][key] = s
+                        story['links']['out'][type][key] = s
             elif link.has_key('inwardIssue'):
                 type = link['type']['name']
                 key = link['inwardIssue']['key']
-                if not type in story.links['in'].keys():
-                    story.links['in'][type] = PersistentMapping()
+                if not type in story['links']['in'].keys():
+                    story['links']['in'][type] = Folder()
+                    story['links']['in'][type].key = type
                     transaction.commit()
                     s = self.get_story(key)
                     if not s:
                         continue
-                    story.links['in'][type][key] = s
+                    story['links']['in'][type][key] = s
                 else:
-                    if not key in story.links['in'][type].keys():
+                    if not key in story['links']['in'][type].keys():
                         s = self.get_story(key)
                         if not s:
                             continue
-                        story.links['in'][type][key] = s
+                        story['links']['in'][type][key] = s
         transaction.commit()
         return story
 

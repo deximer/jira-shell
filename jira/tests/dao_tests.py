@@ -172,7 +172,7 @@ class JiraTest(unittest.TestCase):
         json_data = open('jira/tests/data/NG-10795.json').read()
         json_obj = self.jira.json_to_object(json_data)
         story = self.jira.make_story('NG-10795', json_obj, links=False)
-        self.assertEqual(len(story.links.data), 2)
+        self.assertEqual(len(story['links'].data), 2)
 
     def testJsonToObject(self):
         obj = self.jira.json_to_object('{"foo": ["bar", "baz"]}')
