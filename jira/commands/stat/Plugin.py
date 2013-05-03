@@ -25,10 +25,7 @@ class Command(BaseCommand):
             print 'Error: story key %s not found' % args.key
             return
         story = story[0]
-        if not isinstance(story.__parent__, Release):
-            print 'Error: story is not part of a release'
-            return
-        self.release = story.__parent__
+        self.release = jira.cache.get_by_path(jira.cache.cwd[:3])
         kanban = self.release.kanban()
         if not story:
             print 'No story matching key: %s' % args.key
@@ -46,9 +43,9 @@ class Command(BaseCommand):
         print 'Resolved:', story.resolved
         print 'Cycle Time:', story.cycle_time
         print 'Aggregate Cycle Time:', story.aggregate_cycle_time
-        avg_ct = story.__parent__.kanban().average_cycle_time()
+        avg_ct = self.release.kanban().average_cycle_time()
         ct = story.cycle_time
-        sq_ct = story.__parent__.kanban().squared_cycle_times()
+        sq_ct = self.release.kanban().squared_cycle_times()
         if ct and avg_ct and sq_ct:
             spread = ct - avg_ct
             variance = spread * spread
@@ -86,10 +83,7 @@ class Command(BaseCommand):
                     days = ''.ljust(3)
                 else:
                     days = str(t[3]).ljust(3)
-                try:
-                    name = t[4][:17].ljust(18) if t[4] else ''.ljust(18)
-                except:
-                    import pdb; pdb.set_trace()
+                name = t[4][:17].ljust(18) if t[4] else ''.ljust(18)
                 print '  %s, [%s], %s, %s -> %s %s' % (t[0], days, name,
                     humanize(t[1]).ljust(5), humanize(t[2]).ljust(5), \
                         backflow or skipped)

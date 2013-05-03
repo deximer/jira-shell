@@ -5,6 +5,7 @@ import json
 from ZODB.FileStorage import FileStorage
 from ZODB.DB import DB
 from ..model import Story, Release, Projects, Project, Kanban, History, Links
+from repoze.folder import Folder
 
 from ..dao import Jira
 from  xml.etree import ElementTree as ET

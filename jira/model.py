@@ -753,6 +753,8 @@ class Release(Folder):
         return (self.version)
 
     def __eq__(x, y):
+        if not isinstance(x, Release) or not isinstance(y, Release):
+            return False
         return x.__key() == y.__key()
 
     def __hash__(self):
