@@ -719,7 +719,7 @@ class Kanban(object):
         std = self.stdev_cycle_time_for_estimate(str(story.points))
         if not std:
             return None
-        outside = average + (std * 2)
+        outside = average + (std * 3)
         if story.cycle_time:
             return round(outside - story.cycle_time, 1)
         return round(outside, 1)
