@@ -100,7 +100,7 @@ class Command(BaseCommand):
         print 'Total   :', total
         print 'Max PCE : %' + str(kanban.process_cycle_efficiency())
         print
-        print 'Average Cycle Time in Status:'
+        print 'Average Takt Time in Status:'
         print '  Status:', 'Average:', 'Stdev:'
         averages = kanban.average_times_in_status()
         stds = kanban.std_times_in_status()
