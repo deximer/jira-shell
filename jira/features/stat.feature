@@ -7,6 +7,7 @@ Feature: List critial information about a specific issue
         Given I have the following release
         | key |
         | 1.0 |
+        And I am in the directory "/1.0"
         And I have the following issues in the release
         | key  | title | status | type | dev |
         | NG-1 | Foo1  | 1      | 1    | joe |
