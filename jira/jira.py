@@ -20,7 +20,7 @@ for command in os.listdir('/'.join(commands.__file__.split('/')[:-1])):
 command_history = []
 
 def connect_to_jira():
-    return Jira('jira.cengage.com', 'mindtap.user:m1ndtap')
+    return Jira('jira.zipcar.com', MT_USER + ':' + MT_PASS)
 
 def shell():
     return raw_input('/%s > ' % '/'.join(Jira.cache.cwd[1:]))
