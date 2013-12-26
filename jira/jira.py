@@ -3,7 +3,7 @@ import optparse
 import sys
 from BeautifulSoup import BeautifulSoup as BS
 from model import Release, Story, Projects, Project
-from dao import Jira, MT_USER, MT_PASS
+from dao import Jira
 import commands
 import os
 
@@ -20,7 +20,7 @@ for command in os.listdir('/'.join(commands.__file__.split('/')[:-1])):
 command_history = []
 
 def connect_to_jira():
-    return Jira('jira.zipcar.com', MT_USER + ':' + MT_PASS)
+    return Jira()
 
 def shell():
     return raw_input('/%s > ' % '/'.join(Jira.cache.cwd[1:]))

@@ -37,6 +37,7 @@ Command line tools for Jira.""",
           'ZODB3',
           'repoze.catalog',
           'repoze.folder',
+          'vault'
       ],
       entry_points="""
       # -*- Entry points: -*-

@@ -15,15 +15,13 @@ from repoze.catalog.catalog import ConnectionManager, Catalog
 from repoze.catalog.indexes.field import CatalogFieldIndex
 from repoze.catalog.indexes.path import CatalogPathIndex
 from repoze.catalog.document import DocumentMap
+import vault
 
 from BeautifulSoup import BeautifulSoup as BS
 
 from model import Projects, Project, Release, Story, History, Links
 
-MT_USER = 'mindtap.user'
-MT_PASS = 'm1ndtap'
-
-JIRA_API = 'http://%s:%s@jira.cengage.com/rest/api/2/issue/%s'
+JIRA_API = 'http://%s@%s/rest/api/2/issue/%s'
 
 def get_key(obj, default=None):
     return getattr(obj, 'key', default)
@@ -113,8 +111,16 @@ class Jira(object):
     cache = LocalDB()
 
     def __init__(self, server=None, auth=None):
-        self.server = server
-        self.auth = auth
+        if server == None:
+            self.server = vault.get('jira-shell', 'server')
+        else:
+            self.server = server
+        if auth == None:
+            self.user = vault.get('jira-shell', 'user')
+            self.password = vault.get('jira-shell', 'password')
+            self.auth = self.user + ':' + self.password
+        else:
+            self.auth = auth
         self.cwd = ['/']
 
     def cwd_contents(self):
@@ -282,7 +288,7 @@ class Jira(object):
         transaction.commit()
 
     def call_rest(self, key, expand=[]):
-        URL = JIRA_API % (MT_USER, MT_PASS, key)
+        URL = JIRA_API % (self.auth, self.server, key)
         if expand:
             URL += '?expand='
             for item in expand:
@@ -299,8 +305,8 @@ class Jira(object):
             self.make_story(issue['key'], issue, True)
 
     def call_api(self, method):
-        URL = 'http://%s:%s@jira.cengage.com/rest/api/2/%s' \
-            % (MT_USER, MT_PASS, method)
+        URL = 'http://%s@%s/rest/api/2/%s' \
+            % (self.auth, self.server, method)
         return self.json_to_object(urllib.urlopen(URL).read())
 
     def json_to_object(self, json_data):
