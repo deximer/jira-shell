@@ -17,8 +17,6 @@ import vault
 
 from model import Project, Release, Story, History
 
-JIRA_API = 'http://%s@%s/rest/api/2/issue/%s'
-
 def get_key(obj, default=None):
     return getattr(obj, 'key', default)
 
@@ -283,8 +281,14 @@ class Jira(object):
     def commit(self):
         transaction.commit()
 
+    def base_jira_api_url(self):
+        return 'http://%s@%s/rest/api/2' % (self.auth, self.server)
+
+    def base_issue_url(self, key):
+        return '%s/issue/%s' % (self.base_jira_api_url(), key)
+
     def call_rest(self, key, expand=[]):
-        URL = JIRA_API % (self.auth, self.server, key)
+        URL = self.base_issue_url(key)
         if expand:
             URL += '?expand='
             for item in expand:
@@ -301,8 +305,7 @@ class Jira(object):
             self.make_story(issue['key'], issue, True)
 
     def call_api(self, method):
-        URL = 'http://%s@%s/rest/api/2/%s' \
-            % (self.auth, self.server, method)
+        URL = '%s/%s' % (self.base_jira_api_url(), method)
         return self.json_to_object(urllib.urlopen(URL).read())
 
     def json_to_object(self, json_data):
