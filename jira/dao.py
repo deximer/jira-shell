@@ -4,22 +4,18 @@ import datetime
 import time
 import copy
 import transaction
-from xml.etree import ElementTree as ET
 from ZODB.DB import DB
 from ZODB.FileStorage import FileStorage
 from repoze.folder import Folder
 from persistent.list import PersistentList
 from persistent.mapping import PersistentMapping
 
-from repoze.catalog.catalog import ConnectionManager, Catalog
+from repoze.catalog.catalog import Catalog
 from repoze.catalog.indexes.field import CatalogFieldIndex
-from repoze.catalog.indexes.path import CatalogPathIndex
 from repoze.catalog.document import DocumentMap
 import vault
 
-from BeautifulSoup import BeautifulSoup as BS
-
-from model import Projects, Project, Release, Story, History, Links
+from model import Project, Release, Story, History
 
 JIRA_API = 'http://%s@%s/rest/api/2/issue/%s'
 
