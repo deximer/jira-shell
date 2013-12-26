@@ -103,15 +103,16 @@ class LocalDB(object):
 
 class Jira(object):
     cache = LocalDB()
+    VAULT_SERVICE_NAME = 'jira-shell'
 
     def __init__(self, server=None, auth=None):
         if server == None:
-            self.server = vault.get('jira-shell', 'server')
+            self.server = vault.get(self.VAULT_SERVICE_NAME, 'server')
         else:
             self.server = server
         if auth == None:
-            self.user = vault.get('jira-shell', 'user')
-            self.password = vault.get('jira-shell', 'password')
+            self.user = vault.get(self.VAULT_SERVICE_NAME, 'user')
+            self.password = vault.get(self.VAULT_SERVICE_NAME, 'password')
             self.auth = '%s:%s' % (self.user, self.password)
         else:
             self.auth = auth
