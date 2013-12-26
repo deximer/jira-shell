@@ -1,13 +1,10 @@
 import numpy
 from scipy import stats
-import transaction
 import time
 import datetime
 from dateutil.rrule import DAILY, MO, TU, WE, TH, FR, rrule
 from zope.interface import Interface, implements
 from repoze.folder import Folder
-from persistent import Persistent
-from persistent.mapping import PersistentMapping
 from persistent.list import PersistentList
 from interfaces import IRelease, IStory, ILinks, IProject, IKanban
 
