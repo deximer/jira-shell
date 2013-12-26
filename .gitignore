@@ -9,3 +9,4 @@ jira.egg-info/
 jira/
 lib/
 man/
+out/
