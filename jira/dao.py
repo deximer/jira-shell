@@ -118,7 +118,7 @@ class Jira(object):
         if auth == None:
             self.user = vault.get('jira-shell', 'user')
             self.password = vault.get('jira-shell', 'password')
-            self.auth = self.user + ':' + self.password
+            self.auth = '%s:%s' % (self.user, self.password)
         else:
             self.auth = auth
         self.cwd = ['/']
