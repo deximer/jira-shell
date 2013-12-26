@@ -1,8 +1,5 @@
 #!/usr/bin/env python2.7
 import optparse
-import sys
-from BeautifulSoup import BeautifulSoup as BS
-from model import Release, Story, Projects, Project
 from dao import Jira
 import commands
 import os
@@ -135,7 +132,6 @@ def main():
                 dispatch(command)
     elif options.web:
         import BaseHTTPServer
-        from SimpleHTTPServer import SimpleHTTPRequestHandler
         class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             def do_GET(self):
                 self.send_response(200)
