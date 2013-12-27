@@ -5,36 +5,40 @@ import commands
 import os
 
 command_plugins = {}
-for command in os.listdir('/'.join(commands.__file__.split('/')[:-1])):
-    if command in ('base.py', 'base.pyc', '__init__.py', '__init__.pyc'):
+for plugin in os.listdir('/'.join(commands.__file__.split('/')[:-1])):
+    if plugin in ('base.py', 'base.pyc', '__init__.py', '__init__.pyc'):
         continue
     try:
-        exec compile('command_plugins["%s"] = commands.%s.Plugin.Command()' \
-            % (command, command), '<string>', 'exec')
+        exec compile('command_plugins["%s"] = commands.%s.Plugin.Command()'
+                     % (plugin, plugin), '<string>', 'exec')
     except AttributeError:
-        print 'Warning: failed to load command plugin "%s"' % command
+        print 'Warning: failed to load command plugin "%s"' % plugin
 
 command_history = []
+
 
 def connect_to_jira():
     return Jira()
 
+
 def shell():
     return raw_input('/%s > ' % '/'.join(Jira.cache.cwd[1:]))
+
 
 def dispatch(command):
     args = command.split()[1:]
     command = command.split()[0]
     if command == 'help':
-        help(connect_to_jira(), args)
+        help(args)
     elif command == '!':
-        history(connect_to_jira(), args)
+        history()
     elif command in command_plugins.keys():
         command_plugins[command].run(connect_to_jira(), args)
     else:
         print '%s: command not found' % command
 
-def help(jira, command):
+
+def help(command):
     if command:
         command = command[0]
     if not command:
@@ -69,11 +73,13 @@ def help(jira, command):
         print 'Examples:'
         print command_plugins[command].examples
 
-def history(jira, command):
+
+def history():
     count = 0
     for command in command_history:
         print count, ':', command
         count += 1
+
 
 def main():
     p = optparse.OptionParser()
@@ -132,6 +138,7 @@ def main():
                 dispatch(command)
     elif options.web:
         import BaseHTTPServer
+
         class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             def do_GET(self):
                 self.send_response(200)
@@ -139,10 +146,12 @@ def main():
                 self.end_headers()
                 self.wfile.write('/ > <input type="text" size="80" />')
                 return
+
         httpd = BaseHTTPServer.HTTPServer(('127.0.0.1', 9876), Handler)
-        sa =httpd.socket.getsockname()
+        sa = httpd.socket.getsockname()
         print 'Started server on', sa[0], 'port', sa[1], '...'
         httpd.serve_forever()
+
 
 if __name__ == '__main__':
     main()
