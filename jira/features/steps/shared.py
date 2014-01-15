@@ -1,14 +1,16 @@
 from behave import *
 import model
 import jira
+import pdb
 import dao
 from datetime import datetime
 from persistent.mapping import PersistentMapping
 
+
 @given('The user is at the command line')
 def step(context):
     context.release = model.Release()
-    if not hasattr(context, 'table'):
+    if not hasattr(context, 'table') or context.table is None:
         return
     for row in context.table:
         context.release.add_story(make_story(row))
