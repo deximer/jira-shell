@@ -10,10 +10,6 @@ from persistent.mapping import PersistentMapping
 @given('The user is at the command line')
 def step(context):
     context.release = model.Release()
-    if not hasattr(context, 'table') or context.table is None:
-        return
-    for row in context.table:
-        context.release.add_story(make_story(row))
 
 @given('I have the following release')
 def step(context):
@@ -96,6 +92,7 @@ def step(context, value):
 def step(context, value):
     assert value not in context.stdout_capture.getvalue()
 
+
 def make_story(row):
     story = model.Story()
     story.key = row['key']
@@ -145,11 +142,13 @@ def make_story(row):
         story.fix_versions = []
     return story
 
+
 def add_history(issue, date, start, end):
     date = date.split('/')
     date = datetime(2000+int(date[0]), int(date[1]), int(date[2]), 12, 30, 0)
     days = None
     issue.history.data.append((date, int(start), int(end), 'Jane Doe'))
+
 
 def add_link(parent, child):
     if 'Related' not in parent['links']['out']:
