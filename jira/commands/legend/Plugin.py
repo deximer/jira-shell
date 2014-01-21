@@ -1,15 +1,5 @@
 from ..base import BaseCommand
 
-ISSUE_TYPES = {
-    '1' : 'Development Bug',
-    '65': 'Configuration',
-    '71': 'Epic',
-    '72': 'Story',
-    '78': 'Production Bug',
-    '101': 'Feature',
-    '156': 'Spike'
-}
-
 
 class Command(BaseCommand):
     help = 'List the meaning of the various codes'
@@ -25,9 +15,8 @@ class Command(BaseCommand):
         print
         self.fetch_issue_types(jira)
         print 'Story types:'
-        for key in sorted(ISSUE_TYPES.keys(), key=lambda val: int(val)):
-            print key.ljust(6) + ':', ISSUE_TYPES[key]
-
+        for key in sorted(self.ISSUE_TYPES.keys(), key=lambda val: int(val)):
+            print key.ljust(6) + ':', self.ISSUE_TYPES[key]
 
     def fetch_status_codes(self, jira):
         if len(self.STATUS_CODES) != 0:
@@ -35,7 +24,6 @@ class Command(BaseCommand):
         status_codes = jira.call_api('status')
         for status in status_codes:
             self.STATUS_CODES[status['id']] = status['name']
-
 
     def fetch_issue_types(self, jira):
         if len(self.ISSUE_TYPES) != 0:
