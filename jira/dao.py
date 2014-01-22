@@ -287,7 +287,7 @@ class Jira(object):
         transaction.commit()
 
     def base_jira_api_url(self):
-        return 'http://%s@%s/rest/api/2' % (self.auth, self.server)
+        return 'https://%s@%s/rest/api/2' % (self.auth, self.server)
 
     def base_issue_url(self, key):
         return '%s/issue/%s' % (self.base_jira_api_url(), key)
