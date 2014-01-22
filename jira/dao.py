@@ -28,12 +28,14 @@ class LocalDB(object):
     connection = None
     root = None
     data = None
+    meta = None
 
     def __init__(self):
         self.init_db()
         self.catalog = self.connection.root()['catalog']
         self.document_map = self.connection.root()['document_map']
         self.data = self.connection.root()['jira']
+        self.meta = self.connection.root()['meta']
         self.cwd = ['/']
 
     def init_db(self):
@@ -43,6 +45,8 @@ class LocalDB(object):
         transaction.begin()
         if 'jira' not in self.connection.root():
             self.connection.root()['jira'] = PersistentMapping()
+        if 'meta' not in self.connection.root():
+            self.connection.root()['meta'] = PersistentMapping()
         self.root = self.connection.root()['jira']
         if not 'catalog' in self.connection.root():
             catalog = Catalog()
@@ -314,3 +318,12 @@ class Jira(object):
 
     def get_changelog(self, key):
         return self.call_rest(key, ['changelog'])
+
+    def fetch_meta(self, meta):
+        if not meta in self.cache.meta:
+            self.cache.meta[meta] = {}
+        if len(self.cache.meta[meta]) == 0:
+            for item in self.call_api(meta):
+                self.cache.meta[meta][item['id']] = item['name']
+            transaction.commit()
+        return self.cache.meta[meta]
