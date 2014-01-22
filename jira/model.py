@@ -8,26 +8,8 @@ from repoze.folder import Folder
 from persistent.list import PersistentList
 from interfaces import IRelease, IStory, ILinks, IProject, IKanban
 
-NG_CURRENT_RELEASE = 'http://mindtap.user:m1ndtap@jira.cengage.com/sr/' \
-    'jira.issueviews:searchrequest-xml/24619/SearchRequest-24619.xml?' \
-    'tempMax=10000'
-ITEMS = './/*/item'
-STORY_POINTS = './/*[@id="customfield_10792"]/*/customfieldvalue'
-IN_PROGRESS = './/*[@id="customfield_13434"]/*/customfieldvalue'
-DEVELOPER = './/*[@id="customfield_13435"]/*/customfieldvalue'
-STATUS = 'status'
 BUG_TYPE = '1'
 PRODUCTION_BUG_TYPE = '78'
-STORY_TYPE = '72'
-TITLE = 'title'
-ASSIGNEE = 'assignee'
-TYPE = 'type'
-DESCRIPTION = 'description'
-KEY = 'key'
-RESOLVED = 'resolved'
-CREATED = 'created'
-COMPONENTS = 'component'
-SCRUM_TEAM = './/*[@id="customfield_11261"]/*/customfieldvalue'
 STATUS_OPEN = 1
 STATUS_READY = 10089
 STATUS_IN_PROGRESS = 3
