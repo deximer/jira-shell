@@ -26,6 +26,7 @@ Command line tools for Jira.""",
       tests_require=[
           'nose',
           'behave',
+          'httpretty'
       ],
       install_requires=[
           'BeautifulSoup',
