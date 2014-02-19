@@ -1,5 +1,5 @@
 Feature: Change director
-         So that I can explore the Jira project and release sturcture
+         So that I can explore the Jira project and release structure
          As a user
          I want some way to navigate the structure
 

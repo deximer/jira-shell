@@ -1,0 +1,12 @@
+.Python
+.idea/
+atlassian-ide-plugin.xml
+bin/
+db/
+include/
+*.iml
+jira.egg-info/
+jira/
+lib/
+man/
+out/

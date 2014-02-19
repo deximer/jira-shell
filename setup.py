@@ -26,6 +26,7 @@ Command line tools for Jira.""",
       tests_require=[
           'nose',
           'behave',
+          'httpretty'
       ],
       install_requires=[
           'BeautifulSoup',
@@ -37,6 +38,7 @@ Command line tools for Jira.""",
           'ZODB3',
           'repoze.catalog',
           'repoze.folder',
+          'vault'
       ],
       entry_points="""
       # -*- Entry points: -*-

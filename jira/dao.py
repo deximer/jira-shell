@@ -4,26 +4,18 @@ import datetime
 import time
 import copy
 import transaction
-from xml.etree import ElementTree as ET
 from ZODB.DB import DB
 from ZODB.FileStorage import FileStorage
 from repoze.folder import Folder
 from persistent.list import PersistentList
 from persistent.mapping import PersistentMapping
 
-from repoze.catalog.catalog import ConnectionManager, Catalog
+from repoze.catalog.catalog import Catalog
 from repoze.catalog.indexes.field import CatalogFieldIndex
-from repoze.catalog.indexes.path import CatalogPathIndex
 from repoze.catalog.document import DocumentMap
+import vault
 
-from BeautifulSoup import BeautifulSoup as BS
-
-from model import Projects, Project, Release, Story, History, Links
-
-MT_USER = 'mindtap.user'
-MT_PASS = 'm1ndtap'
-
-JIRA_API = 'http://%s:%s@jira.cengage.com/rest/api/2/issue/%s'
+from model import Project, Release, Story, History
 
 def get_key(obj, default=None):
     return getattr(obj, 'key', default)
@@ -36,12 +28,14 @@ class LocalDB(object):
     connection = None
     root = None
     data = None
+    meta = None
 
     def __init__(self):
         self.init_db()
         self.catalog = self.connection.root()['catalog']
         self.document_map = self.connection.root()['document_map']
         self.data = self.connection.root()['jira']
+        self.meta = self.connection.root()['meta']
         self.cwd = ['/']
 
     def init_db(self):
@@ -51,6 +45,8 @@ class LocalDB(object):
         transaction.begin()
         if 'jira' not in self.connection.root():
             self.connection.root()['jira'] = PersistentMapping()
+        if 'meta' not in self.connection.root():
+            self.connection.root()['meta'] = PersistentMapping()
         self.root = self.connection.root()['jira']
         if not 'catalog' in self.connection.root():
             catalog = Catalog()
@@ -111,10 +107,19 @@ class LocalDB(object):
 
 class Jira(object):
     cache = LocalDB()
+    VAULT_SERVICE_NAME = 'jira-shell'
 
     def __init__(self, server=None, auth=None):
-        self.server = server
-        self.auth = auth
+        if server == None:
+            self.server = vault.get(self.VAULT_SERVICE_NAME, 'server')
+        else:
+            self.server = server
+        if auth == None:
+            self.user = vault.get(self.VAULT_SERVICE_NAME, 'user')
+            self.password = vault.get(self.VAULT_SERVICE_NAME, 'password')
+            self.auth = '%s:%s' % (self.user, self.password)
+        else:
+            self.auth = auth
         self.cwd = ['/']
 
     def cwd_contents(self):
@@ -281,8 +286,14 @@ class Jira(object):
     def commit(self):
         transaction.commit()
 
+    def base_jira_api_url(self):
+        return 'https://%s@%s/rest/api/2' % (self.auth, self.server)
+
+    def base_issue_url(self, key):
+        return '%s/issue/%s' % (self.base_jira_api_url(), key)
+
     def call_rest(self, key, expand=[]):
-        URL = JIRA_API % (MT_USER, MT_PASS, key)
+        URL = self.base_issue_url(key)
         if expand:
             URL += '?expand='
             for item in expand:
@@ -299,8 +310,7 @@ class Jira(object):
             self.make_story(issue['key'], issue, True)
 
     def call_api(self, method):
-        URL = 'http://%s:%s@jira.cengage.com/rest/api/2/%s' \
-            % (MT_USER, MT_PASS, method)
+        URL = '%s/%s' % (self.base_jira_api_url(), method)
         return self.json_to_object(urllib.urlopen(URL).read())
 
     def json_to_object(self, json_data):
@@ -308,3 +318,12 @@ class Jira(object):
 
     def get_changelog(self, key):
         return self.call_rest(key, ['changelog'])
+
+    def fetch_meta(self, meta):
+        if not meta in self.cache.meta:
+            self.cache.meta[meta] = {}
+        if len(self.cache.meta[meta]) == 0:
+            for item in self.call_api(meta):
+                self.cache.meta[meta][item['id']] = item['name']
+            transaction.commit()
+        return self.cache.meta[meta]

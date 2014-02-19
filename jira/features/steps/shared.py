@@ -2,16 +2,14 @@ from behave import *
 import model
 import jira
 import dao
+import httpretty
 from datetime import datetime
 from persistent.mapping import PersistentMapping
+
 
 @given('The user is at the command line')
 def step(context):
     context.release = model.Release()
-    if not hasattr(context, 'table'):
-        return
-    for row in context.table:
-        context.release.add_story(make_story(row))
 
 @given('I have the following release')
 def step(context):
@@ -63,6 +61,7 @@ def step(context, command):
         dao.Jira.cache.cwd[0] = '/'
 
 @when('I enter the command "{command}"')
+@httpretty.activate
 def step(context, command):
     def mock_get_release(self=None, refresh=False):
         return context.release
@@ -71,6 +70,12 @@ def step(context, command):
     def mock_request_issue(self=None, refresh=False):
         return context.release.get('NG-' + command.split(' ')[1])
     jira.request_issue = mock_request_issue
+    # Statuses
+    httpretty.register_uri(httpretty.GET, 'https://jira.zipcar.com/rest/api/2/status',
+                           body='[{"self":"https://jira.zipcar.com/rest/api/2/status/1","description":"The issue is open and ready for the assignee to start work on it.","iconUrl":"https://jira.zipcar.com/images/icons/statuses/open.png","name":"New","id":"1"},{"self":"https://jira.zipcar.com/rest/api/2/status/3","description":"This issue is being actively worked on at the moment by the assignee.","iconUrl":"https://jira.zipcar.com/images/icons/statuses/inprogress.png","name":"In Progress","id":"3"},{"self":"https://jira.zipcar.com/rest/api/2/status/4","description":"This issue was once resolved, but the resolution was deemed incorrect. From here issues are either marked assigned or resolved.","iconUrl":"https://jira.zipcar.com/images/icons/statuses/reopened.png","name":"Reopened","id":"4"},{"self":"https://jira.zipcar.com/rest/api/2/status/6","description":"The issue is considered finished, the resolution is correct. Issues which are closed can be reopened.","iconUrl":"https://jira.zipcar.com/images/icons/statuses/closed.png","name":"Closed","id":"6"}]')
+    # Issue types
+    httpretty.register_uri(httpretty.GET, 'https://jira.zipcar.com/rest/api/2/issuetype',
+                           body='[{"self":"https://jira.zipcar.com/rest/api/2/issuetype/1","id":"1","description":"A problem which impairs or prevents the functions of the product.","iconUrl":"https://jira.zipcar.com/images/icons/issuetypes/bug.png","name":"Bug","subtask":false},{"self":"https://jira.zipcar.com/rest/api/2/issuetype/3","id":"3","description":"A task that needs to be done.","iconUrl":"https://jira.zipcar.com/images/icons/issuetypes/task.png","name":"Task","subtask":false},{"self":"https://jira.zipcar.com/rest/api/2/issuetype/7","id":"7","description":"","iconUrl":"https://jira.zipcar.com/images/icons/issuetypes/story.png","name":"Story","subtask":false}]')
     jira.dispatch(command)
     print '/%s > ' % '/'.join(dao.Jira.cache.cwd[1:])
 
@@ -93,6 +98,7 @@ def step(context, value):
 @then('I do not see "{value}" in the output')
 def step(context, value):
     assert value not in context.stdout_capture.getvalue()
+
 
 def make_story(row):
     story = model.Story()
@@ -143,11 +149,13 @@ def make_story(row):
         story.fix_versions = []
     return story
 
+
 def add_history(issue, date, start, end):
     date = date.split('/')
     date = datetime(2000+int(date[0]), int(date[1]), int(date[2]), 12, 30, 0)
     days = None
     issue.history.data.append((date, int(start), int(end), 'Jane Doe'))
+
 
 def add_link(parent, child):
     if 'Related' not in parent['links']['out']:
