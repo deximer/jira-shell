@@ -18,7 +18,6 @@ class Command(BaseCommand):
             args = parser.parse_args(args)
         except:
             return
-        print 'Faking it...'
 	project = model.Project('fP1', 'Fake Project 1', 'ted')
 	if not 'fP1' in dao.Jira.cache.data:
 	    dao.Jira.cache.data['fP1'] = project
@@ -34,6 +33,7 @@ class Command(BaseCommand):
 	    data['key'] = 'fS-%d' % id
 	    data['title'] = 'Story %s' % id
 	    data['points'] = [1,2,3,5,8,13,21][int(random() * 7)]
+	    data['ready'] = datetime(2015, 1, 1)
             started = int(random() * 15 + 1)
 	    data['started'] = datetime(2015, 1, started)
             if random() > 0.4:
@@ -50,6 +50,7 @@ class Command(BaseCommand):
                 ['jira', 'fP1', 'f1.0', story.key]
             )
             dao.Jira.cache.catalog.index_doc(docid, story)
+        print 'Created fake project "fP1"'
 
 def make_story(data):
     story = model.Story()
@@ -63,10 +64,12 @@ def make_story(data):
     story.points = data['points']
     story.created = datetime(15,1,1)
     story.scrum_team = 'Team 1'
-    story.history.data.append((data['started'], 1, 3, None, 'Sarah Conner'))
+    story.history.data.append((data['ready'], 1, 10089, None, 'Jane Powner'))
+    story.history.data.append((data['started'], 10089, 3, None, 'Sarah Conner'))
+    story.status = 3
     if 'resolved' in data:
         story.history.data.append((data['resolved'],3, 6, None, 'Ellen Ripley'))
-    story.status = 3
+        story.status = 6
     story.type = '72'
     story.fix_versions = ['2.0']
     return story
