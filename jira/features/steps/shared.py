@@ -8,7 +8,7 @@ from persistent.mapping import PersistentMapping
 @given('The user is at the command line')
 def step(context):
     context.release = model.Release()
-    if not hasattr(context, 'table'):
+    if 'table' not in context or not context.table:
         return
     for row in context.table:
         context.release.add_story(make_story(row))
