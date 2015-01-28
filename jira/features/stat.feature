@@ -94,3 +94,9 @@ Feature: List critial information about a specific issue
         Given The user is at the command line
         When I enter the command "stat 1234 5678"
         Then I see "Error: please supply a single id" in the output
+
+    Scenario: A user enters an invalid id
+        Given The user is at the command line
+        When I enter the command "stat foo"
+        Then I see "Error: story key foo not found" in the output
+

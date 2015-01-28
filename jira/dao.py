@@ -77,7 +77,7 @@ class LocalDB(object):
         key = self.process_raw_key(key)
         results = self.catalog.search(key=key)
         stories = []
-        for id in results[1].keys():
+        for id in results[1]:
             path = self.document_map.address_for_docid(id)
             if path:
                 path[0] = '/'
