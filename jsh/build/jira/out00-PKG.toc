@@ -1,0 +1,11 @@
+('/Users/jstark/wrk/jira-shell/jira/build/jira/out00-PKG.pkg',
+ {'BINARY': 1,
+  'DATA': 1,
+  'EXECUTABLE': 1,
+  'EXTENSION': 1,
+  'PYMODULE': 1,
+  'PYSOURCE': 1},
+ [('out00-PYZ.pyz', '/Users/jstark/wrk/jira-shell/jira/build/jira/out00-PYZ.pyz', 'PYZ'), ('_struct', '/Users/jstark/wrk/jira-shell/lib/python2.7/lib-dynload/_struct.so', 'EXTENSION'), ('struct', '/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/struct.pyc', 'PYMODULE'), ('pyi_os_path', '/Users/jstark/wrk/jira-shell/lib/python2.7/site-packages/PyInstaller/loader/pyi_os_path.pyc', 'PYMODULE'), ('pyi_archive', '/Users/jstark/wrk/jira-shell/lib/python2.7/site-packages/PyInstaller/loader/pyi_archive.pyc', 'PYMODULE'), ('pyi_importers', '/Users/jstark/wrk/jira-shell/lib/python2.7/site-packages/PyInstaller/loader/pyi_importers.pyc', 'PYMODULE'), ('_pyi_bootstrap', '/Users/jstark/wrk/jira-shell/lib/python2.7/site-packages/PyInstaller/loader/_pyi_bootstrap.py', 'PYSOURCE'), ('pyi_carchive', '/Users/jstark/wrk/jira-shell/lib/python2.7/site-packages/PyInstaller/loader/pyi_carchive.py', 'PYSOURCE'), ('pyi_rth_mplconfig', '/Users/jstark/wrk/jira-shell/lib/python2.7/site-packages/PyInstaller/loader/rthooks/pyi_rth_mplconfig.py', 'PYSOURCE'), ('pyi_rth_mpldata', '/Users/jstark/wrk/jira-shell/lib/python2.7/site-packages/PyInstaller/loader/rthooks/pyi_rth_mpldata.py', 'PYSOURCE'), ('pyi_rth_pkgres', '/Users/jstark/wrk/jira-shell/lib/python2.7/site-packages/PyInstaller/loader/rthooks/pyi_rth_pkgres.py', 'PYSOURCE'), ('jira', 'jira.py', 'PYSOURCE')],
+ True,
+ None,
+ False)

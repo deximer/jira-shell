@@ -1,0 +1,9 @@
+('/Users/jstark/wrk/jira-shell/jira/build/jira/jira',
+ True,
+ False,
+ None,
+ None,
+ [],
+ None,
+ False,
+ 1422391037)

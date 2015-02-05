@@ -1,0 +1,10 @@
+*.pyc
+*.swp
+.Python
+.eggs/
+bin/
+db/
+include/
+lib/
+man/
+pip-selfcheck.json
