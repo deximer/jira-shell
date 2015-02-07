@@ -16,27 +16,27 @@ PRODUCTION_BUG_TYPE = '1'
 TITLE = 'title'
 KEY = 'key'
 STATUS_OPEN = 1
-STATUS_READY = 10002
-STATUS_IN_PROGRESS = 10004
 STATUS_REOPENED = 4
-STATUS_COMPLETED = 10014
-STATUS_QA_READY = 10104
-STATUS_QA_ACTIVE = 10092
-STATUS_READY_FOR_PO = 10005
-STATUS_VERIFIED = 10036
+STATUS_READY = 10024
+STATUS_IN_PROGRESS = 10002
+STATUS_PEER_REVIEW = 10004
+STATUS_NEEDS_APPROVAL = 10014
+STATUS_QA_ACTIVE = 10005
+STATUS_QE_APPROVAL = 10127
+STATUS_PO_APPROVAL = 10128
 STATUS_CLOSED = 6
 KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_REOPENED, STATUS_IN_PROGRESS,
-    STATUS_COMPLETED, STATUS_QA_READY, STATUS_QA_ACTIVE, STATUS_VERIFIED,
-    STATUS_CLOSED]
+    STATUS_PEER_REVIEW, STATUS_NEEDS_APPROVAL, STATUS_QA_ACTIVE, 
+    STATUS_QE_APPROVAL, STATUS_PO_APPROVAL, STATUS_CLOSED]
 HUMAN_STATUS = {1     : 'Open',
-                10002 : 'Ready',
-                10004 : 'InPro',
+                10024 : 'Ready',
+                10002 : 'InPro',
                 4     : 'ReOpn',
-                10014 : 'DvCmp',
-                10104 : 'QaRdy',
-                10109 : '10109',
-                10092 : 'QaAct',
-                10005 : 'RdyPo',
+                10004 : 'PeerR',
+                10014 : 'NeedA',
+                10127 : 'QeApp',
+                10005 : 'QaAct',
+                10128 : 'PoApp',
                 6     : 'Closd',}
 
 def humanize(status):
@@ -981,8 +981,9 @@ class Release(Folder):
                     total += kanban[component][status]['wip']
 
         short_wip = {}
-        short_wip['start'] = wip['1'] + wip['10002']
-        short_wip['middle'] = wip['10004'] + wip['10014']
+        short_wip['start'] = wip['10024']
+        short_wip['middle'] = wip['10002'] + wip['10004'] + wip['10004'] \
+            + wip['10014'] + wip['10005'] + wip['10127'] + wip['10128']
         short_wip['done'] = wip['6']
         for status in ['start', 'middle', 'done']:
             if total == 0.0:

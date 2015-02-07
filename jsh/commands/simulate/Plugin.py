@@ -15,7 +15,9 @@ simulations = {}
 
 if not 'SIMS' in dao.Jira.cache.data:
     transaction.begin()
-    dao.Jira.cache.data['SIMS'] = Project('SIMS', 'simulations')
+    project = Project('SIMS', 'simulations')
+    project.process = 'Simulations'
+    dao.Jira.cache.data['SIMS'] = project
     transaction.commit()
 
 class Command(BaseCommand):

@@ -4,6 +4,7 @@ import numpy
 import pylab
 import scipy
 import warnings
+import datetime
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     from matplotlib import pyplot, gridspec
@@ -113,7 +114,7 @@ class Command(BaseCommand):
             print 'No data to report'
             return
         kanban = self.release.kanban()
-        stories = self.release.stories(type='7')
+        stories = self.release.stories(type=['7'])
         stories.sort(key=lambda i:i.key)
         if self.args.s:
             sorting = self.args.s
@@ -147,6 +148,8 @@ class Command(BaseCommand):
         pylab.show(block=False)
 
     def arrivals(self, stories, state=6):
+        ''' Chart arrival times in state
+        '''
         arrivals = self.release.kanban().state_arrival_interval(state)
         dates = [a['date'] for a in arrivals]
         arrivals = [round(a['interval']/60./60., 1) for a in arrivals]
@@ -210,7 +213,7 @@ class Command(BaseCommand):
                     elif story.started:
                         count.append(story.started)
                     else:
-                        count.append(datetme.datetime.now())
+                        count.append(datetime.datetime.now())
             else:
                 count.append(count[-1] + 1)
 
@@ -239,11 +242,14 @@ class Command(BaseCommand):
         pyplot.plot(count[1:], avg, '',linestyle='-.',  markerfacecolor='None')
 
         for label, x, y in zip(labels, count[1:], alldata):
+            if not y:
+                continue
             if not self.args.l:
                 if y < std * 3 + average:
                     continue
             pyplot.annotate(
             label,
+            url='http://www.google.com',
             xy=(x, y), xytext=(-10,10),
             textcoords = 'offset points', ha='right', va='bottom', fontsize=7,
             bbox = dict(boxstyle = 'round,pad=0.3', fc='yellow', alpha=0.5),
@@ -264,6 +270,7 @@ class Command(BaseCommand):
                 yoffset = -10
             pyplot.annotate(
             label,
+            url='http://www.google.com',
             xy=(x, y), xytext=(10, yoffset),
             textcoords = 'offset points', ha='right', va='bottom', fontsize=8,
             bbox = dict(boxstyle = 'round,pad=0.3', fc='cyan', alpha=0.1),
@@ -288,6 +295,7 @@ class Command(BaseCommand):
                 yoffset = 10
             pyplot.annotate(
             label,
+            url='http://www.google.com',
             xy=(x, y), xytext=(10, yoffset),
             textcoords = 'offset points', ha='right', va='bottom', fontsize=8,
             bbox = dict(boxstyle = 'round,pad=0.3', fc='cyan', alpha=0.1),
@@ -323,6 +331,7 @@ class Command(BaseCommand):
             previous_label = label
             pyplot.annotate(
             label,
+            url='http://www.google.com',
             xy=(x, y), xytext=(-10,yoffset),
             textcoords = 'offset points', ha='right', va='bottom', fontsize=7,
             bbox = dict(boxstyle = 'round,pad=0.3', fc='yellow', alpha=0.5),

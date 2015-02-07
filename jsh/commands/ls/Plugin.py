@@ -201,10 +201,10 @@ class ProjectAdapter(dict):
         self.resolved = 'N/A'
         self.points = None
         self.status = None
-        self.type = 'N/A'
-	if hasattr(project, 'name'):
+        self.type = project.process[:6]
+        if hasattr(project, 'name'):
             self.title = project.name
-	else:
+        else:
             self.title = 'Project %s' % self.key
         self.backflow = False
         class FakeLinks:

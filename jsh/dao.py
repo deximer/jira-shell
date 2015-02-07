@@ -140,16 +140,51 @@ class Jira(object):
             self.agile = jira.client.GreenHopper(
                   {'server': 'https://jira.zipcar.com'}
                 , basic_auth=(self.user, self.password))
-            for prj in self.agile.boards()[10:15]:
+            for prj in self.agile.boards():
                 pid = getattr(prj, 'id')
                 transaction.begin()
                 project = Project(str(pid), prj.name)
+                project.query = prj.filter.query
+                if prj.sprintSupportEnabled:
+                    project.process = 'Scrum'
+                else:
+                    project.process = 'Kanban'
                 self.cache.data[str(pid)] = project
                 transaction.commit()
                 transaction.begin()
                 docid = self.cache.document_map.add(['jira', str(pid)])
                 self.cache.catalog.index_doc(docid, project)
                 transaction.commit()
+                if pid not in [97]:
+                    continue
+                if project.process == 'Kanban':
+                    release = Release()
+                    release.key = 'BRD-%d' % pid
+                    release.version = release.key
+                    release.name = 'Kanban Board'
+                    transaction.begin()
+                    self.cache.data[project.key][release.key] = release
+                    transaction.commit()
+                    transaction.begin()
+                    docid = self.cache.document_map.add(
+                        ['jira', str(pid), release.key])
+                    self.cache.catalog.index_doc(docid, release)
+                    transaction.commit()
+                    print project.query
+                    issues = self.server.search_issues(
+                        project.query, maxResults=1000)
+                    for iss in issues:
+                        story = self.get_story(iss.key)
+                        transaction.begin()
+                        release.add_story(story)
+                        transaction.commit()
+                        transaction.begin()
+                        docid = self.cache.document_map.add(
+                            ['jira', str(pid), release.key, story.key])
+                        self.cache.catalog.index_doc(docid, story)
+                        transaction.commit()
+                if pid in [97]:
+                    continue
                 for spr in self.agile.sprints(int(project.key)):
                     sid = getattr(spr, 'id')
                     release = Release()

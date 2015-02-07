@@ -132,7 +132,7 @@ def make_story(row):
     if 'status' in row.headings:
         story.status = int(row['status'])
     else:
-        story.status = 3
+        story.status = 10004
     if 'type' in row.headings:
         story.type = row['type']
     else:
