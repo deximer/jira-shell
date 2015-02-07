@@ -370,7 +370,7 @@ class Kanban(object):
     def cycle_times_in_status(self, component=None, type=['7'], points=[]):
         stories = self.release.stories(type=type)
         if not stories:
-            return None
+            return {}
         result = {}
         for story in stories:
             if component and component != story.scrum_team:
@@ -389,7 +389,7 @@ class Kanban(object):
     def average_times_in_status(self, component=None, type=['7'], points=[]):
         stories = self.release.stories(type=type)
         if not stories:
-            return None
+            return {}
         result = {}
         for story in stories:
             if component and component != story.scrum_team:
@@ -434,7 +434,7 @@ class Kanban(object):
         points=[]):
         stories = self.release.stories(type=type)
         if not stories:
-            return None
+            return {}
         result = {}
         for story in stories:
             if component and component != story.scrum_team:
@@ -755,7 +755,12 @@ class Kanban(object):
 class Release(Folder):
     implements(IRelease)
 
-    WIP = {'In Progress': 10004, 'Ready for PO': 10005}
+    WIP = {'InPro': 10002,
+           'PeerR': 10004,
+           'NeedA': 10014,
+           'QaAct': 10005,
+           'QeApp': 10127,
+           'PoApp': 10128,}
 
     def __init__(self, version=None):
         super(Release, self).__init__()
@@ -824,7 +829,10 @@ class Release(Folder):
     def average_developer_cycle_time(self):
         developers = self.developers()
         total = self.aggregate_developer_cycle_time()
-        return round(total/float(len(developers.keys())), 1)
+        devs = len(developers.keys())
+        if not devs:
+            return 0
+        return round(total/float(devs), 1)
 
     def stdev_developer_cycle_time(self):
         developers = self.developers()
