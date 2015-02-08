@@ -1,7 +1,10 @@
 *.pyc
 *.swp
 .Python
+jsh.spec
 .eggs/
+build/
+dist/
 bin/
 db/
 include/
