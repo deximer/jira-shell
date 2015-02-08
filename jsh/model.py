@@ -496,9 +496,9 @@ class Kanban(object):
             deltas = self.state_arrival_interval(state)
             result[state] = {'deltas': deltas,
                              'average': round(numpy.average(
-                                 [d['interval'] for d in deltas])/60./60., 3),
+                                 [d['interval'] for d in deltas])/60./60., 1),
                              'std': round(numpy.std(
-                                 [d['interval'] for d in deltas])/60./60., 3)}
+                                 [d['interval'] for d in deltas])/60./60., 1)}
         return result
 
     def average_cycle_time(self, component=None, type=['7']):
@@ -507,8 +507,6 @@ class Kanban(object):
             return None
         days = []
         for story in stories:
-            if component and component != story.scrum_team:
-                continue
             if not story.started or not story.resolved:
                 continue
             days.append(story.cycle_time)
@@ -570,8 +568,6 @@ class Kanban(object):
             return None
         cycle_times = []
         for story in self.release.stories():
-            if component and component not in story.components:
-                continue
             if not story.started or not story.resolved:
                 continue
             cycle_times.append(story.cycle_time)
@@ -741,7 +737,7 @@ class Kanban(object):
         cycle_times = self.cycle_times_in_status(component, types, points)
         value = nonvalue = 0
         for status in cycle_times:
-            if status in (10004, 10005):
+            if status in (10004, 10002):
                 value += cycle_times[status]
             elif status in (1, STATUS_READY, 6): # ignore 'open' and 'ready'
                 continue
@@ -896,6 +892,10 @@ class Release(Folder):
         return points
 
     def skew_cycle_time(self):
+        ''' Skewness of the bell curve
+            Positive skew is to the left, negative skew to the right
+            e.g. for cycle times positive skew is towards shorter cycles
+        '''
         points = []
         for story in self.stories():
             if story.cycle_time:
@@ -925,7 +925,7 @@ class Release(Folder):
     def stories_in_process(self):
         stories = 0
         for story in self.stories():
-            if story.status in self.WIP.values() and story.points:
+            if story.status in self.WIP.values():
                 stories += 1
         return stories
 
@@ -939,13 +939,11 @@ class Release(Folder):
     def wip_by_status(self):
         tallies = {}
         for story in self.stories():
-            if story.status in self.WIP.values() and story.points:
+            if story.status in self.WIP.values():
                 if str(story.status) not in tallies:
-                    tallies[str(story.status)] = \
-                        {'wip': story.points, 'stories': 1}
+                    tallies[str(story.status)] = {'wip': 1}
                 else:
-                    tallies[str(story.status)]['wip'] += story.points
-                    tallies[str(story.status)]['stories'] += 1
+                    tallies[str(story.status)]['wip'] += 1
         return tallies
 
     def wip_by_component(self):

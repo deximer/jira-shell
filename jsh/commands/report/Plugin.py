@@ -77,10 +77,10 @@ class Command(BaseCommand):
         print
         print 'WIP by Status:'
         wip = release.wip_by_status()
-        print 'Status:', '           WIP:', '  #:'
+        print 'Status:', '           WIP:'
         for key in wip:
             print humanize(int(key)).ljust(16), ':', \
-                str(wip[key]['wip']).ljust(6), wip[key]['stories']
+                str(wip[key]['wip']).ljust(6)
         print
         print 'WIP by Team:'
         wip = release.wip_by_component()
