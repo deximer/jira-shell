@@ -69,7 +69,7 @@ class Command(BaseCommand):
               'Team:'.ljust(18), \
               'Pts:'.ljust(5), \
               'Stat:'.ljust(5), \
-              'CT:'.ljust(5), \
+              'CT:'.ljust(4), \
               'Type:'.ljust(5), \
               'Bugs:'.ljust(5), \
               'Cont:'.ljust(5), \
@@ -200,8 +200,8 @@ class ProjectAdapter(dict):
         self.started = 'N/A'
         self.resolved = 'N/A'
         self.points = None
-        self.status = None
-        self.type = project.process[:6]
+        self.status = ''
+        self.type = project.process[:5]
         if hasattr(project, 'name'):
             self.title = project.name
         else:
