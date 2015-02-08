@@ -9,10 +9,10 @@ Feature: Report data required by the ExecReport.xls
         | 1.0 |
         And I have the following issues in the release
         | key  | title | type | status | points | created |started | resolved |
-        | NG-1 | Foo1  | 72   | 6      | 2.0    | 13/8/20 | 13/9/1 | 13/9/15  |
-        | NG-2 | Bar2  | 72   | 3      | 3.0    | 13/8/20 | 13/9/1 | 13/9/7   |
-        | NG-3 | Baz3  | 72   | 3      | 6.0    | 13/8/20 | 13/9/1 | 13/9/21  |
-        | NG-4 | Bug1  | 1    | 3      | 0.499  | 13/9/1  | 13/9/2 | 13/9/3   |
+        | NG-1 | Foo1  | 7    | 6      | 2.0    | 13/8/20 | 13/9/1 | 13/9/15  |
+        | NG-2 | Bar2  | 7    | 10002  | 3.0    | 13/8/20 | 13/9/1 | 13/9/7   |
+        | NG-3 | Baz3  | 7    | 10002  | 6.0    | 13/8/20 | 13/9/1 | 13/9/21  |
+        | NG-4 | Bug1  | 1    | 10002  | 0.499  | 13/9/1  | 13/9/2 | 13/9/3   |
         | NG-5 | Bug2  | 1    | 6      | 0.499  | 13/9/1  | 13/9/3 | 13/9/5   |
         | NG-6 | Bug3  | 78   | 6      | 0.499  | 13/9/1  | 13/9/9 | 13/9/16  |
         And I am in the directory "/1.0"
@@ -46,18 +46,18 @@ Feature: Report data required by the ExecReport.xls
         | 1.0 |
         And I have the following issues in the release
         | key  | title | type | status | points | created |started | resolved |
-        | NG-1 | Foo1  | 72   | 10104  | 2.0    | 13/8/20 | 13/9/1 | 13/9/15  |
-        | NG-2 | Bar2  | 72   | 3      | 3.0    | 13/8/20 | 13/9/1 | 13/9/7   |
-        | NG-3 | Baz3  | 72   | 3      | 6.0    | 13/8/20 | 13/9/1 | 13/9/21  |
-        | NG-4 | Bug1  | 1    | 3      | 0.499  | 13/9/1  | 13/9/2 | 13/9/3   |
+        | NG-1 | Foo1  | 7    | 10002  | 2.0    | 13/8/20 | 13/9/1 | 13/9/15  |
+        | NG-2 | Bar2  | 7    | 10002  | 3.0    | 13/8/20 | 13/9/1 | 13/9/7   |
+        | NG-3 | Baz3  | 7    | 10002  | 6.0    | 13/8/20 | 13/9/1 | 13/9/21  |
+        | NG-4 | Bug1  | 1    | 10002  | 0.499  | 13/9/1  | 13/9/2 | 13/9/3   |
         | NG-5 | Bug2  | 1    | 10090  | 0.499  | 13/9/1  | 13/9/3 | 13/9/5   |
         | NG-6 | Bug3  | 78   | 10090  | 0.499  | 13/9/1  | 13/9/9 | 13/9/16  |
         And Issue "NG-1" has this transition history
-        | date    | from | to |
-        | 13/8/1  | 1    | 3  |
-        | 13/8/5  | 3    | 6  |
-        | 13/9/1  | 6    | 3  |
-        | 13/9/15 | 3    | 6  |
+        | date    | from  | to    |
+        | 13/8/1  | 1     | 10002 |
+        | 13/8/5  | 10002 | 6     |
+        | 13/9/1  | 6     | 10002 |
+        | 13/9/15 | 10002 | 6     |
         And I am in the directory "/1.0"
         When I enter the command "report -f"
         Then I see "Stories          : 3" in the output
@@ -90,10 +90,10 @@ Feature: Report data required by the ExecReport.xls
         | 1.0 |
         And I have the following issues in the release
 | key  | title | type | status | points | created |started | resolved | team |
-| NG-1 | Foo1  | 72   | 6      | 2.0    | 13/8/20 | 13/9/1 | 13/9/15  | foo  |
-| NG-2 | Bar2  | 72   | 3      | 3.0    | 13/8/20 | 13/9/1 | 13/9/7   | foo  |
-| NG-3 | Baz3  | 72   | 3      | 6.0    | 13/8/20 | 13/9/1 | 13/9/21  | bar  |
-| NG-4 | Bug1  | 1    | 3      | 0.499  | 13/9/1  | 13/9/2 | 13/9/3   | foo  |
+| NG-1 | Foo1  | 7    | 6      | 2.0    | 13/8/20 | 13/9/1 | 13/9/15  | foo  |
+| NG-2 | Bar2  | 7    | 10002  | 3.0    | 13/8/20 | 13/9/1 | 13/9/7   | foo  |
+| NG-3 | Baz3  | 7    | 10002  | 6.0    | 13/8/20 | 13/9/1 | 13/9/21  | bar  |
+| NG-4 | Bug1  | 1    | 10002  | 0.499  | 13/9/1  | 13/9/2 | 13/9/3   | foo  |
 | NG-5 | Bug2  | 1    | 6      | 0.499  | 13/9/1  | 13/9/3 | 13/9/5   | bar  |
 | NG-6 | Bug3  | 78   | 6      | 0.499  | 13/9/1  | 13/9/9 | 13/9/16  | foo  |
         And I am in the directory "/1.0"
@@ -107,10 +107,10 @@ Feature: Report data required by the ExecReport.xls
         | 1.0 |
         And I have the following issues in the release
 | key  | title | type | status | points | created |started | resolved | dev |
-| NG-1 | Foo1  | 72   | 6      | 2.0    | 13/8/20 | 13/9/1 | 13/9/15  | joe |
-| NG-2 | Bar2  | 72   | 3      | 3.0    | 13/8/20 | 13/9/1 | 13/9/7   | joe |
-| NG-3 | Baz3  | 72   | 3      | 6.0    | 13/8/20 | 13/9/1 | 13/9/21  | ann |
-| NG-4 | Bug1  | 1    | 3      | 0.499  | 13/9/1  | 13/9/2 | 13/9/3   | joe |
+| NG-1 | Foo1  | 7    | 6      | 2.0    | 13/8/20 | 13/9/1 | 13/9/15  | joe |
+| NG-2 | Bar2  | 7    | 10002  | 3.0    | 13/8/20 | 13/9/1 | 13/9/7   | joe |
+| NG-3 | Baz3  | 7    | 10002  | 6.0    | 13/8/20 | 13/9/1 | 13/9/21  | ann |
+| NG-4 | Bug1  | 1    | 10002  | 0.499  | 13/9/1  | 13/9/2 | 13/9/3   | joe |
 | NG-5 | Bug2  | 1    | 6      | 0.499  | 13/9/1  | 13/9/3 | 13/9/5   | ann |
 | NG-6 | Bug3  | 78   | 6      | 0.499  | 13/9/1  | 13/9/9 | 13/9/16  | joe |
         And I am in the directory "/1.0"

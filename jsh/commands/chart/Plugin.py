@@ -18,6 +18,7 @@ class Command(BaseCommand):
     options_help = '''    -c : specify cycle time outlier limit
     -d : chart for developer
     -e : include estimates subplot
+    -i : issue types to chart
     -k : chart using or surpressing specific issue keys
     -p : chart for estimate value 
     -f : calculate cycle times from the first in process date (default is last)
@@ -26,7 +27,6 @@ class Command(BaseCommand):
     -s : sorting criteria
     -t : specify chart type: cycle (default) || hist || arrival [state]
     -x : export graph to a file (valid extensions are pdf, png, or jpg)
-    -i : issue types to chart
     '''
     examples = '''    chart
     chart App
@@ -103,13 +103,13 @@ class Command(BaseCommand):
                 else:
                     show_keys.append('NG-' + k)
             if show_keys:
-                stories = [s for s in self.release.stories(type=types) if s.points
+                stories = [s for s in self.release.stories(type=types)
                     and s.key in show_keys]
                 self.release = Release()
                 for story in stories:
                     self.release.add_story(story)
             if hide_keys:
-                stories = [s for s in self.release.stories(type=types) if s.points
+                stories = [s for s in self.release.stories(type=types)
                     and s.key not in hide_keys]
                 self.release = Release()
                 for story in stories:
@@ -201,6 +201,8 @@ class Command(BaseCommand):
         stories.sort(key=lambda x:tuple([getattr(x, key) for key in sorting]),
             cmp=compare)
         for story in stories:
+            if not story.started:
+                continue
             alldata.append(getattr(story, self.cycle_time))
             if not story.resolved:
                 wip.append(getattr(story, self.cycle_time))
@@ -249,16 +251,23 @@ class Command(BaseCommand):
         pyplot.plot(count[1:], nsll, 'o', linestyle='-', color='r')
         pyplot.plot(count[1:], avg, '',linestyle='-.',  markerfacecolor='None')
 
+        previous_y = None 
+        y_label = 10
         for label, x, y in zip(labels, count[1:], alldata):
             if not y:
-                continue
+                y = 0.0
+            if y == previous_y:
+                y_label += 10
+            else:
+                previous_y = y
+                y_label = 10
             if not self.args.l:
                 if y < std * 3 + average:
                     continue
             pyplot.annotate(
             label,
             url='http://www.google.com',
-            xy=(x, y), xytext=(-10,10),
+            xy=(x, y), xytext=(-10,y_label),
             textcoords = 'offset points', ha='right', va='bottom', fontsize=7,
             bbox = dict(boxstyle = 'round,pad=0.3', fc='yellow', alpha=0.5),
                 arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))

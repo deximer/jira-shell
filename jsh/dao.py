@@ -155,7 +155,7 @@ class Jira(object):
                 docid = self.cache.document_map.add(['jira', str(pid)])
                 self.cache.catalog.index_doc(docid, project)
                 transaction.commit()
-                if pid not in [97]:
+                if pid not in [97, 137]:
                     continue
                 if project.process == 'Kanban':
                     release = Release()
@@ -183,7 +183,7 @@ class Jira(object):
                             ['jira', str(pid), release.key, story.key])
                         self.cache.catalog.index_doc(docid, story)
                         transaction.commit()
-                if pid in [97]:
+                if pid in [97, 137]:
                     continue
                 for spr in self.agile.sprints(int(project.key)):
                     sid = getattr(spr, 'id')

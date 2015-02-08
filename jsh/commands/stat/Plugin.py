@@ -1,5 +1,6 @@
 import curses
 import argparse
+from termcolor import cprint
 from ..base import BaseCommand
 from model import Release, KANBAN, humanize
 
@@ -83,9 +84,19 @@ class Command(BaseCommand):
                 else:
                     days = str(t[3]).ljust(3)
                 name = t[4][:17].ljust(18) if t[4] else ''.ljust(18)
-                print '  %s, [%s], %s, %s -> %s %s' % (t[0], days, name,
-                    humanize(t[1]).ljust(5), humanize(t[2]).ljust(5), \
+                color = 'black'
+                if humanize(t[2]) == 'InPro':
+                    color = 'green'
+                if humanize(t[2]) == 'Closd':
+                    color = 'red'
+                if color == 'black':
+                    print '  %s, [%s], %s, %s -> %s %s' % (t[0], days, name,
+                        humanize(t[1]).ljust(5), humanize(t[2]).ljust(5), \
                         backflow or skipped)
+                else:
+                    cprint('  %s, [%s], %s, %s -> %s %s' % (t[0], days, name,
+                        humanize(t[1]).ljust(5), humanize(t[2]).ljust(5), \
+                        backflow or skipped), color)
         print
         for direction in ['out', 'in']:
             print 'Links %s:' % direction

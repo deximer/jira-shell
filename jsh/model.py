@@ -930,11 +930,11 @@ class Release(Folder):
         return stories
 
     def wip(self):
-        points = 0
+        stories = 0
         for story in self.stories():
-            if story.status in self.WIP.values() and story.points:
-                points += story.points
-        return points
+            if story.status in self.WIP.values():
+                stories += 1
+        return stories
 
     def wip_by_status(self):
         tallies = {}
