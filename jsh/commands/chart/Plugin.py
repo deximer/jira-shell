@@ -14,7 +14,7 @@ from model import Release
 class Command(BaseCommand):
     help = 'Render various charts'
     usage = 'chart [team] [-t chart_type] [-d developer] [-s sort_by]' \
-        ' [-p point] [-c cycle_time] [-x file_name.ext] [-f]'
+        ' [-p point] [-c cycle_time] [-x file_name.ext] [-i issue types] [-f]'
     options_help = '''    -c : specify cycle time outlier limit
     -d : chart for developer
     -e : include estimates subplot
@@ -26,12 +26,13 @@ class Command(BaseCommand):
     -s : sorting criteria
     -t : specify chart type: cycle (default) || hist || arrival [state]
     -x : export graph to a file (valid extensions are pdf, png, or jpg)
+    -i : issue types to chart
     '''
     examples = '''    chart
     chart App
     chart -k !1234
     chart -t arrival 10090
-    chart -s scrum_team points'''
+    chart -s scrum_team points -i 3 7 15'''
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
@@ -47,6 +48,7 @@ class Command(BaseCommand):
         parser.add_argument('-s', nargs='*', required=False)
         parser.add_argument('-t', nargs='*', required=False)
         parser.add_argument('-x', nargs='*', required=False)
+        parser.add_argument('-i', nargs='*', required=False)
         try:
             self.args = parser.parse_args(args)
         except:
@@ -59,29 +61,35 @@ class Command(BaseCommand):
             self.cycle_time = 'aggregate_cycle_time'
         else:
             self.cycle_time = 'cycle_time'
+        types = ['7']
+        if self.args.i:
+            if len(self.args.i) == 1:
+                types = self.args.i[0].split(',')
+            else:
+                types = self.args.i
         if self.args.team:
-            stories = [s for s in self.release.stories()
+            stories = [s for s in self.release.stories(type=types)
                 if s.scrum_team and s.scrum_team[:len(self.args.team)] \
                     == self.args.team]
             self.release = Release()
             for story in stories:
                 self.release.add_story(story)
         if self.args.d:
-            stories = [s for s in self.release.stories()
+            stories = [s for s in self.release.stories(type=types)
                 if s.developer and s.developer[:len(self.args.d[0])] \
                     == self.args.d[0]]
             self.release = Release()
             for story in stories:
                 self.release.add_story(story)
         if self.args.p:
-            stories = [s for s in self.release.stories()
+            stories = [s for s in self.release.stories(type=types)
                 if s.points and s.points == float(self.args.p[0])]
             self.release = Release()
             for story in stories:
                 self.release.add_story(story)
         if self.args.c:
             cycle_time = int(self.args.c[0])
-            stories = [s for s in self.release.stories()
+            stories = [s for s in self.release.stories(type=types)
                 if getattr(s, self.cycle_time) < cycle_time]
             self.release = Release()
             for story in stories:
@@ -95,13 +103,13 @@ class Command(BaseCommand):
                 else:
                     show_keys.append('NG-' + k)
             if show_keys:
-                stories = [s for s in self.release.stories() if s.points
+                stories = [s for s in self.release.stories(type=types) if s.points
                     and s.key in show_keys]
                 self.release = Release()
                 for story in stories:
                     self.release.add_story(story)
             if hide_keys:
-                stories = [s for s in self.release.stories() if s.points
+                stories = [s for s in self.release.stories(type=types) if s.points
                     and s.key not in hide_keys]
                 self.release = Release()
                 for story in stories:
@@ -110,11 +118,11 @@ class Command(BaseCommand):
             self.file = 'cycles-%s.%s' % (self.release.version, self.args.x[0])
         else:
             self.file = None
-        if not self.release.stories():
+        if not self.release.stories(type=types):
             print 'No data to report'
             return
         kanban = self.release.kanban()
-        stories = self.release.stories(type=['7'])
+        stories = self.release.stories(type=types)
         stories.sort(key=lambda i:i.key)
         if self.args.s:
             sorting = self.args.s
