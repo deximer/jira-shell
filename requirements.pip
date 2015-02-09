@@ -17,7 +17,6 @@ ordereddict==1.1
 parse==1.6.6
 parse-type==0.3.4
 persistent==4.0.8
-PyInstaller===2.1.1dev-707e2e6-mod
 pyparsing==2.0.3
 python-dateutil==2.4.0
 pytz==2014.10
@@ -28,6 +27,7 @@ requests-oauthlib==0.4.2
 requests-toolbelt==0.3.1
 scipy==0.15.1
 six==1.9.0
+termcolor==1.1.0
 tlslite==0.4.8
 transaction==1.4.3
 zc.lockfile==1.1.0
