@@ -16,13 +16,13 @@ class DBTest(unittest.TestCase):
         LocalDB.cache_file = 'db/test_cache.fs'
         self.db = LocalDB()
         def mock_request_page(url, refresh=False):
-            return open('jira/tests/data/rss.xml').read()
+            return open('jsh/tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
-                'jira/tests/data/rest_changelog.json').read())
+                'jsh/tests/data/rest_changelog.json').read())
         def mock_call_api(method):
             return json.loads(open(
-                'jira/tests/data/release_keys.json').read())
+                'jsh/tests/data/release_keys.json').read())
         self.jira = Jira('jira.cengage.com', 'user:pass')
         self.jira.call_rest = mock_call_rest
         self.jira.call_api = mock_call_api
@@ -82,13 +82,13 @@ class JiraTest(unittest.TestCase):
 
     def setUp(self):
         def mock_request_page(url, refresh=False):
-            return open('jira/tests/data/rss.xml').read()
+            return open('jsh/tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
-                'jira/tests/data/rest_changelog.json').read())
+                'jsh/tests/data/rest_changelog.json').read())
         def mock_call_api(method):
             return json.loads(open(
-                'jira/tests/data/release_keys.json').read())
+                'jsh/tests/data/release_keys.json').read())
         self.jira = Jira('jira.cengage.com', 'user:pass')
         self.jira.call_rest = mock_call_rest
         self.jira.call_api = mock_call_api
@@ -137,7 +137,7 @@ class JiraTest(unittest.TestCase):
     def testGetStory(self):
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
-                'jira/tests/data/rest_changelog.json').read())
+                'jsh/tests/data/rest_changelog.json').read())
         self.jira.call_rest = mock_call_rest
         story = self.jira.get_story('NG-12345')
         self.assertEqual(story.key, 'NG-12345')
@@ -152,13 +152,13 @@ class JiraTest(unittest.TestCase):
     def testGetStoryJiraMaintenance(self):
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
-                'jira/tests/data/jira_maintenance_notice.html').read())
+                'jsh/tests/data/jira_maintenance_notice.html').read())
         self.jira.call_rest = mock_call_rest
         story = self.jira.get_story('NG-12345')
         self.assertEqual(story, None)
 
     def testMakeStory(self):
-        json_data = open('jira/tests/data/NG-13332.json').read()
+        json_data = open('jsh/tests/data/NG-13332.json').read()
         json_obj = self.jira.json_to_object(json_data)
         story = self.jira.make_story('NG-13332', json_obj)
         creation_date = datetime.datetime.fromtimestamp(time.mktime(
@@ -169,7 +169,7 @@ class JiraTest(unittest.TestCase):
         self.assertEqual(story.key, 'NG-13332')
 
     def testMakeStoryLinks(self):
-        json_data = open('jira/tests/data/NG-10795.json').read()
+        json_data = open('jsh/tests/data/NG-10795.json').read()
         json_obj = self.jira.json_to_object(json_data)
         story = self.jira.make_story('NG-10795', json_obj, links=False)
         self.assertEqual(len(story['links'].data), 2)

@@ -476,6 +476,8 @@ class Kanban(object):
         return averages
 
     def state_arrival_interval(self, state):
+        ''' Create a plot point for every arrival into state
+        '''
         dates = []
         for story in self.release.stories():
             dates.extend([d for d in story.history.get_transition_to(state)])
@@ -1020,11 +1022,14 @@ class Release(Folder):
 class Project(Folder):
     implements(IProject)
 
-    def __init__(self, key=None, name=None, owner=None):
+    def __init__(self, key=None, name=None, owner=None, process=None,
+            query=None):
         super(Project, self).__init__()
         self.name = name
         self.key = key
         self.owner = owner
+        self.process = process
+        self.query = query
 
 class Projects(object):
     def __init__(self):

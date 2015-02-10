@@ -1,8 +1,5 @@
 #!/usr/bin/env python2.7
 import optparse
-import sys
-from BeautifulSoup import BeautifulSoup as BS
-from model import Release, Story, Projects, Project
 from dao import Jira
 import commands
 import os

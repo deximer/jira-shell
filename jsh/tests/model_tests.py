@@ -29,8 +29,8 @@ def make_story(key, points=1.0, status=10004, scrum_team='foo', type='7',
     story.type = type
     story.created = created
     story.history = History()
-    story.history.data.append((started, 1, 10004, 'Ann Doe'))
-    story.history.data.append((resolved, 10004, 6, 'Joe Doe'))
+    story.history.data.append((started, 1, 10002, 'Ann Doe'))
+    story.history.data.append((resolved, 10002, 6, 'Joe Doe'))
     return story
 
 
@@ -77,8 +77,11 @@ class HistoryTest(unittest.TestCase):
     def setUp(self):
         self.obj = Jira().json_to_object(
             open('jsh/tests/data/NG-13332.json').read())['changelog']
-        self.history = History(Jira().json_to_object(
-            open('jsh/tests/data/NG-13332.json').read())['changelog'])
+        class Hist:
+            def __init__(self, obj):
+                self.startAt = obj['startAt']
+
+        self.history = History(Hist(self.obj))
 
     def tearDown(self):
         pass
@@ -336,7 +339,7 @@ class KanbanTest(unittest.TestCase):
         release.add_story(make_story('NG-4', started=D20121001,
             resolved=D20121005))
         kanban = release.kanban()
-        self.assertEqual(kanban.cycle_times_in_status()[10004], 14)
+        self.assertEqual(kanban.cycle_times_in_status()[10002], 14)
 
     def testCycleTimesInStatusByPoints(self):
         release = Release()
@@ -349,7 +352,7 @@ class KanbanTest(unittest.TestCase):
         release.add_story(make_story('NG-4', started=D20121001,
             resolved=D20121005, points=2))
         kanban = release.kanban()
-        self.assertEqual(kanban.cycle_times_in_status(points=[3])[10004], 10)
+        self.assertEqual(kanban.cycle_times_in_status(points=[3])[10002], 10)
 
     def testAverageTimesInStatus(self):
         release = Release()
@@ -362,7 +365,7 @@ class KanbanTest(unittest.TestCase):
         release.add_story(make_story('NG-4', started=D20121001, # 2d
             resolved=D20121005))
         kanban = release.kanban()
-        self.assertEqual(kanban.average_times_in_status()[10004], 3.8)
+        self.assertEqual(kanban.average_times_in_status()[10002], 3.8)
 
     def testAverageCycleTime(self):
         release = Release()
@@ -540,6 +543,7 @@ class KanbanTest(unittest.TestCase):
             0.23570226039551587)
 
     def testCycleTimeForComponent(self):
+        # no longer works by component
         release = Release()
         release.add_story(make_story('NG-1', started=D20121001,
             resolved=D20121002, scrum_team='Foo'))
@@ -550,7 +554,7 @@ class KanbanTest(unittest.TestCase):
         release.add_story(make_story('NG-4', started=D20121001,
             resolved=D20121005, scrum_team='Foo'))
         kanban = release.kanban()
-        self.assertEqual(kanban.average_cycle_time('Foo'), 3.0)
+        self.assertEqual(kanban.average_cycle_time('Foo'), 4.5)
 
     def testAverageCycleTimeForEstimate(self):
         release = Release()
@@ -642,7 +646,7 @@ class KanbanTest(unittest.TestCase):
         release['NG-2'].history.data.append((D20121002, 10002, 10004, 'Jane Doe'))
         release['NG-2'].history.data.append((D20121003, 10004, 10005, 'Jane Doe'))
         release['NG-2'].history.data.append((D20121005, 10005, 6, 'Jane Doe'))
-        self.assertEqual(kanban.process_cycle_efficiency(), 100.0)
+        self.assertEqual(kanban.process_cycle_efficiency(), 63.0)
         
 
 class ReleaseTests(unittest.TestCase):
@@ -968,18 +972,18 @@ class ReleaseTests(unittest.TestCase):
         s3 = Story()
         s3.key = 'NG-3'
         release.add_story(s3)
-        release['NG-1'].status = 10005 # In Progress
+        release['NG-1'].status = 10002 # In Progress
         release['NG-1'].points = 3.0
         release['NG-1'].type = '7'
         release['NG-2'].status = 6 # Closed
         release['NG-2'].points = 5.0
         release['NG-2'].type = '7'
-        release['NG-3'].status = 10005 # In Progress
+        release['NG-3'].status = 10002 # In Progress
         release['NG-3'].points = 1.5
         release['NG-3'].type = '7'
-        self.assertEqual(release.wip_by_status()['10005']['wip'], 4.5)
+        self.assertEqual(release.wip_by_status()['10002']['wip'], 2)
         self.assertEqual(sum([v['wip'] for v in release.wip_by_status().values()
-            ]), 4.5)
+            ]), 2)
 
     def testWipByComponent(self):
         release = Release()
@@ -1074,17 +1078,17 @@ class ReleaseTests(unittest.TestCase):
 
     def testGraphKanban(self):
         release = Release()
-        release.add_story(make_story('NG-1', status=1, points=1.0, scrum_team='Foo'))
-        release.add_story(make_story('NG-2', status=10004, points=2.0, scrum_team='Bar'))
-        release.add_story(make_story('NG-3', status=10004, points=4.0, scrum_team='Foo'))
+        release.add_story(make_story('NG-1', status=10024, points=1.0, scrum_team='Foo'))
+        release.add_story(make_story('NG-2', status=10002, points=2.0, scrum_team='Bar'))
+        release.add_story(make_story('NG-3', status=10002, points=4.0, scrum_team='Foo'))
         release.add_story(make_story('NG-4', status=6, points=3.0, scrum_team='Foo'))
         self.assertEqual(release.graph_kanban(), '.Oo')
 
     def testGraphKanbanByComponent(self):
         release = Release()
-        release.add_story(make_story('NG-1', status=1, points=1.0, scrum_team='Foo'))
-        release.add_story(make_story('NG-2', status=10004, points=5.0, scrum_team='Bar'))
-        release.add_story(make_story('NG-3', status=10004, points=4.0, scrum_team='Foo'))
+        release.add_story(make_story('NG-1', status=10024, points=1.0, scrum_team='Foo'))
+        release.add_story(make_story('NG-2', status=10002, points=5.0, scrum_team='Bar'))
+        release.add_story(make_story('NG-3', status=10002, points=4.0, scrum_team='Foo'))
         release.add_story(make_story('NG-4', status=6, points=3.0, scrum_team='Foo'))
         self.assertEqual(release.graph_kanban('Foo'), '.oo')
 
