@@ -222,7 +222,17 @@ class Story(Folder):
     def initialize(self, issue):
         self.jid = getattr(issue, 'id')
         self.key = issue.key
+        self.updated = issue.fields.updated
+        self.reporter = None
+        if issue.fields.reporter:
+            self.reporter = issue.fields.reporter.displayName
+        self.priority = None
+        if issue.fields.priority:
+            self.priority = issue.fields.priority.name
         self.history = History(issue.changelog)
+        self.resolution = None
+        if issue.fields.resolution:
+            self.resolution = issue.fields.resolution.name
         self.url = issue.self
         self.title = issue.fields.summary
         self.fix_versions = PersistentList()

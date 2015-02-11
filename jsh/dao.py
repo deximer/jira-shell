@@ -18,9 +18,7 @@ from repoze.catalog.indexes.field import CatalogFieldIndex
 from repoze.catalog.indexes.path import CatalogPathIndex
 from repoze.catalog.document import DocumentMap
 
-from BeautifulSoup import BeautifulSoup as BS
-
-from model import Projects, Project, Release, Story, History, Links
+from model import Project, Release, Story
 
 ZIPCAR_API = 'https://%s:%s@jira.zipcar.com/rest/api/2/issue/%s'
 
@@ -110,6 +108,8 @@ class LocalDB(object):
 
 class Jira(object):
     cache = LocalDB()
+    user = None
+    password = None
 
     def __init__(self, server=None, auth=None):
         self.server = server
@@ -131,8 +131,149 @@ class Jira(object):
                 return self.cache.data[key]
         return None
 
+    def pull_projects(self):
+        if not self.user or not self.password:
+            self.password = getpass.getpass('Password: ')
+            self.user = raw_input('User: ')
+            self.server = jira.client.JIRA({'server': 'https://jira.zipcar.com'}
+                , basic_auth=(self.user, self.password))
+            self.agile = jira.client.GreenHopper(
+                  {'server': 'https://jira.zipcar.com'}
+                , basic_auth=(self.user, self.password))
+        for prj in self.agile.boards():
+            pid = getattr(prj, 'id')
+            transaction.begin()
+            project = Project(str(pid), prj.name)
+            project.query = prj.filter.query
+            if prj.sprintSupportEnabled:
+                project.process = 'Scrum'
+            else:
+                project.process = 'Kanban'
+            self.cache.data[str(pid)] = project
+            transaction.commit()
+            transaction.begin()
+            docid = self.cache.document_map.add(['jira', str(pid)])
+            self.cache.catalog.index_doc(docid, project)
+            transaction.commit()
+
+    def pull_releases(self):
+        for project in self.cache.data.values():
+            if project.process == 'Kanban':
+                self.pull_kanban(project)
+            if project.process == 'Scrum':
+                self.pull_scrum(project)
+
+    def pull_scrum(self, project):
+        for spr in self.agile.sprints(int(project.key)):
+            sid = getattr(spr, 'id')
+            sprint = Release()
+            sprint.key = str(sid)
+            sprint.version = str(sid)
+            sprint.name = spr.name
+            transaction.begin()
+            self.cache.data[project.key][str(sid)] = sprint
+            transaction.commit()
+            transaction.begin()
+            docid = self.cache.document_map.add(['jira', project.key, str(sid)])
+            self.cache.catalog.index_doc(docid, sprint)
+            transaction.commit()
+            self.pull_scrum_stories(project, sprint)
+
+    def pull_scrum_stories(self, project, sprint):
+        if project.key not in ['58', '97', '13']:
+            return
+        issues = []
+        try:
+            issues.extend(self.agile.incompleted_issues(project.key,sprint.key))
+        except:
+            pass
+        try:
+            issues.extend(self.agile.completed_issues(project.key, sprint.key))
+        except:
+            pass
+        for issue in issues:
+            story = self.get_story(issue.key)
+            transaction.begin()
+            sprint.add_story(story)
+            transaction.commit()
+            transaction.begin()
+            docid = self.cache.document_map.add(
+                ['jira', project.key, sprint.key, story.key])
+            self.cache.catalog.index_doc(docid, story)
+            transaction.commit()
+
+    def pull_kanban(self, project):
+        kanban = Release()
+        kanban.key = 'BRD-%s' % project.key
+        kanban.version = kanban.key
+        kanban.name = 'Kanban Board'
+        transaction.begin()
+        self.cache.data[project.key][kanban.key] = kanban
+        transaction.commit()
+        transaction.begin()
+        docid = self.cache.document_map.add(
+            ['jira', str(project.key), kanban.key])
+        self.cache.catalog.index_doc(docid, kanban)
+        transaction.commit()
+        self.pull_kanban_stories(project, kanban)
+
+    def pull_kanban_stories(self, project, kanban):
+        if project.key not in ['97', '13', '58']:
+            return
+        issues = self.server.search_issues(project.query, maxResults=0)
+        for issue in issues:
+            story = self.get_story(issue.key)
+            transaction.begin()
+            kanban.add_story(story)
+            transaction.commit()
+            transaction.begin()
+            docid = self.cache.document_map.add(
+                ['jira', project.key, kanban.key, story.key])
+            self.cache.catalog.index_doc(docid, story)
+            transaction.commit()
+            for link in issue.fields.issuelinks:
+                transaction.begin()
+                if hasattr(link, 'outwardIssue') and link.outwardIssue:
+                    type = link.type.name
+                    key = link.outwardIssue.key
+                    if not type in story['links']['out'].keys():
+                        story['links']['out'][type] = Folder()
+                        story['links']['out'][type].key = type
+                        transaction.commit()
+                        s = self.get_story(key)
+                        if not s:
+                            continue
+                        story['links']['out'][type][key] = s
+                    else:
+                        if not key in story['links']['out'][type].keys():
+                            s = self.get_story(key)
+                            if not s:
+                                continue
+                            story['links']['out'][type][key] = s
+                elif hasattr(link, 'inwardIssue') and link.inwardIssue:
+                    type = link.type.name
+                    key = link.inwardIssue.key
+                    if not type in story['links']['in'].keys():
+                        story['links']['in'][type] = Folder()
+                        story['links']['in'][type].key = type
+                        transaction.commit()
+                        s = self.get_story(key)
+                        if not s:
+                            continue
+                        story['links']['in'][type][key] = s
+                    else:
+                        if not key in story['links']['in'][type].keys():
+                            s = self.get_story(key)
+                            if not s:
+                                continue
+                            story['links']['in'][type][key] = s
+                transaction.commit()
+
     def refresh_cache(self, releases=['2.7'], links=True):
-        if not hasattr(self, 'user'):
+        self.pull_projects()
+        self.pull_releases()
+        return
+        if not self.user or not self.password:
             self.password = getpass.getpass('Password: ')
             self.user = raw_input('User: ')
             self.server = jira.client.JIRA({'server': 'https://jira.zipcar.com'}
@@ -142,6 +283,8 @@ class Jira(object):
                 , basic_auth=(self.user, self.password))
             for prj in self.agile.boards():
                 pid = getattr(prj, 'id')
+                if pid not in [97]:
+                    continue
                 transaction.begin()
                 project = Project(str(pid), prj.name)
                 project.query = prj.filter.query
@@ -155,8 +298,6 @@ class Jira(object):
                 docid = self.cache.document_map.add(['jira', str(pid)])
                 self.cache.catalog.index_doc(docid, project)
                 transaction.commit()
-                if pid not in [97, 137]:
-                    continue
                 if project.process == 'Kanban':
                     release = Release()
                     release.key = 'BRD-%d' % pid
@@ -170,7 +311,6 @@ class Jira(object):
                         ['jira', str(pid), release.key])
                     self.cache.catalog.index_doc(docid, release)
                     transaction.commit()
-                    print project.query
                     issues = self.server.search_issues(
                         project.query, maxResults=1000)
                     for iss in issues:
@@ -183,8 +323,6 @@ class Jira(object):
                             ['jira', str(pid), release.key, story.key])
                         self.cache.catalog.index_doc(docid, story)
                         transaction.commit()
-                if pid in [97, 137]:
-                    continue
                 for spr in self.agile.sprints(int(project.key)):
                     sid = getattr(spr, 'id')
                     release = Release()

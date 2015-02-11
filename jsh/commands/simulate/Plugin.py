@@ -17,6 +17,7 @@ if not 'SIMS' in dao.Jira.cache.data:
     transaction.begin()
     project = Project('SIMS', 'simulations')
     project.process = 'Simulations'
+    project.query = None
     dao.Jira.cache.data['SIMS'] = project
     transaction.commit()
 

@@ -13,26 +13,26 @@ from model import Release
 
 class Command(BaseCommand):
     help = 'Render various charts'
-    usage = 'chart [team] [-t chart_type] [-d developer] [-s sort_by]' \
-        ' [-p point] [-c cycle_time] [-x file_name.ext] [-i issue types] [-f]'
+    usage = 'chart [team] [-o chart_type] [-d developer] [-s sort_by]' \
+        ' [-p point] [-c cycle_time] [-x file_name.ext] [-t issue types] [-f]'
     options_help = '''    -c : specify cycle time outlier limit
     -d : chart for developer
     -e : include estimates subplot
-    -i : issue types to chart
     -k : chart using or surpressing specific issue keys
     -p : chart for estimate value 
     -f : calculate cycle times from the first in process date (default is last)
     -g : group stories by this strategy (default || estimate || resolved)
     -l : label points
+    -o : specify chart type: cycle (default) || hist || arrival [state]
     -s : sorting criteria
-    -t : specify chart type: cycle (default) || hist || arrival [state]
+    -t : issue types to chart
     -x : export graph to a file (valid extensions are pdf, png, or jpg)
     '''
     examples = '''    chart
     chart App
     chart -k !1234
-    chart -t arrival 10090
-    chart -s scrum_team points -i 3 7 15'''
+    chart -o arrival 10090
+    chart -s scrum_team points -t 3 7 15'''
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
@@ -44,11 +44,11 @@ class Command(BaseCommand):
         parser.add_argument('-g', nargs='?', required=False)
         parser.add_argument('-l', action='store_true', required=False)
         parser.add_argument('-k', nargs='*', required=False)
+        parser.add_argument('-o', nargs='*', required=False)
         parser.add_argument('-p', nargs='*', required=False)
         parser.add_argument('-s', nargs='*', required=False)
         parser.add_argument('-t', nargs='*', required=False)
         parser.add_argument('-x', nargs='*', required=False)
-        parser.add_argument('-i', nargs='*', required=False)
         try:
             self.args = parser.parse_args(args)
         except:
@@ -62,11 +62,11 @@ class Command(BaseCommand):
         else:
             self.cycle_time = 'cycle_time'
         types = ['7']
-        if self.args.i:
-            if len(self.args.i) == 1:
-                types = self.args.i[0].split(',')
+        if self.args.t:
+            if len(self.args.t) == 1:
+                types = self.args.t[0].split(',')
             else:
-                types = self.args.i
+                types = self.args.t
         if self.args.team:
             stories = [s for s in self.release.stories(type=types)
                 if s.scrum_team and s.scrum_team[:len(self.args.team)] \
@@ -129,16 +129,16 @@ class Command(BaseCommand):
             if 'cycle_time' not in sorting:
                 sorting.append('cycle_time')
         else:
-            sorting = ['points', 'cycle_time']
+            sorting = ['cycle_time']
 
-        if self.args.t and self.args.t[0] == 'hist':
+        if self.args.o and self.args.o[0] == 'hist':
             self.histogram(stories)
-        elif self.args.t and self.args.t[0] == 'arrival':
-            if len(self.args.t) == 2:
-                self.arrivals(stories, int(self.args.t[1]))
+        elif self.args.o and self.args.o[0] == 'arrival':
+            if len(self.args.o) == 2:
+                self.arrivals(stories, int(self.args.o[1]))
             else:
                 self.arrivals(stories)
-        elif not self.args.t or self.args.t[0] == 'cycles':
+        elif not self.args.o or self.args.o[0] == 'cycles':
             self.cycles(stories, sorting)
         else:
             print 'Unknown chart type: %s' % self.args.t[0]
@@ -156,7 +156,7 @@ class Command(BaseCommand):
         pylab.show(block=False)
 
     def arrivals(self, stories, state=6):
-        ''' Chart arrival times in state
+        ''' Chart a plot point for every arrival time in state
         '''
         arrivals = self.release.kanban().state_arrival_interval(state)
         dates = [a['date'] for a in arrivals]
