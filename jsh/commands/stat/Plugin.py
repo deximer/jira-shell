@@ -40,7 +40,7 @@ class Command(BaseCommand):
         print 'Status:', humanize(story.status)
         print 'Created:', story.created
         print 'Started:', story.started
-        print 'Resolved:', story.resolved
+        print 'Resolution:', story.resolution
         print 'Cycle Time:', story.cycle_time
         print 'Aggregate Cycle Time:', story.aggregate_cycle_time
         avg_ct = self.release.kanban().average_cycle_time()

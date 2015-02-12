@@ -118,6 +118,7 @@ def make_story(row):
         story.created = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
     else:
         story.created = None
+    story.resolution = 'Fixed'
     story.history = model.History()
     if 'started' in row.headings and row['started']:
         date = row['started'].split('/')
