@@ -5,26 +5,27 @@ from zope.component import adapts
 from zope.component import getGlobalSiteManager
 from repoze.folder.interfaces import IFolder
 from ..base import BaseCommand
-from interfaces import IRelease, IStory, IProject, ILinks
+from interfaces import IRelease, IStory, IProject, ILinks, IIssues
 from model import humanize
 
 gsm = getGlobalSiteManager()
 
 class Command(BaseCommand):
     help = 'List issues in a release.'
-    usage = 'ls [[!]team] [-s status [...]] [-t issue_type [...]] [-p point] [-d dev [...]]'
+    usage = 'ls [[!]team] [-s status [...]] [-t issue_type [...]] [-p point] [-d dev [...]] -c [cycle_time]'
     options_help = '''    -s : Show only issues with the specified status ("!" for exclusion)
     -t : Show only issues of the specified type ("!" for exclusion)
     -d : Show issues for only the specified developers
     -o : Order (sort) results by
     -p : Show issues with the specified point estimates
     -b : Show issues with backflow (5 minute grace period)
+    -c : Show issues with cycle times over the specified amount
     '''
     examples = '''    ls
     ls Appif 
     ls !Appif 
     ls Core -d joe bill -t 78 1
-    ls Math -s !6 -t 72'''
+    ls Math -s !6 -t 72 -c 12'''
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
@@ -40,6 +41,8 @@ class Command(BaseCommand):
             help='show issues for only the specified developers')
         parser.add_argument('-b', action='store_true', required=False,
             help='show issues with backflow (5 minute grace period)')
+        parser.add_argument('-c', nargs='*', required=False,
+            help='show issues with cycle times over the specified amount')
         parser.add_argument('team', nargs='?')
         try:
             args = parser.parse_args(args)
@@ -84,6 +87,9 @@ class Command(BaseCommand):
                     show_type.append(arg)
         container = jira.cache.get_by_path(jira.cache.cwd)
         stories = [IDirectoryListItem(s) for s in container.values()]
+        if args.c:
+            limit = int(args.c[0])
+            stories = [s for s in stories if s.cycle_time > limit]
         sorting = []
         if stories and args.o:
             for field in args.o:
@@ -173,7 +179,7 @@ class Command(BaseCommand):
                   str(contingency).ljust(5), \
                   story.title[:14]
             issues += story.stories()
-            if story.points and (story.type=='1' or story.type=='N/A'):
+            if story.points and (story.type=='7' or story.type=='N/A'):
                 points += story.points
             if story.points and story.type=='71':
                 epic_points += story.points
@@ -186,6 +192,35 @@ class Command(BaseCommand):
 
 class IDirectoryListItem(Interface):
     pass
+
+
+class IssuesAdapter(dict):
+    implements(IDirectoryListItem)
+    adapts(IIssues)
+
+    def __init__(self, issues):
+        self.issues = issues
+        self.key = issues.key
+        self.scrum_team = 'N/A'
+        self.cycle_time = 'N/A'
+        self.started = 'N/A'
+        self.resolved = 'N/A'
+        self.points = None
+        self.status = ''
+        self.type = 'DB'
+        self.title = 'Issues DB'
+        self.backflow = False
+        class FakeLinks:
+            def __init__(self, issues):
+                self.issues = issues
+
+            def get_links(self, link_type):
+                result = []
+                return result
+        self['links'] = FakeLinks(self.issues)
+
+    def stories(self):
+        return 0
 
 
 class ProjectAdapter(dict):
@@ -324,6 +359,7 @@ class FolderAdapter(dict):
         return 0
 
 
+gsm.registerAdapter(IssuesAdapter)
 gsm.registerAdapter(ReleaseAdapter)
 gsm.registerAdapter(ProjectAdapter)
 gsm.registerAdapter(StoryAdapter)

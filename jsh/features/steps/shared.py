@@ -123,21 +123,21 @@ def make_story(row):
     if 'started' in row.headings and row['started']:
         date = row['started'].split('/')
         start_date = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
-        story.history.data.append((start_date, 1, 10004, None, 'Sarah Conner'))
+        story.history.data.append((start_date, 1, 10002, None, 'Sarah Conner'))
     if 'resolved' in row.headings and row['resolved']:
         if not row['resolved']:
             return
         date = row['resolved'].split('/')
         resolved_date = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
-        story.history.data.append((resolved_date, 10004, 6, 'Jane Doe'))
+        story.history.data.append((resolved_date, 10002, 6, 'Jane Doe'))
     if 'status' in row.headings:
         story.status = int(row['status'])
     else:
-        story.status = 10004
+        story.status = 10002
     if 'type' in row.headings:
         story.type = row['type']
     else:
-        story.type = '72'
+        story.type = '7'
     if 'fix' in row.headings:
         story.fix_versions = row['fix'].split(',')
     else:

@@ -240,8 +240,8 @@ Feature: list issues in a release
         | 1.0 |
         And I have the following issues in the release
         | key  | title | type | started | resolved |
-        | NG-1 | Foo 1 | 72   | 13/9/1  | 13/9/3   |
-        | NG-2 | Bar 2 | 78   | 13/9/7  | 13/9/17  |
+        | NG-1 | Foo 1 | 7    | 13/9/1  | 13/9/3   |
+        | NG-2 | Bar 2 | 1    | 13/9/7  | 13/9/17  |
         | NG-3 | Baz 3 | 1    | 13/9/2  | 13/9/2   |
         And I am in the directory "/1.0"
         When I enter the command "ls"
@@ -249,6 +249,24 @@ Feature: list issues in a release
         And I see "  6  " in the output
         And I see "InPro       1" in the output
         And I see "-5" in the output
+
+    Scenario: A user views the cycle times over the specified amount
+        Given I have the following release
+        | key |
+        | 1.0 |
+        And I have the following issues in the release
+        | key  | title | type | started | resolved |
+        | NG-1 | Foo 1 | 7    | 13/9/1  | 13/9/3   |
+        | NG-2 | Bar 2 | 1    | 13/9/7  | 13/9/17  |
+        | NG-3 | Baz 3 | 7    | 13/9/2  | 13/9/9   |
+        | NG-4 | Baz 4 | 7    | 13/9/2  | 13/9/20  |
+        And I am in the directory "/1.0"
+        When I enter the command "ls -c 5"
+        Then I do not see "InPro  1  " in the output
+        Then I do not see "  5  " in the output
+        And I see "  6  " in the output
+        And I see "  14 " in the output
+        And I see "Total Issues: 2" in the output
 
     Scenario: A user lists issues that have backflow
         Given I have the following release
@@ -260,11 +278,11 @@ Feature: list issues in a release
         | NG-2 | Bar 2 | 78   | 13/9/7  | 13/9/17  |
         | NG-3 | Baz 3 | 1    | 13/9/2  | 13/9/2   |
         And Issue "NG-2" has this transition history
-        | date   | from | to |
-        | 13/9/1 | 1    | 3  |
-        | 13/9/5 | 3    | 1  |
-        | 13/9/5 | 1    | 3  |
-        | 13/9/9 | 1    | 6  |
+        | date   | from  | to    |
+        | 13/9/1 | 10024 | 10002 |
+        | 13/9/5 | 10002 | 10024 |
+        | 13/9/5 | 10024 | 10002 |
+        | 13/9/9 | 10002 | 6     |
         And I am in the directory "/1.0"
         When I enter the command "ls -b"
         Then I see "NG-2" in the output
@@ -278,9 +296,9 @@ Feature: list issues in a release
         | 1.0 |
         And I have the following issues in the release
         | key  | title | type | started | resolved | points |
-        | NG-1 | Foo 1 | 71   | 13/9/1  | 13/9/3   | 1      |
-        | NG-2 | Bar 2 | 72   | 13/9/7  | 13/9/17  | 2      |
-        | NG-3 | Baz 3 | 72   | 13/9/2  | 13/9/2   | 9      |
+        | NG-1 | Foo 1 | 1    | 13/9/1  | 13/9/3   | 1      |
+        | NG-2 | Bar 2 | 7    | 13/9/7  | 13/9/17  | 2      |
+        | NG-3 | Baz 3 | 7    | 13/9/2  | 13/9/2   | 9      |
         And I am in the directory "/1.0"
         When I enter the command "ls"
         Then I see "Story Points: 11" in the output

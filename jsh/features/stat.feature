@@ -19,6 +19,7 @@ Feature: List critial information about a specific issue
         | NG-2 | Bar2  | InPro  | 7    |
         And I see "Developer: ann" in the output
         And I see "Resolution: Fixed" in the output
+        And I see "Updated: None" in the output
 
     Scenario: A user enters only the numeric portion of an issue id
         Given I have the following issues in the release
