@@ -12,5 +12,8 @@ class IRelease(Interface):
 class IProject(Interface):
     pass
 
+class IIssues(Interface):
+    pass
+
 class IKanban(Interface):
     pass
