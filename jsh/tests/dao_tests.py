@@ -38,7 +38,7 @@ class DBTest(unittest.TestCase):
     def testCwdContents(self):
         self.db.data['1.0'] = 'Release 1'
         self.db.data['2.0'] = 'Release 2'
-        self.assertEqual(self.db.cwd_contents(), ('1.0', '2.0'))
+        self.assertEqual(self.db.cwd_contents(), ('1.0', '2.0', 'issues'))
 
     def testCwdContentsNested(self):
         self.db.data['1.0'] = {}

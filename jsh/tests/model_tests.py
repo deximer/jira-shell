@@ -4,7 +4,8 @@ import datetime
 import json
 from ZODB.FileStorage import FileStorage
 from ZODB.DB import DB
-from ..model import Story, Release, Projects, Project, Kanban, History, Links
+from ..model import Story, Release, Projects, Project, Kanban, History, Links, \
+    Issues
 from repoze.folder import Folder
 
 from ..dao import Jira
@@ -77,11 +78,25 @@ class HistoryTest(unittest.TestCase):
     def setUp(self):
         self.obj = Jira().json_to_object(
             open('jsh/tests/data/NG-13332.json').read())['changelog']
-        class Hist:
-            def __init__(self, obj):
-                self.startAt = obj['startAt']
 
-        self.history = History(Hist(self.obj))
+        class AttrDict(dict):
+            def __init__(self, *args, **kwargs):
+                super(AttrDict, self).__init__(*args, **kwargs)
+                self.__dict__ = self
+
+        self.obj = AttrDict(self.obj)
+        data = []
+        for transaction in self.obj.histories:
+            data.append(AttrDict(transaction))
+            data[-1].author = AttrDict(transaction['author'])
+            data2 = []
+            for transition in transaction['items']:
+                data2.append(AttrDict(transition))
+            data[-1].items = data2
+        self.obj.histories = data
+
+        self.history = History(self.obj)
+
 
     def tearDown(self):
         pass
@@ -130,7 +145,7 @@ class HistoryTest(unittest.TestCase):
 
     def testSkippedTrue(self):
         self.history.data = []
-        self.history.data.append((D20121001, 1, 3, 'Jane Doe'))
+        self.history.data.append((D20121001, 1, 6, 'Jane Doe'))
         self.assertTrue(self.history.skipped)
 
     def testSkippedFalse(self):
@@ -151,8 +166,8 @@ class HistoryTest(unittest.TestCase):
 
     def testBackflowTrue(self):
         self.history.data = []
-        self.history.data.append((D20121001, 1, 3, 'Jane Doe'))
-        self.history.data.append((D20121003, 3, 1, 'Joe Doe'))
+        self.history.data.append((D20121001, 1, 6, 'Jane Doe'))
+        self.history.data.append((D20121003, 6, 1, 'Joe Doe'))
         self.assertTrue(self.history.backflow)
 
     def testBackflowFalse(self):
@@ -1153,3 +1168,11 @@ class ProjectsTest(unittest.TestCase):
         projects.add(Project('Name', 'Key', 'Owner'))
         self.assertEqual(len(projects.all_projects()), 1)
 
+class IssuesTest(unittest.TestCase):
+    def testObjectCreate(self):
+        obj = Issues()
+        self.assertTrue(obj is not None)
+
+    def testInitializeIssues(self):
+        obj = Issues()
+        self.assertEqual(obj.name, 'Issues')

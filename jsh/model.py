@@ -8,7 +8,7 @@ from repoze.folder import Folder
 from persistent import Persistent
 from persistent.mapping import PersistentMapping
 from persistent.list import PersistentList
-from interfaces import IRelease, IStory, ILinks, IProject, IKanban
+from interfaces import IRelease, IStory, ILinks, IProject, IKanban, IIssues
 
 STORY_TYPE = '7'
 BUG_TYPE = '1'
@@ -101,7 +101,13 @@ class History(Folder):
                         time.strptime(transaction.created[:23],
                         '%Y-%m-%dT%H:%M:%S.%f')))
                     name = ''
-                    self.data.append((created, int(getattr(transition, 'from')), int(transition.to), transaction.author.displayName))
+                    author = ''
+                    if hasattr(transaction, 'author'):
+                        author = transaction.author.displayName
+                    self.data.append((created
+                        , int(getattr(transition, 'from'))
+                        , int(transition.to)
+                        , author))
                     previous_date = created
 
     def get_transition_from(self, state):
@@ -216,13 +222,16 @@ class Story(Folder):
     def __init__(self, issue=None):
         super(Story, self).__init__()
         self['links'] = Links()
+        self.updated = None
         if issue:
             self.initialize(issue)
 
     def initialize(self, issue):
         self.jid = getattr(issue, 'id')
         self.key = issue.key
-        self.updated = issue.fields.updated
+        self.updated = datetime.datetime.fromtimestamp(
+                time.mktime(time.strptime(
+                issue.fields.updated[:23], '%Y-%m-%dT%H:%M:%S.%f')))
         self.reporter = None
         if issue.fields.reporter:
             self.reporter = issue.fields.reporter.displayName
@@ -1050,3 +1059,13 @@ class Projects(object):
 
     def all_projects(self):
         return self.data
+
+
+class Issues(Release):
+    implements(IIssues)
+    def __init__(self):
+        super(Issues, self).__init__()
+        self.name = 'Issues'
+        self.key = 'issues'
+        self.process = ''
+        self.last_updated = datetime.datetime(1901, 1, 1)
