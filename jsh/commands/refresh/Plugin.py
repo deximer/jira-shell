@@ -20,7 +20,7 @@ class Command(BaseCommand):
             print 'Ignoring links...'
         else:
             print 'Traversing link graph...'
-        self.refresh_data(jira, args.releases, args.l)
+        self.refresh_data(jira, args.releases, args.l, '-8d')
         elapsed = datetime.datetime.now() - start
         print 'Cache refreshed in about %d minutes' \
             % round(elapsed.seconds/60.0, 1)

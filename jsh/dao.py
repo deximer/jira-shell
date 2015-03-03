@@ -144,6 +144,8 @@ class Jira(object):
                 , basic_auth=(self.user, self.password))
         for prj in self.agile.boards():
             pid = getattr(prj, 'id')
+            if self.cache.data.has_key(str(pid)):
+                continue
             transaction.begin()
             project = Project(str(pid), prj.name)
             project.query = prj.filter.query
@@ -158,27 +160,32 @@ class Jira(object):
             self.cache.catalog.index_doc(docid, project)
             transaction.commit()
 
-    def pull_releases(self):
+    def pull_releases(self, time_range):
         for project in self.cache.data.values():
-            if project.process == 'Kanban':
-                self.pull_kanban(project)
+            #if project.process == 'Kanban':
+            #    self.pull_kanban(project, time_range)
             if project.process == 'Scrum':
-                self.pull_scrum(project)
+                self.pull_scrum(project, time_range)
 
-    def pull_scrum(self, project):
+    def pull_scrum(self, project, time_range):
         for spr in self.agile.sprints(int(project.key)):
+            print 'Sprint:', spr.name
             sid = getattr(spr, 'id')
-            sprint = Release()
-            sprint.key = str(sid)
-            sprint.version = str(sid)
-            sprint.name = spr.name
-            transaction.begin()
-            self.cache.data[project.key][str(sid)] = sprint
-            transaction.commit()
-            transaction.begin()
-            docid = self.cache.document_map.add(['jira', project.key, str(sid)])
-            self.cache.catalog.index_doc(docid, sprint)
-            transaction.commit()
+            if str(sid) not in self.cache.data[project.key].keys():
+                sprint = Release()
+                sprint.key = str(sid)
+                sprint.version = str(sid)
+                sprint.name = spr.name
+                transaction.begin()
+                self.cache.data[project.key][str(sid)] = sprint
+                transaction.commit()
+                transaction.begin()
+                docid = self.cache.document_map.add(
+                    ['jira', project.key, str(sid)])
+                self.cache.catalog.index_doc(docid, sprint)
+                transaction.commit()
+            else:
+                sprint = self.cache.data[project.key][str(sid)]
             self.pull_scrum_stories(project, sprint)
 
     def pull_scrum_stories(self, project, sprint):
@@ -191,54 +198,69 @@ class Jira(object):
             issues.extend(self.agile.completed_issues(project.key, sprint.key))
         except:
             pass
+        transaction.begin()
         for issue in issues:
+            if sprint.has_key(issue.key):
+                print sprint.key, ' already has ', issue.key
+                continue
             if self.cache.data['issues'].has_key(issue.key):
                 story = self.cache.data['issues'][issue.key]
             else:
                 print issue.key, 'not found!'
                 continue
             #story = self.get_story(issue.key)
-            transaction.begin()
             sprint.add_story(story)
-            transaction.commit()
-            transaction.begin()
             docid = self.cache.document_map.add(
                 ['jira', project.key, sprint.key, story.key])
             self.cache.catalog.index_doc(docid, story)
-            transaction.commit()
-
-    def pull_kanban(self, project):
-        kanban = Release()
-        kanban.key = 'BRD-%s' % project.key
-        kanban.version = kanban.key
-        kanban.name = 'Kanban Board'
-        transaction.begin()
-        self.cache.data[project.key][kanban.key] = kanban
+            print sprint.key, ' <- ', story.key
         transaction.commit()
-        transaction.begin()
-        docid = self.cache.document_map.add(
-            ['jira', str(project.key), kanban.key])
-        self.cache.catalog.index_doc(docid, kanban)
-        transaction.commit()
-        self.pull_kanban_stories(project, kanban)
 
-    def pull_issues(self):
-        store = self.cache.data['issues']
-        
-        issues = self.server.search_issues('', maxResults=0)
-        print 'Importing', len(issues), 'stories...'
-        for issue in issues:
-            story = self.get_story(issue.key)
-            if store.has_key(issue.key):
-                continue
-            print 'Importing:', story.key
+    def pull_kanban(self, project, time_range):
+        if 'BRD-' + project.key not in self.cache.data[project.key].keys():
+            kanban = Release()
+            kanban.key = 'BRD-%s' % project.key
+            kanban.version = kanban.key
+            kanban.name = 'Kanban Board'
             transaction.begin()
-            store[story.key] = story
+            self.cache.data[project.key][kanban.key] = kanban
             transaction.commit()
             transaction.begin()
             docid = self.cache.document_map.add(
+                ['jira', str(project.key), kanban.key])
+            self.cache.catalog.index_doc(docid, kanban)
+            transaction.commit()
+        else:
+            kanban = self.cache.data[project.key]['BRD-' + project.key]
+        self.pull_kanban_stories(project, kanban, time_range)
+
+    def pull_issues(self, time_range):
+        store = self.cache.data['issues']
+        issues = self.server.search_issues('updated > "%s"' % time_range
+            , maxResults=0)
+        print 'Pulled stories from %s previous' % time_range
+        print 'Importing', len(issues), 'stories...'
+        for issue in issues:
+            new = False
+            story = Story(self.server.issue(issue.key, expand='changelog'))
+            if store.has_key(issue.key):
+                print 'Updating', issue.key
+                transaction.begin()
+                del store[story.key]
+                transaction.commit()
+                new = True
+            else:
+                print 'Adding:', story.key
+            transaction.begin()
+            store[story.key] = story
+            transaction.commit()
+            docid = self.cache.document_map.add(
                 ['jira', 'issues', story.key])
-            self.cache.catalog.index_doc(docid, story)
+            if new:
+                transaction.begin()
+                self.cache.catalog.index_doc(docid, story)
+            else:
+                self.cache.catalog.reindex_doc(docid, story)
             transaction.commit()
             for link in issue.fields.issuelinks:
                 transaction.begin()
@@ -249,13 +271,37 @@ class Jira(object):
                         story['links']['out'][type] = Folder()
                         story['links']['out'][type].key = type
                         transaction.commit()
-                        s = self.get_story(key)
+                        #s = self.get_story(key)
+                        if self.cache.data['issues'].has_key(key):
+                            s = self.cache.data['issues'][key]
+                        else:
+                            transaction.begin()
+                            s = Story(self.server.issue(key,expand='changelog'))
+                            self.cache.data['issues'][key] = s
+                            transaction.commit()
+                            transaction.begin()
+                            docid = self.cache.document_map.add(
+                                ['jira', 'issues', key])
+                            self.cache.catalog.index_doc(docid, s)
+                            transaction.commit()
                         if not s:
                             continue
                         story['links']['out'][type][key] = s
                     else:
                         if not key in story['links']['out'][type].keys():
-                            s = self.get_story(key)
+                            #s = self.get_story(key)
+                            if self.cache.data['issues'].has_key(key):
+                                s = self.cache.data['issues'][key]
+                            else:
+                                transaction.begin()
+                                s = Story(self.server.issue(key,expand='changelog'))
+                                self.cache.data['issues'][key] = s
+                                transaction.commit()
+                                transaction.begin()
+                                docid = self.cache.document_map.add(
+                                    ['jira', 'issues', key])
+                                self.cache.catalog.index_doc(docid, s)
+                                transaction.commit()
                             if not s:
                                 continue
                             story['links']['out'][type][key] = s
@@ -266,22 +312,60 @@ class Jira(object):
                         story['links']['in'][type] = Folder()
                         story['links']['in'][type].key = type
                         transaction.commit()
-                        s = self.get_story(key)
+                        #s = self.get_story(key)
+                        if self.cache.data['issues'].has_key(key):
+                            s = self.cache.data['issues'][key]
+                        else:
+                            transaction.begin()
+                            s = Story(self.server.issue(key,expand='changelog'))
+                            self.cache.data['issues'][key] = s
+                            transaction.commit()
+                            transaction.begin()
+                            docid = self.cache.document_map.add(
+                                ['jira', 'issues', key])
+                            self.cache.catalog.index_doc(docid, s)
+                            transaction.commit()
                         if not s:
                             continue
                         story['links']['in'][type][key] = s
                     else:
                         if not key in story['links']['in'][type].keys():
-                            s = self.get_story(key)
+                            #s = self.get_story(key)
+                            if self.cache.data['issues'].has_key(key):
+                                s = self.cache.data['issues'][key]
+                            else:
+                                transaction.begin()
+                                s = Story(self.server.issue(key,expand='changelog'))
+                                self.cache.data['issues'][key] = s
+                                transaction.commit()
+                                transaction.begin()
+                                docid = self.cache.document_map.add(
+                                    ['jira', 'issues', key])
+                                self.cache.catalog.index_doc(docid, s)
+                                transaction.commit()
                             if not s:
                                 continue
                             story['links']['in'][type][key] = s
                 transaction.commit()
 
-    def pull_kanban_stories(self, project, kanban):
-        issues = self.server.search_issues(project.query, maxResults=0)
+    def pull_kanban_stories(self, project, kanban, time_range):
+        if 'order by' in project.query.lower():
+            query = project.query.lower().split('order by')
+            query = query[0] + ' and updated > "' + time_range \
+                + '" order by ' + query[1]
+        else:
+            query = project.query + ' and updated > "' + time_range + '"'
+        print query
+        query = project.query
+        try:
+            issues = self.server.search_issues(query, maxResults=0)
+        except Exception as e:
+            print
+            print 'Error: ' + query
+            print e.message
+            print
+            return
         for issue in issues:
-            #story = self.get_story(issue.key)
             if self.cache.data['issues'].has_key(issue.key):
                 story = self.cache.data['issues'][issue.key]
             else:
@@ -295,46 +379,8 @@ class Jira(object):
                 ['jira', project.key, kanban.key, story.key])
             self.cache.catalog.index_doc(docid, story)
             transaction.commit()
-            continue
-            for link in issue.fields.issuelinks:
-                transaction.begin()
-                if hasattr(link, 'outwardIssue') and link.outwardIssue:
-                    type = link.type.name
-                    key = link.outwardIssue.key
-                    if not type in story['links']['out'].keys():
-                        story['links']['out'][type] = Folder()
-                        story['links']['out'][type].key = type
-                        transaction.commit()
-                        s = self.get_story(key)
-                        if not s:
-                            continue
-                        story['links']['out'][type][key] = s
-                    else:
-                        if not key in story['links']['out'][type].keys():
-                            s = self.get_story(key)
-                            if not s:
-                                continue
-                            story['links']['out'][type][key] = s
-                elif hasattr(link, 'inwardIssue') and link.inwardIssue:
-                    type = link.type.name
-                    key = link.inwardIssue.key
-                    if not type in story['links']['in'].keys():
-                        story['links']['in'][type] = Folder()
-                        story['links']['in'][type].key = type
-                        transaction.commit()
-                        s = self.get_story(key)
-                        if not s:
-                            continue
-                        story['links']['in'][type][key] = s
-                    else:
-                        if not key in story['links']['in'][type].keys():
-                            s = self.get_story(key)
-                            if not s:
-                                continue
-                            story['links']['in'][type][key] = s
-                transaction.commit()
 
-    def refresh_cache(self, releases=['2.7'], links=True):
+    def refresh_cache(self, releases=['2.7'], links=True, time_range='-1d'):
         if not self.user or not self.password:
             self.password = getpass.getpass('Password: ')
             self.user = raw_input('User: ')
@@ -343,9 +389,10 @@ class Jira(object):
             self.agile = jira.client.GreenHopper(
                   {'server': 'https://jira.zipcar.com'}
                 , basic_auth=(self.user, self.password))
-        self.pull_issues()
-        #self.pull_projects()
-        #self.pull_releases()
+        #self.pull_issues(time_range)
+        self.pull_projects()
+        self.pull_releases(time_range)
+        return
         for prj in self.agile.boards():
             pid = getattr(prj, 'id')
             if pid not in [97, 148, 149]:

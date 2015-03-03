@@ -30,7 +30,7 @@ KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_REOPENED, STATUS_IN_PROGRESS,
     STATUS_QE_APPROVAL, STATUS_PO_APPROVAL, STATUS_CLOSED]
 HUMAN_STATUS = {1     : 'Open',
                 10024 : 'Ready',
-                10002 : 'InPro',
+                10002 : 'Start',
                 4     : 'ReOpn',
                 10004 : 'PeerR',
                 10014 : 'NeedA',
@@ -120,6 +120,7 @@ class History(Folder):
     def get_transition_to(self, state):
         results = []
         for transition in self.data:
+            print transition[2], state
             if transition[2] == state:
                 results.append(transition[0])
         return results
@@ -141,6 +142,7 @@ class History(Folder):
     def _get_started(self):
         start_dates = self.get_transition_to(STATUS_IN_PROGRESS)
         open_dates = self.get_transition_to(STATUS_OPEN)
+        import pdb; pdb.set_trace()
         if start_dates:
             if open_dates and (open_dates[-1] - start_dates[-1]).days > 0:
                 return None
@@ -772,7 +774,7 @@ class Kanban(object):
 class Release(Folder):
     implements(IRelease)
 
-    WIP = {'InPro': 10002,
+    WIP = {'Start': 10002,
            'PeerR': 10004,
            'NeedA': 10014,
            'QaAct': 10005,
@@ -1064,8 +1066,7 @@ class Projects(object):
 class Issues(Release):
     implements(IIssues)
     def __init__(self):
-        super(Issues, self).__init__()
+        super(Issues, self).__init__('issues')
         self.name = 'Issues'
-        self.key = 'issues'
         self.process = ''
         self.last_updated = datetime.datetime(1901, 1, 1)
