@@ -6,7 +6,8 @@ import os
 
 command_plugins = {}
 for command in os.listdir('/'.join(commands.__file__.split('/')[:-1])):
-    if command in ('base.py', 'base.pyc', '__init__.py', '__init__.pyc'):
+    if command in ('.base.py.swp', 'base.py', 'base.pyc', '__init__.py'
+        , '__init__.pyc'):
         continue
     try:
         exec compile('command_plugins["%s"] = commands.%s.Plugin.Command()' \

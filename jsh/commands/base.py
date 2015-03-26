@@ -9,6 +9,7 @@ class BaseCommand(object):
     def run(self, jira, args):
         pass # override in command
 
-    def refresh_data(self, jira, releases, links=True, time_range='-4d'):
-        self.release = jira.refresh_cache(releases, links=links
-            , time_range=time_range)
+    def refresh_data(self, jira, boards=[], links=True, time_range=None,
+        all_issues=False, add_only=False):
+        self.release = jira.refresh_cache(boards, links, time_range, all_issues
+            , add_only)

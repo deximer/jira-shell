@@ -97,10 +97,16 @@ def step(context, value):
 def make_story(row):
     story = model.Story()
     story.key = row['key']
+    if 'labels' in row.headings:
+        story.labels = row['labels'].split(',')
     story.title = row['title']
     story.root_cause = ''
     story.root_cause_details = ''
     story.components = []
+    if 'rank' in row.headings:
+        story.rank = row['rank']
+    else:
+        story.rank = ''
     if 'team' in row.headings:
         story.scrum_team = row['team']
     else:
@@ -125,8 +131,6 @@ def make_story(row):
         start_date = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
         story.history.data.append((start_date, 1, 10002, None, 'Sarah Conner'))
     if 'resolved' in row.headings and row['resolved']:
-        if not row['resolved']:
-            return
         date = row['resolved'].split('/')
         resolved_date = datetime(2000+int(date[0]), int(date[1]), int(date[2]))
         story.history.data.append((resolved_date, 10002, 6, 'Jane Doe'))

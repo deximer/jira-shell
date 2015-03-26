@@ -326,3 +326,19 @@ Feature: list issues in a release
         And I am in the directory "/1.0/NG-1"
         When I enter the command "ls"
         Then I see "links      N/A" in the output
+
+    Scenario: A lists all issues with a specific label
+        Given I have the following release
+        | key |
+        | 1.0 |
+        And I have the following issues in the release
+        | key  | title | type | started | resolved | points | labels |
+        | NG-1 | Foo 1 | 71   | 13/9/1  | 13/9/3   | 1      | l1     |
+        | NG-2 | Bar 2 | 71   | 13/9/7  | 13/9/17  | 2      | l2     |
+        | NG-3 | Baz 3 | 72   | 13/9/2  | 13/9/2   | 9      | l3     |
+        And I am in the directory "/1.0"
+        When I enter the command "ls -l l2"
+        Then I see "NG-2" in the output
+        And I do not see "NG-1" in the output
+        And I do not see "NG-3" in the output
+

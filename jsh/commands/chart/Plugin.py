@@ -135,7 +135,14 @@ class Command(BaseCommand):
             self.histogram(stories)
         elif self.args.o and self.args.o[0] == 'arrival':
             if len(self.args.o) == 2:
-                self.arrivals(stories, int(self.args.o[1]))
+                if self.args.o[1] in self.release.WIP.keys():
+                    state = self.release.WIP[self.args.o[1]]
+                elif int(self.args.o[1]) in self.release.WIP.values():
+                    state = int(self.args.o[1])
+                else:
+                    print 'Invalid state specified: %s' % self.args.o[1]
+                    return
+                self.arrivals(stories, state)
             else:
                 self.arrivals(stories)
         elif not self.args.o or self.args.o[0] == 'cycles':

@@ -50,11 +50,11 @@ class Command(BaseCommand):
         print 'Points completed :', round(release.points_completed(), 1)
         print 'Total WIP        :', release.wip()
         print 'Stories          :', release.total_stories()
-        print '  Avg Size       :', round(release.average_story_size(), 1)
-        print '  Std Dev        :', round(release.std_story_size(), 1)
-        print '  Smallest       :', smallest
-        print '  Largest        :', largest 
-        print '  # In Process   :', release.stories_in_process()
+        print '  Avg Points     :', round(release.average_story_size(), 1)
+        print '  Std Dev Points :', round(release.std_story_size(), 1)
+        print '  Smallest points:', smallest
+        print '  Largest points :', largest 
+        print '  Story WIP      :', release.stories_in_process()
         print '  Avg Cycle Time :', kanban.average_cycle_time()
         print '  Std Cycle Time :', kanban.stdev_cycle_time()
         print '  Skew           :', release.skew_cycle_time()
@@ -89,7 +89,7 @@ class Command(BaseCommand):
             print key[:16].ljust(16), ':',  str(wip[key]['wip']).ljust(6), \
                 str(wip[key]['stories']).ljust(3), wip[key]['largest']
         print
-        print 'Total Cycle Times by Status:'
+        print 'Total Cycle Times by Status (days):'
         cycle_times_in_status = kanban.cycle_times_in_status()
         total = 0
         cycle_times = []
@@ -106,14 +106,14 @@ class Command(BaseCommand):
         print 'Total   :', total
         print 'Max PCE : %' + str(kanban.process_cycle_efficiency())
         print
-        print 'Average Takt Time in Status:'
+        print 'Average Takt Time in Status (days):'
         print '  Status:', 'Average:', 'Stdev:'
         averages = kanban.average_times_in_status()
         stds = kanban.std_times_in_status()
         for key in averages:
             print ' ', humanize(key).ljust(7), str(averages[key]).ljust(8), stds[key]
         print
-        print 'Arrival Times for Status:'
+        print 'Arrival Times for Status (days):'
         print '  Status:', 'Average:', 'Stdev:'
         averages = kanban.average_arrival_for_status()
         stds = kanban.std_arrival_for_status()

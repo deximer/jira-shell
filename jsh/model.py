@@ -2,6 +2,7 @@ import numpy
 from scipy import stats
 import time
 import datetime
+import sets
 from dateutil.rrule import DAILY, MO, TU, WE, TH, FR, rrule
 from zope.interface import Interface, implements
 from repoze.folder import Folder
@@ -28,16 +29,16 @@ STATUS_CLOSED = 6
 KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_REOPENED, STATUS_IN_PROGRESS,
     STATUS_PEER_REVIEW, STATUS_NEEDS_APPROVAL, STATUS_QA_ACTIVE, 
     STATUS_QE_APPROVAL, STATUS_PO_APPROVAL, STATUS_CLOSED]
-HUMAN_STATUS = {1     : 'Open',
-                10024 : 'Ready',
-                10002 : 'Start',
-                4     : 'ReOpn',
-                10004 : 'PeerR',
-                10014 : 'NeedA',
-                10127 : 'QeApp',
-                10005 : 'QaAct',
-                10128 : 'PoApp',
-                6     : 'Closd',}
+HUMAN_STATUS = {
+       1: 'New  ',
+       6: 'Closd',
+       10024: 'Ready',
+       10002: 'Start',
+       10004: 'PeerR',
+       10014: 'NeedA',
+       10005: 'Test ',
+       10127: 'QeApp',
+       10128: 'PoApp',}
 
 def humanize(status):
     if HUMAN_STATUS.has_key(status):
@@ -120,7 +121,6 @@ class History(Folder):
     def get_transition_to(self, state):
         results = []
         for transition in self.data:
-            print transition[2], state
             if transition[2] == state:
                 results.append(transition[0])
         return results
@@ -142,7 +142,6 @@ class History(Folder):
     def _get_started(self):
         start_dates = self.get_transition_to(STATUS_IN_PROGRESS)
         open_dates = self.get_transition_to(STATUS_OPEN)
-        import pdb; pdb.set_trace()
         if start_dates:
             if open_dates and (open_dates[-1] - start_dates[-1]).days > 0:
                 return None
@@ -231,6 +230,7 @@ class Story(Folder):
     def initialize(self, issue):
         self.jid = getattr(issue, 'id')
         self.key = issue.key
+        self.labels = PersistentList(issue.fields.labels)
         self.updated = datetime.datetime.fromtimestamp(
                 time.mktime(time.strptime(
                 issue.fields.updated[:23], '%Y-%m-%dT%H:%M:%S.%f')))
@@ -262,11 +262,10 @@ class Story(Folder):
         else:
             self.assignee = issue.fields.assignee.name
             self.developer = self.assignee
-        self.rank = 1 # custom fields legacy
+        self.rank = int(issue.fields.customfield_10600)
         self.root_cause = ''
         self.root_cause_details = ''
         self.scrum_team = '' # custom legacy
-        self.points = None
         self.status = int(issue.fields.status.id)
         self.project = issue.fields.project.key
 
@@ -705,18 +704,35 @@ class Kanban(object):
 
         return result
 
-    def minimum_atp(self, estimate):
+    def cycle_times_for_estimates(self, estimates=None):
         grid = self.release.stories_by_estimate()
         days = []
-        if not grid.has_key(estimate):
-            return None
-        for story in grid[estimate]:
-            if not story.started or not story.resolved or not story.points:
-                continue
-            days.append(story.cycle_time)
+        if not estimates:
+            estimates = grid.keys()
+        for estimate in estimates:
+            for story in grid[estimate]:
+                if not story.started or not story.resolved:
+                    continue
+                days.append(story.cycle_time)
+        return days
+
+    def minimum_atp(self, estimates=None):
+        days = self.cycle_times_for_estimates(estimates)
         if not days:
             return None
         return round(numpy.min(numpy.array(days)), 1)
+
+    def average_atp(self, estimates=None):
+        days = self.cycle_times_for_estimates(estimates)
+        if not days:
+            return None
+        return round(numpy.average(numpy.array(days)), 1)
+
+    def maximum_atp(self, estimates=None):
+        days = self.cycle_times_for_estimates(estimates)
+        if not days:
+            return None
+        return round(numpy.max(numpy.array(days)), 1)
 
     def contingency_average(self, key):
         story = self.release.get(key)
@@ -774,10 +790,13 @@ class Kanban(object):
 class Release(Folder):
     implements(IRelease)
 
-    WIP = {'Start': 10002,
+    WIP = {'New  ': 1,
+           'Closd': 6,
+           'Ready': 10024,
+           'Start': 10002,
            'PeerR': 10004,
            'NeedA': 10014,
-           'QaAct': 10005,
+           'Test ': 10005,
            'QeApp': 10127,
            'PoApp': 10128,}
 
@@ -786,7 +805,7 @@ class Release(Folder):
         self.key = version
         self.version = version
 
-    def __key(self):
+    def __key__(self):
         return (self.version)
 
     def __eq__(x, y):
@@ -827,6 +846,22 @@ class Release(Folder):
             else:
                 teams[team] += 1
         return teams
+
+    def unique_labels(self):
+        labels = []
+        for story in self.stories():
+            if not hasattr(story, 'labels'):
+                continue
+            labels.extend(story.labels)
+        return [l for l in sets.Set(labels)]
+
+    def label_report(self):
+        labels = []
+        for story in self.stories():
+            if not hasattr(story, 'labels'):
+                continue
+            labels.extend(story.labels)
+        return [l for l in sets.Set(labels)]
 
     def developers(self):
         developers = {}

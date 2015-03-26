@@ -35,6 +35,8 @@ class Command(BaseCommand):
         print 'Type:', story.type
         print 'Title:', story.title
         print 'Team:', story.scrum_team
+        if hasattr(story, 'labels'):
+            print 'Labels:', story.labels
         print 'Developer:', story.developer
         print 'Points:', story.points
         print 'Status:', humanize(story.status)
@@ -55,8 +57,9 @@ class Command(BaseCommand):
             print '% Variance:', '%' + str(round(percent_variance, 4) * 100)
         else:
             print '% Variance:', 'nan'
-        print 'ATP:', kanban.average_cycle_time(story.scrum_team)
-        print 'Minimum ATP:', kanban.minimum_atp(str(story.points))
+        print 'Average ATP:', kanban.average_atp()
+        print 'Minimum ATP:', kanban.minimum_atp()
+        print 'Maximum ATP:', kanban.maximum_atp()
         print 'Contingency:'
         print '    Inside:', kanban.contingency_inside(story.key)
         print '    Average:', kanban.contingency_average(story.key)

@@ -1,9 +1,11 @@
 import getopt
 import argparse
+import sets
 from zope.interface import Interface, implements
 from zope.component import adapts
 from zope.component import getGlobalSiteManager
 from repoze.folder.interfaces import IFolder
+from persistent.list import PersistentList
 from ..base import BaseCommand
 from interfaces import IRelease, IStory, IProject, ILinks, IIssues
 from model import humanize
@@ -12,7 +14,7 @@ gsm = getGlobalSiteManager()
 
 class Command(BaseCommand):
     help = 'List issues in a release.'
-    usage = 'ls [[!]team] [-s status [...]] [-t issue_type [...]] [-p point] [-d dev [...]] -c [cycle_time]'
+    usage = 'ls [[!]team] [-s status [...]] [-t issue_type [...]] [-p point] [-d dev [...]] -c [cycle_time] [-l [label] [...]]'
     options_help = '''    -s : Show only issues with the specified status ("!" for exclusion)
     -t : Show only issues of the specified type ("!" for exclusion)
     -d : Show issues for only the specified developers
@@ -20,6 +22,7 @@ class Command(BaseCommand):
     -p : Show issues with the specified point estimates
     -b : Show issues with backflow (5 minute grace period)
     -c : Show issues with cycle times over the specified amount
+    -l : Show issues with specifid label(s)
     '''
     examples = '''    ls
     ls Appif 
@@ -43,6 +46,8 @@ class Command(BaseCommand):
             help='show issues with backflow (5 minute grace period)')
         parser.add_argument('-c', nargs='*', required=False,
             help='show issues with cycle times over the specified amount')
+        parser.add_argument('-l', nargs='*', required=False,
+            help='show issues with specified labels')
         parser.add_argument('team', nargs='?')
         try:
             args = parser.parse_args(args)
@@ -90,6 +95,9 @@ class Command(BaseCommand):
         if args.c:
             limit = int(args.c[0])
             stories = [s for s in stories if s.cycle_time > limit]
+        if args.l:
+            labels = sets.Set(args.l)
+            stories =[s for s in stories if labels.issubset(sets.Set(s.labels))]
         sorting = []
         if stories and args.o:
             for field in args.o:
@@ -293,6 +301,8 @@ class StoryAdapter(dict):
     def __init__(self, story):
         self.story = story
         self['links'] = story['links']
+        if not hasattr(story, 'labels'):
+            self.story.labels = PersistentList()
 
     def __getattr__(self, attr):
         return getattr(self.story, attr)

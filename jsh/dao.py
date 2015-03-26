@@ -160,11 +160,13 @@ class Jira(object):
             self.cache.catalog.index_doc(docid, project)
             transaction.commit()
 
-    def pull_releases(self, time_range):
+    def pull_releases(self, boards, time_range):
         for project in self.cache.data.values():
-            #if project.process == 'Kanban':
-            #    self.pull_kanban(project, time_range)
-            if project.process == 'Scrum':
+            if boards and project.key not in boards:
+                continue
+            elif project.process == 'Kanban':
+                self.pull_kanban(project, time_range)
+            elif project.process == 'Scrum':
                 self.pull_scrum(project, time_range)
 
     def pull_scrum(self, project, time_range):
@@ -201,14 +203,12 @@ class Jira(object):
         transaction.begin()
         for issue in issues:
             if sprint.has_key(issue.key):
-                print sprint.key, ' already has ', issue.key
                 continue
             if self.cache.data['issues'].has_key(issue.key):
                 story = self.cache.data['issues'][issue.key]
             else:
                 print issue.key, 'not found!'
                 continue
-            #story = self.get_story(issue.key)
             sprint.add_story(story)
             docid = self.cache.document_map.add(
                 ['jira', project.key, sprint.key, story.key])
@@ -234,34 +234,39 @@ class Jira(object):
             kanban = self.cache.data[project.key]['BRD-' + project.key]
         self.pull_kanban_stories(project, kanban, time_range)
 
-    def pull_issues(self, time_range):
+    def pull_issues(self, boards, links, time_range, all_issues, add_only):
         store = self.cache.data['issues']
-        issues = self.server.search_issues('updated > "%s"' % time_range
-            , maxResults=0)
-        print 'Pulled stories from %s previous' % time_range
+        if all_issues:
+            issues = self.server.search_issues('', maxResults=0)
+            print 'Refreshing all issues...'
+        elif time_range:
+            issues = self.server.search_issues('updated > "%s"' % time_range
+                , maxResults=0)
+            print 'Pulled stories from %s previous' % time_range
+        count = len(issues)
         print 'Importing', len(issues), 'stories...'
         for issue in issues:
-            new = False
-            story = Story(self.server.issue(issue.key, expand='changelog'))
             if store.has_key(issue.key):
-                print 'Updating', issue.key
+                if add_only:
+                    continue
+                print count, 'Updating:', issue.key
                 transaction.begin()
-                del store[story.key]
+                story = store[issue.key]
+                story.initialize(self.server.issue(
+                    issue.key, expand='changelog'))
                 transaction.commit()
-                new = True
             else:
-                print 'Adding:', story.key
-            transaction.begin()
-            store[story.key] = story
-            transaction.commit()
-            docid = self.cache.document_map.add(
-                ['jira', 'issues', story.key])
-            if new:
+                print count, 'Adding:  ', issue.key
+                story = Story(self.server.issue(issue.key, expand='changelog'))
+                transaction.begin()
+                store[story.key] = story
+                transaction.commit()
+                docid = self.cache.document_map.add(
+                    ['jira', 'issues', story.key])
                 transaction.begin()
                 self.cache.catalog.index_doc(docid, story)
-            else:
-                self.cache.catalog.reindex_doc(docid, story)
-            transaction.commit()
+                transaction.commit()
+            count = count - 1
             for link in issue.fields.issuelinks:
                 transaction.begin()
                 if hasattr(link, 'outwardIssue') and link.outwardIssue:
@@ -271,7 +276,6 @@ class Jira(object):
                         story['links']['out'][type] = Folder()
                         story['links']['out'][type].key = type
                         transaction.commit()
-                        #s = self.get_story(key)
                         if self.cache.data['issues'].has_key(key):
                             s = self.cache.data['issues'][key]
                         else:
@@ -289,7 +293,6 @@ class Jira(object):
                         story['links']['out'][type][key] = s
                     else:
                         if not key in story['links']['out'][type].keys():
-                            #s = self.get_story(key)
                             if self.cache.data['issues'].has_key(key):
                                 s = self.cache.data['issues'][key]
                             else:
@@ -312,7 +315,6 @@ class Jira(object):
                         story['links']['in'][type] = Folder()
                         story['links']['in'][type].key = type
                         transaction.commit()
-                        #s = self.get_story(key)
                         if self.cache.data['issues'].has_key(key):
                             s = self.cache.data['issues'][key]
                         else:
@@ -330,7 +332,6 @@ class Jira(object):
                         story['links']['in'][type][key] = s
                     else:
                         if not key in story['links']['in'][type].keys():
-                            #s = self.get_story(key)
                             if self.cache.data['issues'].has_key(key):
                                 s = self.cache.data['issues'][key]
                             else:
@@ -349,14 +350,17 @@ class Jira(object):
                 transaction.commit()
 
     def pull_kanban_stories(self, project, kanban, time_range):
-        if 'order by' in project.query.lower():
-            query = project.query.lower().split('order by')
-            query = query[0] + ' and updated > "' + time_range \
-                + '" order by ' + query[1]
+        print 'Loading', kanban.key
+        if time_range:
+            if 'order by' in project.query.lower():
+                query = project.query.lower().split('order by')
+                query = query[0] + ' and updated > "' + time_range \
+                    + '" order by ' + query[1]
+            else:
+                query = project.query + ' and updated > "' + time_range + '"'
         else:
-            query = project.query + ' and updated > "' + time_range + '"'
+            query = project.query
         print query
-        query = project.query
         try:
             issues = self.server.search_issues(query, maxResults=0)
         except Exception as e:
@@ -365,22 +369,21 @@ class Jira(object):
             print e.message
             print
             return
+        transaction.begin()
         for issue in issues:
             if self.cache.data['issues'].has_key(issue.key):
                 story = self.cache.data['issues'][issue.key]
             else:
                 print issue.key, 'not found!'
                 continue
-            transaction.begin()
             kanban.add_story(story)
-            transaction.commit()
-            transaction.begin()
             docid = self.cache.document_map.add(
                 ['jira', project.key, kanban.key, story.key])
             self.cache.catalog.index_doc(docid, story)
-            transaction.commit()
+            print kanban.key, ' <- ', story.key
+        transaction.commit()
 
-    def refresh_cache(self, releases=['2.7'], links=True, time_range='-1d'):
+    def authenticate(self):
         if not self.user or not self.password:
             self.password = getpass.getpass('Password: ')
             self.user = raw_input('User: ')
@@ -389,105 +392,13 @@ class Jira(object):
             self.agile = jira.client.GreenHopper(
                   {'server': 'https://jira.zipcar.com'}
                 , basic_auth=(self.user, self.password))
-        #self.pull_issues(time_range)
-        self.pull_projects()
-        self.pull_releases(time_range)
-        return
-        for prj in self.agile.boards():
-            pid = getattr(prj, 'id')
-            if pid not in [97, 148, 149]:
-                continue
-            transaction.begin()
-            project = Project(str(pid), prj.name)
-            project.query = prj.filter.query
-            if prj.sprintSupportEnabled:
-                project.process = 'Scrum'
-            else:
-                project.process = 'Kanban'
-            self.cache.data[str(pid)] = project
-            transaction.commit()
-            transaction.begin()
-            docid = self.cache.document_map.add(['jira', str(pid)])
-            self.cache.catalog.index_doc(docid, project)
-            transaction.commit()
-            if project.process == 'Kanban':
-                release = Release()
-                release.key = 'BRD-%d' % pid
-                release.version = release.key
-                release.name = 'Kanban Board'
-                transaction.begin()
-                self.cache.data[project.key][release.key] = release
-                transaction.commit()
-                transaction.begin()
-                docid = self.cache.document_map.add(
-                    ['jira', str(pid), release.key])
-                self.cache.catalog.index_doc(docid, release)
-                transaction.commit()
-                issues = self.server.search_issues(
-                    project.query, maxResults=1000)
-                for iss in issues:
-                    if self.cache.data['issues'].has_key(iss.key):
-                        story = self.cache.data['issues'][iss.key]
-                    else:
-                        print iss.key, 'not found!'
-                        continue
-                    #story = self.get_story(iss.key)
-                    transaction.begin()
-                    release.add_story(story)
-                    transaction.commit()
-                    transaction.begin()
-                    docid = self.cache.document_map.add(
-                        ['jira', str(pid), release.key, story.key])
-                    self.cache.catalog.index_doc(docid, story)
-                    transaction.commit()
-            for spr in self.agile.sprints(int(project.key)):
-                sid = getattr(spr, 'id')
-                release = Release()
-                release.key = str(sid)
-                release.version = str(sid)
-                release.name = spr.name
-                transaction.begin()
-                self.cache.data[project.key][str(sid)] = release
-                transaction.commit()
-                transaction.begin()
-                docid = self.cache.document_map.add(['jira', str(pid),str(sid)])
-                self.cache.catalog.index_doc(docid, release)
-                transaction.commit()
-                issues = []
-                try:
-                    issues.extend(self.agile.incompleted_issues(pid, sid))
-                except:
-                    pass
-                try:
-                    issues.extend(self.agile.completed_issues(pid, sid))
-                except:
-                    pass
-                for iss in issues:
-                    story = self.get_story(iss.key)
-                    transaction.begin()
-                    release.add_story(story)
-                    transaction.commit()
-                    transaction.begin()
-                    docid = self.cache.document_map.add(
-                        ['jira', str(pid), str(sid), story.key])
-                    self.cache.catalog.index_doc(docid, story)
-                    transaction.commit()
-        return
 
-        keys = self.get_release_keys(releases)
-        #release_keys = []
-        #for release in releases:
-        #    obj = self.cache.get_by_path('/NG/%s' % release)
-        #    release_keys.extend(obj.keys())
-        #orphans = [k for k in release_keys if k not in keys]
-        #keys.extend(orphans)
-        factor = 120.0
-        if links:
-            factor = 12.0
-        print 'Refreshing %d keys. About %d minutes' % (len(keys),
-            round(len(keys)/factor, 1))
-        for key in keys:
-            self.get_story(key, True, links=links)
+    def refresh_cache(self, boards=[], links=True, time_range=None
+        , all_issues=False, add_only=False):
+        self.authenticate()
+        self.pull_issues(boards, links, time_range, all_issues, add_only)
+        self.pull_projects()
+        self.pull_releases(boards, time_range)
 
     def get_release_keys(self, releases):
         if len(releases) > 1:
