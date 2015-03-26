@@ -30,6 +30,10 @@ class Command(BaseCommand):
         kanban = container.kanban()
         stdev = kanban.stdev_cycle_time()
         story = container.get(args.select)
-        days = int(round((kanban.average_atp() + (stdev * 3)) - story.cycle_time, 0))
+        depth = kanban.rank_depth(str(story.status), story.key)
+        cycle_time = 0
+        if story.cycle_time:
+            cycle_time = story.cycle_time
+        days = int(round((kanban.average_atp() * depth) - cycle_time, 0))
         print days, 'days'
 

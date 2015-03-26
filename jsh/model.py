@@ -716,6 +716,26 @@ class Kanban(object):
                 days.append(story.cycle_time)
         return days
 
+    def rank_depth(self, status, key):
+        stories = self.release.stories_by_status()
+        if not status in stories.keys():
+            return None
+        stories = stories[status]
+        def compare(a, b):
+            if not a[0]:
+                return -1
+            if not b[0]:
+                return 1
+            return cmp(a, b)
+        depth = 1
+        sorting = ['rank']
+        for story in sorted(stories, key=lambda x:tuple([getattr(x, key)
+            for key in sorting]), cmp=compare):
+            if story.key == key:
+                return depth
+            depth = depth + 1
+        return None
+
     def minimum_atp(self, estimates=None):
         days = self.cycle_times_for_estimates(estimates)
         if not days:
@@ -896,8 +916,10 @@ class Release(Folder):
                 if s.cycle_time]))
         return round(numpy.std(cycle_times), 1)
 
-    def stories(self, type=['7']):
-        return [story for story in self.values() if story.type in type]
+    def stories(self, type=[]):
+        if type:
+            return [story for story in self.values() if story.type in type]
+        return self.values()
 
     def started_stories(self, type=['7']):
         return [story for story in self.stories(type) if story.started]

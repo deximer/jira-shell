@@ -40,6 +40,7 @@ class Command(BaseCommand):
         print 'Developer:', story.developer
         print 'Points:', story.points
         print 'Status:', humanize(story.status)
+        print 'Order:', kanban.rank_depth(str(story.status), story.key)
         print 'Created:', story.created
         print 'Started:', story.started
         print 'Updated:', story.updated
