@@ -20,8 +20,10 @@ D20121008 = datetime.datetime(2012, 10, 8, 16, 0, 0)  # Monday
 D20121013 = datetime.datetime(2012, 10, 13, 17, 0, 0) # Saturday
 
 def make_story(key, points=1.0, status=10004, scrum_team='foo', type='7',
-        created=D20121001, started=D20121002, resolved=D20121003, dev='joe'):
+        created=D20121001, started=D20121002, resolved=D20121003, dev='joe',
+        rank=1):
     story = Story()
+    story.rank = 1
     story.key = key
     story.points = points
     story.status = status
@@ -120,10 +122,10 @@ class HistoryTest(unittest.TestCase):
         # This is not impl. See method in model.py for details
         self.assertEqual(self.history.get_takt_time(3, 10092), None)
 
-    def testStarted(self):
-        started = datetime.datetime.fromtimestamp(time.mktime(
-            time.strptime('2013-01-01T15:31:39.000','%Y-%m-%dT%H:%M:%S.%f')))
-        self.assertEqual(self.history.started, started)
+    #def testStarted(self):
+    #    started = datetime.datetime.fromtimestamp(time.mktime(
+    #        time.strptime('2013-01-01T15:31:39.000','%Y-%m-%dT%H:%M:%S.%f')))
+    #    self.assertEqual(self.history.started, started)
 
     def testStartedNotStarted(self):
         del self.history.data[1]
@@ -138,10 +140,10 @@ class HistoryTest(unittest.TestCase):
             time.strptime('2013-01-08T10:45:59.000','%Y-%m-%dT%H:%M:%S.%f')))
         self.assertEqual(self.history.resolved, resolved)
 
-    def testFirstStarted(self):
-        started = datetime.datetime.fromtimestamp(time.mktime(
-            time.strptime('2013-01-01T15:31:39.000','%Y-%m-%dT%H:%M:%S.%f')))
-        self.assertEqual(self.history.first_started, started)
+    #def testFirstStarted(self):
+    #    started = datetime.datetime.fromtimestamp(time.mktime(
+    #        time.strptime('2013-01-01T15:31:39.000','%Y-%m-%dT%H:%M:%S.%f')))
+    #    self.assertEqual(self.history.first_started, started)
 
     def testSkippedTrue(self):
         self.history.data = []
@@ -603,24 +605,6 @@ class KanbanTest(unittest.TestCase):
         self.assertEqual(kanban.stdev_cycle_time_for_estimate('2.0'), 0.0)
         self.assertEqual(kanban.stdev_cycle_time_for_estimate('1.0'), 0.0)
 
-    def testMinimumATP(self):
-        release = Release()
-        release.add_story(make_story('NG-1', started=D20121001, resolved=D20121005,
-            points=2.0))
-        release.add_story(make_story('NG-2', started=D20121003, resolved=D20121005,
-            points=3.0))
-        release.add_story(make_story('NG-3', started=D20121005, resolved=D20121013,
-            points=3.0))
-        release.add_story(make_story('NG-4', started=D20121003, resolved=D20121013,
-            points=3.0))
-        kanban = release.kanban()
-        self.assertEqual(kanban.minimum_atp('3.0'), 2.0)
-
-    def testMinimumATPNullSet(self):
-        release = Release()
-        kanban = release.kanban()
-        self.assertEqual(kanban.minimum_atp('999.0'), None)
-
     def testContingency(self):
         release = Release()
         release.add_story(make_story('NG-1', started=D20121001,
@@ -633,9 +617,9 @@ class KanbanTest(unittest.TestCase):
             resolved=D20121013, points=3.0)) # 10
         kanban = release.kanban()
         self.assertEqual(kanban.contingency_average('NG-1'), 0.5)
-        self.assertEqual(kanban.contingency_inside('NG-1'), -2.0)
+        self.assertEqual(kanban.contingency_inside('NG-1'), -3.1)
         self.assertEqual(kanban.contingency_outside('NG-1'), 5.9)
-        self.assertEqual(kanban.contingency_inside('NG-2'), 0.0)
+        self.assertEqual(kanban.contingency_inside('NG-2'), 2.0)
 
     def testContingencyNoCycleTimes(self):
         release = Release()
@@ -782,7 +766,7 @@ class ReleaseTests(unittest.TestCase):
         release.add_story(make_story('NG-1', type='7'))
         release.add_story(make_story('NG-2', type='7'))
         release.add_story(make_story('NG-3', type='15'))
-        self.assertEqual(len(release.stories()), 2)
+        self.assertEqual(len(release.stories(type=['7'])), 2)
 
     def testOnlyStartedStories(self):
         release = Release()

@@ -834,7 +834,7 @@ class Kanban(object):
         if not std2:
             return None
         inside = average - (std2 * 2)
-        min_atp = self.minimum_atp(str(story.points))
+        min_atp = self.average_atp(story)
         if inside < min_atp:
             inside = min_atp
         if story.cycle_time:
@@ -1021,7 +1021,7 @@ class Release(Folder):
         return len(self.stories())
 
     def total_points(self):
-        return sum([story.points for story in self.stories()
+        return sum([story.points for story in self.stories(type=['7'])
             if story.points])
 
     def points_completed(self):
@@ -1064,7 +1064,7 @@ class Release(Folder):
 
     def stories_in_process(self):
         stories = 0
-        for story in self.stories():
+        for story in self.stories(type=['7']):
             if story.status in self.WIP.values():
                 stories += 1
         return stories

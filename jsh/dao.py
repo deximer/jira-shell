@@ -424,7 +424,7 @@ class Jira(object):
             return None
         return Story(self.server.issue(key, expand='changelog'))
 
-    def make_story(self, key, data, links=True):
+    def make_story(self, key, data=None, links=True):
         return Story(self.server.issue(key, expand='changelog'))
 
         if not links:
