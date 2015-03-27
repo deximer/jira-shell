@@ -40,7 +40,7 @@ class Command(BaseCommand):
             return
         release = self.release
         kanban = release.kanban()
-        kanban.cycle_times_by_type()
+        kanban.average_cycle_times_by_type()
         smallest = 'None'
         if release.sort_by_size():
             smallest = release.sort_by_size()[-1].points

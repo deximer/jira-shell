@@ -872,9 +872,7 @@ class Kanban(object):
 class Release(Folder):
     implements(IRelease)
 
-    WIP = {'New  ': 1,
-           'Ready': 10024,
-           'Start': 10002,
+    WIP = {'Start': 10002,
            'PeerR': 10004,
            'NeedA': 10014,
            'Test ': 10005,
