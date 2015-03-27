@@ -873,7 +873,6 @@ class Release(Folder):
     implements(IRelease)
 
     WIP = {'New  ': 1,
-           'Closd': 6,
            'Ready': 10024,
            'Start': 10002,
            'PeerR': 10004,
