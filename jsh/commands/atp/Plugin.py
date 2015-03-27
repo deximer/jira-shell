@@ -3,16 +3,8 @@ import argparse
 import sets
 import datetime
 from dateutil.rrule import DAILY, SA, SU, rrule
-from zope.interface import Interface, implements
-from zope.component import adapts
-from zope.component import getGlobalSiteManager
-from repoze.folder.interfaces import IFolder
-from persistent.list import PersistentList
 from ..base import BaseCommand
-from interfaces import IRelease, IStory, IProject, ILinks, IIssues
 from model import humanize
-
-gsm = getGlobalSiteManager()
 
 class Command(BaseCommand):
     help = 'Provide estimate delivery dates.'

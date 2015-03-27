@@ -40,7 +40,7 @@ def make_story(key, points=1.0, status=10004, scrum_team='foo', type='7',
 class LinksTests(unittest.TestCase):
     def setUp(self):
         self.obj = Jira().json_to_object(
-            open('jsh/tests/data/NG-12425.json').read())[
+            open('tests/data/NG-12425.json').read())[
             'fields']['issuelinks']
         self.links = Links()
         self.links['out']['Related'] = PersistentMapping()
@@ -79,7 +79,7 @@ class LinksTests(unittest.TestCase):
 class HistoryTest(unittest.TestCase):
     def setUp(self):
         self.obj = Jira().json_to_object(
-            open('jsh/tests/data/NG-13332.json').read())['changelog']
+            open('tests/data/NG-13332.json').read())['changelog']
 
         class AttrDict(dict):
             def __init__(self, *args, **kwargs):
@@ -190,10 +190,10 @@ class StoryTest(unittest.TestCase):
     '''
     def setUp(self):
         def mock_request_page(url, refresh=False):
-            return open('jsh/tests/data/rss.xml').read()
+            return open('tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
-                'jsh/tests/data/rest_changelog.json').read())
+                'tests/data/rest_changelog.json').read())
         self.jira = Jira('jira.cengage.com', 'user:pass')
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
@@ -301,10 +301,10 @@ class StoryTest(unittest.TestCase):
 class KanbanTest(unittest.TestCase):
     def setUp(self):
         def mock_request_page(url, refresh=False):
-            return open('jsh/tests/data/rss.xml').read()
+            return open('tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
-                'jsh/tests/data/rest_changelog.json').read())
+                'tests/data/rest_changelog.json').read())
         self.jira = Jira('jira.cengage.com', 'user:pass')
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
@@ -495,7 +495,7 @@ class KanbanTest(unittest.TestCase):
 
 
     def testStdevCycleTimeLife(self):
-        xml = open('jsh/tests/data/rss.xml').read()
+        xml = open('tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
         release = Release()
@@ -542,7 +542,7 @@ class KanbanTest(unittest.TestCase):
         self.assertEqual(kanban.cycle_time_per_point(), 2.0)
 
     def testStdevCycleTimePerPointStrictBaked(self):
-        xml = open('jsh/tests/data/rss.xml').read()
+        xml = open('tests/data/rss.xml').read()
         tree = ET.fromstring(xml)
         item = tree.find('.//*/item')
         release = Release()
@@ -653,10 +653,10 @@ class ReleaseTests(unittest.TestCase):
     '''
     def setUp(self):
         def mock_request_page(url, refresh=False):
-            return open('jsh/tests/data/rss.xml').read()
+            return open('tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
-                'jsh/tests/data/rest_changelog.json').read())
+                'tests/data/rest_changelog.json').read())
         self.jira = Jira('jira.cengage.com', 'user:pass')
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
@@ -1117,10 +1117,10 @@ class ReleaseTests(unittest.TestCase):
 class ProjectTest(unittest.TestCase):
     def setUp(self):
         def mock_request_page(url, refresh=False):
-            return open('jsh/tests/data/rss.xml').read()
+            return open('tests/data/rss.xml').read()
         def mock_call_rest(key, expand=['changelog']):
             return json.loads(open(
-                'jsh/tests/data/rest_changelog.json').read())
+                'tests/data/rest_changelog.json').read())
         self.jira = Jira('jira.cengage.com', 'user:pass')
         self.jira.call_rest = mock_call_rest
         self.jira.request_page = mock_request_page
