@@ -58,9 +58,7 @@ class Command(BaseCommand):
             print '% Variance:', '%' + str(round(percent_variance, 4) * 100)
         else:
             print '% Variance:', 'nan'
-        print 'Average ATP:', kanban.average_atp()
-        print 'Minimum ATP:', kanban.minimum_atp()
-        print 'Maximum ATP:', kanban.maximum_atp()
+        print 'ATP:', kanban.average_atp(story)
         print 'Contingency:'
         print '    Inside:', kanban.contingency_inside(story.key)
         print '    Average:', kanban.contingency_average(story.key)

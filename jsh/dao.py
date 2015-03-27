@@ -1,6 +1,5 @@
 import urllib
 import json
-import datetime
 import getpass
 import time
 import copy

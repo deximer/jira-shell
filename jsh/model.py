@@ -3,13 +3,23 @@ from scipy import stats
 import time
 import datetime
 import sets
-from dateutil.rrule import DAILY, MO, TU, WE, TH, FR, rrule
+from dateutil.rrule import DAILY, MO, TU, WE, TH, FR, SA, SU, rrule
 from zope.interface import Interface, implements
 from repoze.folder import Folder
 from persistent import Persistent
 from persistent.mapping import PersistentMapping
 from persistent.list import PersistentList
 from interfaces import IRelease, IStory, ILinks, IProject, IKanban, IIssues
+
+def sort(stories, fields):
+    def compare(a, b):
+        if not a[0]:
+            return -1
+        if not b[0]:
+            return 1
+        return cmp(a, b)
+    return [s for s in sorted(stories, key=lambda x:tuple([getattr(x, key)
+        for key in fields]), cmp=compare)]
 
 STORY_TYPE = '7'
 BUG_TYPE = '1'
@@ -25,12 +35,14 @@ STATUS_NEEDS_APPROVAL = 10014
 STATUS_QA_ACTIVE = 10005
 STATUS_QE_APPROVAL = 10127
 STATUS_PO_APPROVAL = 10128
+STATUS_RESOLVED = 5
 STATUS_CLOSED = 6
 KANBAN = [STATUS_OPEN, STATUS_READY, STATUS_REOPENED, STATUS_IN_PROGRESS,
     STATUS_PEER_REVIEW, STATUS_NEEDS_APPROVAL, STATUS_QA_ACTIVE, 
-    STATUS_QE_APPROVAL, STATUS_PO_APPROVAL, STATUS_CLOSED]
+    STATUS_QE_APPROVAL, STATUS_PO_APPROVAL, STATUS_RESOLVED, STATUS_CLOSED]
 HUMAN_STATUS = {
        1: 'New  ',
+       5: 'Rslvd',
        6: 'Closd',
        10024: 'Ready',
        10002: 'Start',
@@ -387,7 +399,32 @@ class Kanban(object):
             return None
         return round(numpy.average(numpy.array(days)), 1)
 
-    def cycle_times_in_status(self, component=None, type=['7'], points=[]):
+    def average_cycle_times_by_type(self, type=[]):
+        if hasattr(self, '__actbt'):
+            return self._actbt
+        stories = self.release.stories(type=type)
+        if not stories:
+            return {}
+        result = {}
+        for story in stories:
+            ct = story.cycle_time
+            if not ct:
+                ct = 0
+            if not story.type in result.keys():
+                result[story.type] = [ct]
+            else:
+                result[story.type].append(ct)
+        for key in result.keys():
+            values = [v for v in result[key] if v]
+            if not values:
+                result[key] = 0
+                continue
+            result[key] = sum(values) / len(values)
+        if not hasattr(self, '__actbt'):
+            self._actbt = result
+        return result
+
+    def cycle_times_in_status(self, component=None, type=[], points=[]):
         stories = self.release.stories(type=type)
         if not stories:
             return {}
@@ -721,38 +758,63 @@ class Kanban(object):
         if not status in stories.keys():
             return None
         stories = stories[status]
-        def compare(a, b):
-            if not a[0]:
-                return -1
-            if not b[0]:
-                return 1
-            return cmp(a, b)
         depth = 1
-        sorting = ['rank']
-        for story in sorted(stories, key=lambda x:tuple([getattr(x, key)
-            for key in sorting]), cmp=compare):
+        for story in sort(stories, ['rank']):
             if story.key == key:
                 return depth
             depth = depth + 1
         return None
 
-    def minimum_atp(self, estimates=None):
-        days = self.cycle_times_for_estimates(estimates)
-        if not days:
+    def stories_in_front(self, status, key):
+        stories_by_status = self.release.stories_by_status()
+        if not status in stories_by_status.keys():
             return None
-        return round(numpy.min(numpy.array(days)), 1)
+        result = []
+        columns = KANBAN[KANBAN.index(int(status)):-2]
+        found = False
+        for column in columns:
+            if not str(column) in stories_by_status.keys():
+                continue
+            stories = stories_by_status[str(column)]
+            for story in sort(stories_by_status[str(column)], ['rank']):
+                if story.key == key:
+                    found = True
+                    break
+                result.append(story)
+        if not found:
+            return None
+        return result
 
-    def average_atp(self, estimates=None):
-        days = self.cycle_times_for_estimates(estimates)
-        if not days:
-            return None
-        return round(numpy.average(numpy.array(days)), 1)
+    def time_remaining(self, stories):
+        cycle_times = self.average_cycle_times_by_type()
+        results = 0
+        for story in stories:
+            results += cycle_times[story.type]
+            if story.status and story.cycle_time and \
+                humanize(story.status) in self.release.WIP.keys():
+                results = results - story.cycle_time
+        return results
 
-    def maximum_atp(self, estimates=None):
-        days = self.cycle_times_for_estimates(estimates)
-        if not days:
-            return None
-        return round(numpy.max(numpy.array(days)), 1)
+    def average_atp(self, story):
+        cycle_times = self.average_cycle_times_by_type()
+        days = cycle_times[story.type]
+        if story.cycle_time:
+            days = days - story.cycle_time
+        in_front = self.stories_in_front(str(story.status), story.key)
+        if in_front is None:
+            return self.add_weekends(days)
+        days += self.time_remaining(in_front)
+        return self.add_weekends(days)
+
+    def add_weekends(self, days):
+        now = datetime.datetime.now()
+        then = now + datetime.timedelta(days)
+        days += len(list(rrule(DAILY, dtstart=now, until=then,
+            byweekday=(SA, SU))))
+        then = now + datetime.timedelta(days)
+        if then.weekday() >= 5:
+            days += 7 - then.weekday()
+        return days
 
     def contingency_average(self, key):
         story = self.release.get(key)
@@ -948,9 +1010,10 @@ class Release(Folder):
     def stories_by_status(self):
         result = {}
         for story in self.stories():
+            status = story.status
             if not story.status:
-                continue
-            status = str(story.status)
+                status = -1
+            status = str(status)
             if result.has_key(status):
                 result[status].append(story)
             else:

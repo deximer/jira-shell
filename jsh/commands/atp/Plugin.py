@@ -1,6 +1,8 @@
 import getopt
 import argparse
 import sets
+import datetime
+from dateutil.rrule import DAILY, SA, SU, rrule
 from zope.interface import Interface, implements
 from zope.component import adapts
 from zope.component import getGlobalSiteManager
@@ -28,12 +30,9 @@ class Command(BaseCommand):
             return
         container = jira.cache.get_by_path(jira.cache.cwd)
         kanban = container.kanban()
-        stdev = kanban.stdev_cycle_time()
         story = container.get(args.select)
-        depth = kanban.rank_depth(str(story.status), story.key)
-        cycle_time = 0
-        if story.cycle_time:
-            cycle_time = story.cycle_time
-        days = int(round((kanban.average_atp() * depth) - cycle_time, 0))
-        print days, 'days'
+        days = int(round(kanban.average_atp(story), 0))
+        now = datetime.datetime.now()
+        atp = now + datetime.timedelta(days)
+        print str(atp)[:10], days, 'days'
 

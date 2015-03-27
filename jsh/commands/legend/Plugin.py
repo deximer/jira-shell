@@ -1,15 +1,15 @@
 from ..base import BaseCommand
 
 STATUS_CODES = {
-    '1': 'Open',
-    '3': 'In Progress',
-    '4': 'Reopened',
-    '6': 'Closed',
-    '10036': 'Verified',
-    '10089': 'Ready',
-    '10090': 'Completed',
-    '10092': 'QA Active',
-    '10104': 'QA Ready'
+    '1': 'New  ',
+    '6': 'Closd',
+    '10024': 'Ready',
+    '10002': 'Start',
+    '10004': 'PeerR',
+    '10014': 'NeedA',
+    '10005': 'Test ',
+    '10127': 'QeApp',
+    '10128': 'PoApp',
 }
 
 ISSUE_TYPES = {

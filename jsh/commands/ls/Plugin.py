@@ -1,6 +1,7 @@
 import getopt
 import argparse
 import sets
+import datetime
 from zope.interface import Interface, implements
 from zope.component import adapts
 from zope.component import getGlobalSiteManager
@@ -57,6 +58,7 @@ class Command(BaseCommand):
         points = 0
         epic_points = 0
         query_points = []
+        now = datetime.datetime.now()
         if args.p:
             query_points = [float(p) for p in args.p]
         hide_status = []
@@ -74,13 +76,13 @@ class Command(BaseCommand):
                     print 'Error: %s is an invalid status' % arg
                     return
         print 'Key'.ljust(10), \
-              'Team:'.ljust(18), \
+              'ATP Date:'.ljust(18), \
               'Pts:'.ljust(5), \
               'Stat:'.ljust(5), \
               'CT:'.ljust(4), \
               'Type:'.ljust(5), \
               'Bugs:'.ljust(5), \
-              'Cont:'.ljust(5), \
+              'ATP:'.ljust(5), \
               'Title:'
         hide_type = []
         show_type = []
@@ -111,6 +113,10 @@ class Command(BaseCommand):
             if not b[0]:
                 return 1
             return cmp(a, b)
+
+        kanban = None
+        if getattr(container, 'kanban', None):
+            kanban = container.kanban()
         for story in sorted(stories, key=lambda x:tuple([getattr(x, key) \
             for key in sorting]), cmp=compare):
             try:
@@ -169,22 +175,26 @@ class Command(BaseCommand):
             rework = str(len(story['links'].get_links('1')))
             if rework == '0':
                 rework = ''
-            if story.status == 6:
-                contingency = ''
-            elif getattr(container, 'kanban', None):
-                contingency = container.kanban().contingency_average(story.key)
-                if not contingency:
-                    contingency = ''
+            atp = ''
+            if story.status in [5, 6]:
+                days = 0 
+            elif kanban:
+                days = int(kanban.average_atp(story))
+                if not days:
+                    days = 0
+                atp = now + datetime.timedelta(days)
             else:
-                contingency = ''
+                days = 0
+            if days == 0:
+                days = ''
             print story.key[:10].ljust(10), \
-                  team[:18].ljust(18), \
+                  str(atp)[:10].ljust(18), \
                   str(story.points).ljust(5) if story.points else ''.ljust(5), \
                   humanize(story.status).ljust(5), \
                   cycle_time.ljust(5), \
                   str(story.type).ljust(5), \
-                  rework.ljust(5), \
-                  str(contingency).ljust(5), \
+                  rework.ljust(4), \
+                  str(days).ljust(5), \
                   story.title[:14]
             issues += story.stories()
             if story.points and (story.type=='7' or story.type=='N/A'):
