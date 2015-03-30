@@ -6,7 +6,7 @@ jsh.spec
 build/
 dist/
 bin/
-db/
+jsh/db/
 include/
 lib/
 man/

@@ -942,6 +942,16 @@ class Release(Folder):
             labels.extend(story.labels)
         return [l for l in sets.Set(labels)]
 
+    def stories_for_labels(self, labels):
+        labels = sets.Set(labels)
+        stories = []
+        for story in self.stories():
+            if not hasattr(story, 'labels'):
+                continue
+            if labels.intersection(sets.Set(story.labels)):
+                stories.append(story)
+        return stories
+
     def developers(self):
         developers = {}
         for story in self.stories():

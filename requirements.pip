@@ -1,8 +1,5 @@
 altgraph==0.12
-BeautifulSoup==3.2.1
 behave==1.2.4
-btree==0.2.1
-BTrees==4.1.1
 dateutils==0.6.6
 enum34==1.0.4
 jira==0.38

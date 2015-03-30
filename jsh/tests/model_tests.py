@@ -723,6 +723,22 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(release.tasked_teams()['Bar'], 1)
         self.assertEqual(release.tasked_teams()['Everything Else'], 1)
 
+    def testStoriesForLabels(self):
+        release = Release()
+        s1 = Story(); s1.key = 'NG-1'; release.add_story(s1)
+        s2 = Story(); s2.key = 'NG-2'; release.add_story(s2)
+        s3 = Story(); s3.key = 'NG-3'; release.add_story(s3)
+        s4 = Story(); s4.key = 'NG-4'; release.add_story(s4)
+        s1.labels = ['l1']
+        s2.labels = ['l2']
+        s3.labels = ['l1', 'l3']
+        s4.labels = ['l1', 'l2', 'l3']
+        stories = release.stories_for_labels(['l1'])
+        self.assertEqual(len(stories), 3)
+        self.assertTrue(s1 in stories)
+        self.assertTrue(s3 in stories)
+        self.assertTrue(s4 in stories)
+
     def testDevelopers(self):
         release = Release()
         s1 = Story(); s1.key = 'NG-1'; release.add_story(s1)
