@@ -27,3 +27,21 @@ Feature: Available To Promise
         And I am in the directory "/1.0"
         When I enter the command "atp NG-3"
         Then I see "8 days" in the output
+
+    Scenario: An issue has 3 backflow loops between review and start
+        Given I have the following release
+        | key |
+        | 1.0 |
+        And I have the following issues in the release
+        | key  | title | type | status | rank   | created |started | resolved |
+        When I enter the command "atp NG-3"
+        Then I see "8 days" in the output
+
+    Scenario: An issue has 3 backflow loops between QA and start
+        Given I have the following release
+        | key |
+        | 1.0 |
+        And I have the following issues in the release
+        | key  | title | type | status | rank   | created |started | resolved |
+        When I enter the command "atp NG-3"
+        Then I see "8 days" in the output

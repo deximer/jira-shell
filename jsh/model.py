@@ -753,14 +753,16 @@ class Kanban(object):
                 days.append(story.cycle_time)
         return days
 
-    def rank_depth(self, status, key):
-        stories = self.release.stories_by_status()
-        if not status in stories.keys():
+    def rank_depth(self, story):
+        if story.status in [5, 6]:
             return None
-        stories = stories[status]
+        stories = self.release.stories_by_status()
+        if not str(story.status) in stories.keys():
+            return None
+        stories = stories[str(story.status)]
         depth = 1
-        for story in sort(stories, ['rank']):
-            if story.key == key:
+        for s in sort(stories, ['rank']):
+            if s.key == story.key:
                 return depth
             depth = depth + 1
         return None
@@ -795,7 +797,7 @@ class Kanban(object):
                 results = results - story.cycle_time
         return results
 
-    def average_atp(self, story):
+    def atp(self, story):
         cycle_times = self.average_cycle_times_by_type()
         days = cycle_times[story.type]
         if story.cycle_time:
@@ -834,7 +836,7 @@ class Kanban(object):
         if not std2:
             return None
         inside = average - (std2 * 2)
-        min_atp = self.average_atp(story)
+        min_atp = self.atp(story)
         if inside < min_atp:
             inside = min_atp
         if story.cycle_time:
@@ -951,6 +953,22 @@ class Release(Folder):
             if labels.intersection(sets.Set(story.labels)):
                 stories.append(story)
         return stories
+
+    def cycle_time_for_label(self, label):
+        stories = self.stories_for_labels([label])
+        start = None
+        end = None
+        for story in stories:
+            if not start or (story.started and story.started < start):
+                start = story.started
+            if not end or (story.resolved and story.resolved > end):
+                end = story.resolved
+        if not start:
+            return None
+        if not end:
+            end = datetime.datetime.now()
+        days = end - start
+        return days.days
 
     def developers(self):
         developers = {}

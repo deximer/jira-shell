@@ -21,5 +21,11 @@ class Command(BaseCommand):
             print 'Error: Must navigate to a release. (hint: help cd)'
             return
         labels = container.unique_labels()
+        print 'CT:'.ljust(5), 'Label:'
         for label in sorted(labels):
-            print label
+            days = container.cycle_time_for_label(label)
+            if not days:
+                days = ''
+            else:
+                days = str(days)
+            print days.ljust(5), label

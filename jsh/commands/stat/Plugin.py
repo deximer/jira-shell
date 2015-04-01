@@ -40,7 +40,7 @@ class Command(BaseCommand):
         print 'Developer:', story.developer
         print 'Points:', story.points
         print 'Status:', humanize(story.status)
-        print 'Order:', kanban.rank_depth(str(story.status), story.key)
+        print 'Order:', kanban.rank_depth(story)
         print 'Created:', story.created
         print 'Started:', story.started
         print 'Updated:', story.updated
@@ -58,7 +58,7 @@ class Command(BaseCommand):
             print '% Variance:', '%' + str(round(percent_variance, 4) * 100)
         else:
             print '% Variance:', 'nan'
-        print 'ATP:', kanban.average_atp(story)
+        print 'ATP:', kanban.atp(story)
         print 'Contingency:'
         print '    Inside:', kanban.contingency_inside(story.key)
         print '    Average:', kanban.contingency_average(story.key)

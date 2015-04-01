@@ -76,7 +76,8 @@ class Command(BaseCommand):
                     print 'Error: %s is an invalid status' % arg
                     return
         print 'Key'.ljust(10), \
-              'ATP Date:'.ljust(18), \
+              'ATP Date:'.ljust(10), \
+              'Rank:'.ljust(6), \
               'Pts:'.ljust(5), \
               'Stat:'.ljust(5), \
               'CT:'.ljust(4), \
@@ -179,7 +180,7 @@ class Command(BaseCommand):
             if story.status in [5, 6]:
                 days = 0 
             elif kanban:
-                days = int(kanban.average_atp(story))
+                days = int(kanban.atp(story))
                 if not days:
                     days = 0
                 atp = now + datetime.timedelta(days)
@@ -187,15 +188,20 @@ class Command(BaseCommand):
                 days = 0
             if days == 0:
                 days = ''
+            rank = kanban.rank_depth(story)
+            if not rank:
+                rank = ''
+            rank = str(rank)
             print story.key[:10].ljust(10), \
-                  str(atp)[:10].ljust(18), \
+                  str(atp)[:10].ljust(10), \
+                  rank.ljust(6), \
                   str(story.points).ljust(5) if story.points else ''.ljust(5), \
                   humanize(story.status).ljust(5), \
                   cycle_time.ljust(5), \
                   str(story.type).ljust(5), \
                   rework.ljust(4), \
                   str(days).ljust(5), \
-                  story.title[:14]
+                  story.title[:16]
             issues += story.stories()
             if story.points and (story.type=='7' or story.type=='N/A'):
                 points += story.points
