@@ -767,22 +767,24 @@ class Kanban(object):
             depth = depth + 1
         return None
 
-    def stories_in_front(self, status, key):
+    def stories_in_front(self, story):
         stories_by_status = self.release.stories_by_status()
-        if not status in stories_by_status.keys():
+        if not str(story.status) in stories_by_status.keys():
             return None
         result = []
-        columns = KANBAN[KANBAN.index(int(status)):-2]
+        if not story.status in KANBAN:
+            return None
+        columns = KANBAN[KANBAN.index(story.status):-2]
         found = False
         for column in columns:
             if not str(column) in stories_by_status.keys():
                 continue
             stories = stories_by_status[str(column)]
-            for story in sort(stories_by_status[str(column)], ['rank']):
-                if story.key == key:
+            for s in sort(stories_by_status[str(column)], ['rank']):
+                if s.key == story.key:
                     found = True
                     break
-                result.append(story)
+                result.append(s)
         if not found:
             return None
         return result
@@ -802,7 +804,7 @@ class Kanban(object):
         days = cycle_times[story.type]
         if story.cycle_time:
             days = days - story.cycle_time
-        in_front = self.stories_in_front(str(story.status), story.key)
+        in_front = self.stories_in_front(story)
         if in_front is None:
             return self.add_weekends(days)
         days += self.time_remaining(in_front)
