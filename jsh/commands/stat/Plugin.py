@@ -2,7 +2,10 @@ import curses
 import argparse
 from termcolor import cprint
 from ..base import BaseCommand
-from model import Release, KANBAN, humanize
+try:
+    from ...model import Release, KANBAN, humanize
+except:
+    from model import Release, KANBAN, humanize
 
 class Command(BaseCommand):
     help = 'Print details of specified issues'

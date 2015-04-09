@@ -1,7 +1,10 @@
 import curses
 import argparse
 from ..base import BaseCommand
-from model import Release, KANBAN, humanize
+try:
+    from ...model import Release, KANBAN, humanize
+except:
+    from model import Release, KANBAN, humanize
 
 class Command(BaseCommand):
     help = "Render an issue's link graphs"

@@ -6,19 +6,25 @@ import numpy
 import pylab
 import scipy
 import transaction
-import dao
+try:
+    from ...dao import Jira
+except:
+    from dao import Jira
 from persistent.list import PersistentList
 from ..base import BaseCommand
-from model import Release, Project, Story, History
+try:
+    from ...model import Release, Project, Story, History
+except:
+    from model import Release, Project, Story, History
 
 simulations = {}
 
-if not 'SIMS' in dao.Jira.cache.data:
+if not 'SIMS' in Jira.cache.data:
     transaction.begin()
     project = Project('SIMS', 'simulations')
     project.process = 'Simulations'
     project.query = None
-    dao.Jira.cache.data['SIMS'] = project
+    Jira.cache.data['SIMS'] = project
     transaction.commit()
 
 class Command(BaseCommand):
@@ -222,10 +228,10 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
     def make_release(self, average, std, stories, bandwidth, count, num_pairs,
         teams, std_dev_ct, avg_pts, std_pts):
         release = Release()
-        sim = len(dao.Jira.cache.data['SIMS']) + 1
+        sim = len(Jira.cache.data['SIMS']) + 1
         release.version = 'SIM-%d' % sim
         transaction.begin()
-        dao.Jira.cache.data['SIMS'][release.version] = release
+        Jira.cache.data['SIMS'][release.version] = release
         transaction.commit()
 
         #tasks = scipy.stats.norm.rvs(loc=average, scale=std, size=stories)
@@ -272,9 +278,9 @@ simulate -a I -d F -s I -p I -b I -c I -t I'''
             release[story.key] = story
             transaction.commit()
             transaction.begin()
-            docid = dao.Jira.cache.document_map.add(
+            docid = Jira.cache.document_map.add(
                 ['sim', story.project, story.fix_versions[0], story.key])
-            dao.Jira.cache.catalog.index_doc(docid, story)
+            Jira.cache.catalog.index_doc(docid, story)
             transaction.commit()
             count += 1
 

@@ -22,7 +22,10 @@ import sets
 import datetime
 from dateutil.rrule import DAILY, SA, SU, rrule
 from ..base import BaseCommand
-from model import humanize
+try:
+    from model import humanize
+except:
+    from ...model import humanize
 
 class Command(BaseCommand):
     help = 'Provide estimate delivery dates.'

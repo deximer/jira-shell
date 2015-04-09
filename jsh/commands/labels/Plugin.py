@@ -1,6 +1,9 @@
 import argparse
 from ..base import BaseCommand
-from model import Release
+try:
+    from ...model import Release
+except:
+    from model import Release
 
 class Command(BaseCommand):
     help = 'Various ways of looking at issue labels'

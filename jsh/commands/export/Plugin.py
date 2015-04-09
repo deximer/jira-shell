@@ -1,6 +1,9 @@
 import curses
 from ..base import BaseCommand
-from model import Release, humanize
+try:
+    from ...model import Release, humanize
+except:
+    from model import Release, humanize
 
 class Command(BaseCommand):
     help = 'Export release data to csv files'

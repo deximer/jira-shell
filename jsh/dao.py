@@ -26,15 +26,14 @@ def get_key(obj, default=None):
 
 
 class LocalDB(object):
-    cache_file = None
+    cache_file = 'db/cache.fs'
     fs = None
     db = None
     connection = None
     root = None
     data = None
 
-    def __init__(self, cache_file='db/cache.fs'):
-        self.cache_file = cache_file
+    def __init__(self):
         self.init_db()
         self.catalog = self.connection.root()['catalog']
         self.document_map = self.connection.root()['document_map']

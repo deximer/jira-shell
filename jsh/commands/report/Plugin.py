@@ -1,7 +1,10 @@
 import argparse
 import copy
 from ..base import BaseCommand
-from model import Release, humanize
+try:
+    from ...model import Release, humanize
+except:
+    from model import Release, humanize
 
 class Command(BaseCommand):
     help = 'Report on the current release'

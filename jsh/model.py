@@ -281,6 +281,21 @@ class Story(Folder):
         self.status = int(issue.fields.status.id)
         self.project = issue.fields.project.key
 
+    def get_cycle_time_from(self, state):
+        resolved = self.resolved
+        if not resolved:
+            return None
+        dates = self.history.get_transition_to(state)
+        if not dates:
+            return None
+        if (resolved - dates[-1]).days < 0:
+            return None
+        cycle_time = rrule(DAILY, dtstart=dates[-1], until=resolved,
+            byweekday=(MO, TU, WE, TH, FR)).count() - 1
+        if cycle_time < 0:
+            return None
+        return cycle_time
+
     def _get_cycle_time_with_weekends(self):
         if self.started and self.resolved:
             delta = self.resolved - self.started
@@ -464,6 +479,14 @@ class Kanban(object):
         for key in result.keys():
             averages[key] = round(numpy.average(result[key]), 1)
         return averages
+
+    def average_cycle_time_between_status(self, start, end=6, type='7'):
+        times = self.average_times_in_status([type])
+        results = 0
+        print times.keys()
+        for status in [s for s in KANBAN[KANBAN.index(start):KANBAN.index(end)] if s in times.keys()]:
+            results += times[status]
+        return results
 
     def std_times_in_status(self, component=None, type=['7'], points=[]):
         stories = self.release.stories(type=type)
@@ -1049,6 +1072,16 @@ class Release(Folder):
 
     def total_stories(self):
         return len(self.stories())
+
+    def all_transitions(self, type=[]):
+        results = []
+        for story in self.stories(type):
+            for transition in story.history.all:
+                t = list([story])
+                t.extend(transition)
+                results.append(t)
+        results.sort(key=lambda x:x[1])
+        return results
 
     def total_points(self):
         return sum([story.points for story in self.stories(type=['7'])

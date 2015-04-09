@@ -8,8 +8,14 @@ from zope.component import getGlobalSiteManager
 from repoze.folder.interfaces import IFolder
 from persistent.list import PersistentList
 from ..base import BaseCommand
-from interfaces import IRelease, IStory, IProject, ILinks, IIssues
-from model import humanize
+try:
+    from ...interfaces import IRelease, IStory, IProject, ILinks, IIssues
+except:
+    from interfaces import IRelease, IStory, IProject, ILinks, IIssues
+try:
+    from ...model import humanize
+except:
+    from model import humanize
 
 gsm = getGlobalSiteManager()
 
@@ -188,9 +194,9 @@ class Command(BaseCommand):
                 days = 0
             if days == 0:
                 days = ''
-            rank = kanban.rank_depth(story)
-            if not rank:
-                rank = ''
+            rank = ''
+            if kanban:
+                rank = kanban.rank_depth(story)
             rank = str(rank)
             print story.key[:10].ljust(10), \
                   str(atp)[:10].ljust(10), \
@@ -198,7 +204,7 @@ class Command(BaseCommand):
                   str(story.points).ljust(5) if story.points else ''.ljust(5), \
                   humanize(story.status).ljust(5), \
                   cycle_time.ljust(5), \
-                  str(story.type).ljust(5), \
+                  str(story.get_cycle_time_from(10005)).ljust(5), \
                   rework.ljust(4), \
                   str(days).ljust(5), \
                   story.title[:16]

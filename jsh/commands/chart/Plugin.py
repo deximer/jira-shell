@@ -9,7 +9,10 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     from matplotlib import pyplot, gridspec
 from ..base import BaseCommand
-from model import Release
+try:
+    from ...model import Release
+except:
+    from model import Release
 
 class Command(BaseCommand):
     help = 'Render various charts'
@@ -170,16 +173,18 @@ class Command(BaseCommand):
         arrivals = [round(a['interval']/60./60., 1) for a in arrivals]
         average = numpy.average([arrivals])
         std = numpy.std([arrivals])
+        iql = numpy.percentile([arrivals], 25)
+        iqh = numpy.percentile([arrivals], 75)
         nsul = []
         nsuw = []
         nsll = []
         nslw = []
         avg = []
         for x in arrivals:
-            nsul.append(average + (std * 3))
-            nsuw.append(average + (std * 2))
-            nslw.append(average - (std * 2))
-            nsll.append(average - (std * 3))
+            nsul.append(average + (iqh * 3))
+            nsuw.append(average + (iqh * 2))
+            nslw.append(average - (iql * 2))
+            nsll.append(average - (iql * 3))
             avg.append(average)
         pyplot.plot(dates, arrivals, '*', color='g')
         pyplot.plot(dates, nsul, 'o', linestyle='-', color='r')
@@ -235,6 +240,8 @@ class Command(BaseCommand):
                 count.append(count[-1] + 1)
 
         std = numpy.std([d for d in alldata if d])
+        iql = numpy.percentile([d for d in alldata if d], 25)
+        iqh = numpy.percentile([d for d in alldata if d], 75)
         average = numpy.average([d for d in alldata if d])
         nsul = []
         nsuw = []
@@ -242,10 +249,10 @@ class Command(BaseCommand):
         nslw = []
         avg = []
         for x in data:
-            nsul.append(average + (std * 3))
-            nsuw.append(average + (std * 2))
-            nslw.append(average - (std * 2))
-            nsll.append(average - (std * 3))
+            nsul.append(average + (iqh * 3))
+            nsuw.append(average + (iqh * 2))
+            nslw.append(average - (iql * 2))
+            nsll.append(average - (iql * 3))
             avg.append(average)
         if self.args.e:
             gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1]) 
@@ -269,7 +276,7 @@ class Command(BaseCommand):
                 previous_y = y
                 y_label = 10
             if not self.args.l:
-                if y < std * 3 + average:
+                if y < iqh * 3 + average:
                     continue
             pyplot.annotate(
             label,
@@ -306,7 +313,7 @@ class Command(BaseCommand):
             if not self.args.l:
                 continue
             if not self.args.l:
-                if y < std * 3:
+                if y < iqh * 3:
                     continue
             if odd:
                 odd = False

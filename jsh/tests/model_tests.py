@@ -99,7 +99,6 @@ class HistoryTest(unittest.TestCase):
 
         self.history = History(self.obj)
 
-
     def tearDown(self):
         pass
 
@@ -122,13 +121,13 @@ class HistoryTest(unittest.TestCase):
         # This is not impl. See method in model.py for details
         self.assertEqual(self.history.get_takt_time(3, 10092), None)
 
-    #def testStarted(self):
-    #    started = datetime.datetime.fromtimestamp(time.mktime(
-    #        time.strptime('2013-01-01T15:31:39.000','%Y-%m-%dT%H:%M:%S.%f')))
-    #    self.assertEqual(self.history.started, started)
+    def testStarted(self):
+        started = datetime.datetime.fromtimestamp(time.mktime(
+            time.strptime('2012-12-21T15:06:15.000','%Y-%m-%dT%H:%M:%S.%f')))
+        self.assertEqual(self.history.started, started)
 
     def testStartedNotStarted(self):
-        del self.history.data[1]
+        del self.history.data[0]
         self.assertEqual(self.history.started, None)
 
     def testResolvedNotResolved(self):
@@ -140,10 +139,10 @@ class HistoryTest(unittest.TestCase):
             time.strptime('2013-01-08T10:45:59.000','%Y-%m-%dT%H:%M:%S.%f')))
         self.assertEqual(self.history.resolved, resolved)
 
-    #def testFirstStarted(self):
-    #    started = datetime.datetime.fromtimestamp(time.mktime(
-    #        time.strptime('2013-01-01T15:31:39.000','%Y-%m-%dT%H:%M:%S.%f')))
-    #    self.assertEqual(self.history.first_started, started)
+    def testFirstStarted(self):
+        started = datetime.datetime.fromtimestamp(time.mktime(
+            time.strptime('2012-12-21T15:06:15.000','%Y-%m-%dT%H:%M:%S.%f')))
+        self.assertEqual(self.history.first_started, started)
 
     def testSkippedTrue(self):
         self.history.data = []
@@ -682,7 +681,6 @@ class ReleaseTests(unittest.TestCase):
         key = release.process_raw_key('NG-12345')
         self.assertEqual(key, 'NG-12345')
 
-
     def testAddStory(self):
         release = Release()
         key = 'NG-1'
@@ -903,7 +901,6 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(len(release.stories_by_estimate()['2.0']), 2)
         self.assertEqual(len(release.stories_by_estimate()['3.0']), 1)
 
-
     def testStoriesInProcess(self):
         release = Release()
         s1 = Story(); s1.key = 'NG-1'; release.add_story(s1)
@@ -1107,7 +1104,7 @@ class ReleaseTests(unittest.TestCase):
         release.add_story(make_story('NG-4', status=6, points=3.0, scrum_team='Foo'))
         self.assertEqual(release.graph_kanban('Foo'), '.oo')
 
-    def TestUpperPercentile(self):
+    def testUpperPercentile(self):
         release = Release()
         release.add_story(make_story('NG-1', type='7',created=None,
             started=D20121001, resolved=D20121003))
@@ -1124,10 +1121,55 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(len(upper50), 2)
         self.assertEqual(upper50[0].key, 'NG-3')
 
-    def TestUpperPercentileNoStories(self):
+    def testUpperPercentileNoStories(self):
         release = Release()
         upper50 = release.upper_percentiles(0.50, ['7'])
         self.assertEqual(upper50, [])
+
+    def testAllTransitions(self):
+        release = Release()
+        s1 = make_story('NG-1', type='7')
+        s1.history = History()
+        s1.history.data.append((D20121001, 1, 10002, 'Jane Doe'))
+        s1.history.data.append((D20121002, 10002, 10005, 'Jane Doe'))
+        s1.history.data.append((D20121005, 10005, 6, 'Jane Doe'))
+        release.add_story(s1)
+        s2 = make_story('NG-2', type='7')
+        s2.history = History()
+        s2.history.data.append((D20121001, 1, 10002, 'Jane Doe'))
+        s2.history.data.append((D20121005, 10002, 10005, 'Jane Doe'))
+        s2.history.data.append((D20121008, 10005, 6, 'Jane Doe'))
+        release.add_story(s2)
+        self.assertEqual(len(release.all_transitions()), 6)
+        self.assertEqual(release.all_transitions()[0][1], D20121001)
+        self.assertEqual(release.all_transitions()[1][1], D20121001)
+        self.assertEqual(release.all_transitions()[2][1], D20121002)
+        self.assertEqual(release.all_transitions()[2][0], s1)
+        self.assertEqual(release.all_transitions()[3][1], D20121005)
+        self.assertEqual(release.all_transitions()[4][1], D20121005)
+        self.assertEqual(release.all_transitions()[5][1], D20121008)
+        self.assertEqual(release.all_transitions()[5][0], s2)
+
+    def testAllTransitionsByType(self):
+        release = Release()
+        s1 = make_story('NG-1', type='7')
+        s1.history = History()
+        s1.history.data.append((D20121001, 1, 10002, 'Jane Doe'))
+        s1.history.data.append((D20121002, 10002, 10005, 'Jane Doe'))
+        s1.history.data.append((D20121005, 10005, 6, 'Jane Doe'))
+        release.add_story(s1)
+        s2 = make_story('NG-2', type='1')
+        s2.history = History()
+        s2.history.data.append((D20121001, 1, 10002, 'Jane Doe'))
+        s2.history.data.append((D20121005, 10002, 10005, 'Jane Doe'))
+        s2.history.data.append((D20121008, 10005, 6, 'Jane Doe'))
+        release.add_story(s2)
+        transitions = release.all_transitions(type=['7'])
+        self.assertEqual(len(transitions), 3)
+        self.assertEqual(transitions[0][1], D20121001)
+        self.assertEqual(transitions[0][0], s1)
+        self.assertEqual(transitions[1][1], D20121002)
+        self.assertEqual(transitions[2][1], D20121005)
 
 
 class ProjectTest(unittest.TestCase):

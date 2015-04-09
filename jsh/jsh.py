@@ -5,15 +5,34 @@ import commands
 import os
 
 command_plugins = {}
-for command in os.listdir('/'.join(commands.__file__.split('/')[:-1])):
-    if command in ('.base.py.swp', 'base.py', 'base.pyc', '__init__.py'
-        , '__init__.pyc'):
-        continue
-    try:
-        exec compile('command_plugins["%s"] = commands.%s.Plugin.Command()' \
-            % (command, command), '<string>', 'exec')
-    except AttributeError:
-        print 'Warning: failed to load command plugin "%s"' % command
+#for command in os.listdir('/'.join(commands.__file__.split('/')[:-1])):
+#    if command in ('.base.py.swp', 'base.py', 'base.pyc', '__init__.py'
+#        , '__init__.pyc'):
+#        continue
+#    try:
+#        exec compile('command_plugins["%s"] = commands.%s.Plugin.Command()' \
+#            % (command, command), '<string>', 'exec')
+#    except AttributeError:
+#        print 'Warning: failed to load command plugin "%s"' % command
+command_plugins['ls'] = commands.ls.Plugin.Command()
+command_plugins['cd'] = commands.cd.Plugin.Command()
+command_plugins['atp'] = commands.stat.Plugin.Command()
+command_plugins['chart'] = commands.chart.Plugin.Command()
+command_plugins['db'] = commands.db.Plugin.Command()
+command_plugins['debug'] = commands.debug.Plugin.Command()
+command_plugins['developers'] = commands.developers.Plugin.Command()
+command_plugins['export'] = commands.export.Plugin.Command()
+command_plugins['fake'] = commands.fake.Plugin.Command()
+command_plugins['importer'] = commands.importer.Plugin.Command()
+command_plugins['labels'] = commands.labels.Plugin.Command()
+command_plugins['legend'] = commands.legend.Plugin.Command()
+command_plugins['links'] = commands.links.Plugin.Command()
+command_plugins['refresh'] = commands.refresh.Plugin.Command()
+command_plugins['report'] = commands.report.Plugin.Command()
+command_plugins['simulate'] = commands.simulate.Plugin.Command()
+command_plugins['stat'] = commands.stat.Plugin.Command()
+command_plugins['teams'] = commands.teams.Plugin.Command()
+command_plugins['top'] = commands.top.Plugin.Command()
 
 command_history = []
 

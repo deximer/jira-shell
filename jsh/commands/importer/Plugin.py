@@ -1,7 +1,10 @@
 import getopt
 import argparse
 from ..base import BaseCommand
-from model import Release
+try:
+    from ...model import Release
+except:
+    from model import Release
 
 class Command(BaseCommand):
     help = 'Import data from files. Files must by in an "import" subdirectory.'

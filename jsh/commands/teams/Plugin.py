@@ -1,6 +1,9 @@
 import argparse
 from ..base import BaseCommand
-from model import Release
+try:
+    from ...model import Release
+except:
+    from model import Release
 
 class Command(BaseCommand):
     help = 'List the teams with commitments to the release'

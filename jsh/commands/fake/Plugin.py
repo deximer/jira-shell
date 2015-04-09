@@ -1,7 +1,13 @@
 import getopt
 import argparse
-import dao
-import model
+try:
+    from ...dao import Jira
+except:
+    from dao import Jira
+try:
+    from ...model import Story, History, Release, Project
+except:
+    from model import Story, History, Release, Project
 from datetime import datetime
 from random import random
 from ..base import BaseCommand
@@ -18,16 +24,16 @@ class Command(BaseCommand):
             args = parser.parse_args(args)
         except:
             return
-	project = model.Project('fP1', 'Fake Project 1', 'ted')
-	if not 'fP1' in dao.Jira.cache.data:
-	    dao.Jira.cache.data['fP1'] = project
-            docid = dao.Jira.cache.document_map.add(
+	project = Project('fP1', 'Fake Project 1', 'ted')
+	if not 'fP1' in Jira.cache.data:
+	    Jira.cache.data['fP1'] = project
+            docid = Jira.cache.document_map.add(
                 ['jira', '', '', project.key]
             )
-            dao.Jira.cache.catalog.index_doc(docid, project)
-	release = model.Release('f1.0')
-	if not 'f1.0' in dao.Jira.cache.data:
-	    dao.Jira.cache.data['fP1']['f1.0'] = release
+            Jira.cache.catalog.index_doc(docid, project)
+	release = Release('f1.0')
+	if not 'f1.0' in Jira.cache.data:
+	    Jira.cache.data['fP1']['f1.0'] = release
 	for id in range(1, 20):
 	    data = {}
 	    data['key'] = 'fS-%d' % id
@@ -46,21 +52,21 @@ class Command(BaseCommand):
 	    data['dev'] = ['ann', 'nic', 'sam', 'mia'][int(random() * 4)]
             story = make_story(data)
 	    release.add_story(story)
-            docid = dao.Jira.cache.document_map.add(
+            docid = Jira.cache.document_map.add(
                 ['jira', 'fP1', 'f1.0', story.key]
             )
-            dao.Jira.cache.catalog.index_doc(docid, story)
+            Jira.cache.catalog.index_doc(docid, story)
         print 'Created fake project "fP1"'
 
 def make_story(data):
-    story = model.Story()
+    story = Story()
     story.key = data['key']
     story.title = data['title']
     story.root_cause = ''
     story.root_cause_details = ''
     story.developer = data['dev']
     story.components = []
-    story.history = model.History()
+    story.history = History()
     story.points = data['points']
     story.created = datetime(15,1,1)
     story.scrum_team = 'Team 1'

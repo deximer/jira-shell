@@ -1,6 +1,9 @@
 import curses
 from ..base import BaseCommand
-from model import Release
+try:
+    from ...model import Release
+except:
+    from model import Release
 
 class Command(BaseCommand):
     help = 'Display control panel of critical release data'
