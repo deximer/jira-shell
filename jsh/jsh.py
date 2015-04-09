@@ -16,7 +16,7 @@ command_plugins = {}
 #        print 'Warning: failed to load command plugin "%s"' % command
 command_plugins['ls'] = commands.ls.Plugin.Command()
 command_plugins['cd'] = commands.cd.Plugin.Command()
-command_plugins['atp'] = commands.stat.Plugin.Command()
+command_plugins['atp'] = commands.atp.Plugin.Command()
 command_plugins['chart'] = commands.chart.Plugin.Command()
 command_plugins['db'] = commands.db.Plugin.Command()
 command_plugins['debug'] = commands.debug.Plugin.Command()
@@ -31,6 +31,7 @@ command_plugins['refresh'] = commands.refresh.Plugin.Command()
 command_plugins['report'] = commands.report.Plugin.Command()
 command_plugins['simulate'] = commands.simulate.Plugin.Command()
 command_plugins['stat'] = commands.stat.Plugin.Command()
+command_plugins['transitions'] = commands.transitions.Plugin.Command()
 command_plugins['teams'] = commands.teams.Plugin.Command()
 command_plugins['top'] = commands.top.Plugin.Command()
 
