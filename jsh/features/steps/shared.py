@@ -99,6 +99,10 @@ def make_story(row):
     story.key = row['key']
     if 'labels' in row.headings:
         story.labels = row['labels'].split(',')
+    if 'priority' in row.headings:
+        story.priority = row['priority']
+    else:
+        story.priority = 'Minor'
     story.title = row['title']
     story.root_cause = ''
     story.root_cause_details = ''

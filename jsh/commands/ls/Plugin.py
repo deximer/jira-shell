@@ -249,6 +249,9 @@ class IssuesAdapter(dict):
                 return result
         self['links'] = FakeLinks(self.issues)
 
+    def get_cycle_time_from(self, x):
+        return None
+
     def stories(self):
         return 0
 
@@ -281,6 +284,9 @@ class ProjectAdapter(dict):
                 return result
         self['links'] = FakeLinks(self.project)
 
+    def get_cycle_time_from(self, x):
+        return None
+
     def stories(self):
         return 0
 
@@ -312,6 +318,9 @@ class ReleaseAdapter(dict):
                 return result
         self['links'] = FakeLinks(self.release)
 
+    def get_cycle_time_from(self, x):
+        return None
+
     def stories(self):
         return len(self.release.stories())
 
@@ -328,6 +337,9 @@ class StoryAdapter(dict):
 
     def __getattr__(self, attr):
         return getattr(self.story, attr)
+
+    def get_cycle_time_from(self, x):
+        return None
 
     def stories(self):
         return 1
@@ -358,6 +370,9 @@ class LinksAdapter(dict):
                 return result
         self['links'] = FakeLinks(self.project)
 
+    def get_cycle_time_from(self, x):
+        return None
+
     def stories(self):
         return 0
 
@@ -386,6 +401,9 @@ class FolderAdapter(dict):
                 result = []
                 return result
         self['links'] = FakeLinks(self.folder)
+
+    def get_cycle_time_from(self, x):
+        return None
 
     def stories(self):
         return 0

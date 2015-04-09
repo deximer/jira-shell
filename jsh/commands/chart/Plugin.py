@@ -22,13 +22,14 @@ class Command(BaseCommand):
     -d : chart for developer
     -e : include estimates subplot
     -k : chart using or surpressing specific issue keys
-    -p : chart for estimate value 
     -f : calculate cycle times from the first in process date (default is last)
     -g : group stories by this strategy (default || estimate || resolved)
     -l : label points
     -o : specify chart type: cycle (default) || hist || arrival [state]
+    -p : priority to chart
     -s : sorting criteria
     -t : issue types to chart
+    -v : chart for estimate value 
     -x : export graph to a file (valid extensions are pdf, png, or jpg)
     '''
     examples = '''    chart
@@ -49,6 +50,7 @@ class Command(BaseCommand):
         parser.add_argument('-k', nargs='*', required=False)
         parser.add_argument('-o', nargs='*', required=False)
         parser.add_argument('-p', nargs='*', required=False)
+        parser.add_argument('-v', nargs='*', required=False)
         parser.add_argument('-s', nargs='*', required=False)
         parser.add_argument('-t', nargs='*', required=False)
         parser.add_argument('-x', nargs='*', required=False)
@@ -84,7 +86,7 @@ class Command(BaseCommand):
             self.release = Release()
             for story in stories:
                 self.release.add_story(story)
-        if self.args.p:
+        if self.args.v:
             stories = [s for s in self.release.stories(type=types)
                 if s.points and s.points == float(self.args.p[0])]
             self.release = Release()
@@ -121,11 +123,13 @@ class Command(BaseCommand):
             self.file = 'cycles-%s.%s' % (self.release.version, self.args.x[0])
         else:
             self.file = None
-        if not self.release.stories(type=types):
-            print 'No data to report'
-            return
         kanban = self.release.kanban()
         stories = self.release.stories(type=types)
+        if self.args.p:
+            stories = [s for s in stories if s.priority in self.args.p]
+        if not stories:
+            print 'No data to report'
+            return
         stories.sort(key=lambda i:i.key)
         if self.args.s:
             sorting = self.args.s
