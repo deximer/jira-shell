@@ -245,10 +245,9 @@ Feature: list issues in a release
         | NG-3 | Baz 3 | 1    | 13/9/2  | 13/9/2   |
         And I am in the directory "/1.0"
         When I enter the command "ls"
-        Then I see "  1  " in the output
-        And I see "  6  " in the output
-        And I see "InPro       1" in the output
-        And I see "-5" in the output
+        Then I see "Start  1  " in the output
+        And I see "Start  6  " in the output
+        And I see "Start       None" in the output
 
     Scenario: A user views the cycle times over the specified amount
         Given I have the following release
@@ -325,7 +324,7 @@ Feature: list issues in a release
         | NG-1 | Foo 1 |
         And I am in the directory "/1.0/NG-1"
         When I enter the command "ls"
-        Then I see "links      N/A" in the output
+        Then I see "links                              None" in the output
 
     Scenario: A lists all issues with a specific label
         Given I have the following release

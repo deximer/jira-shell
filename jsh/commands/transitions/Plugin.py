@@ -7,7 +7,7 @@ except:
 
 class Command(BaseCommand):
     help = 'View all transiions in a board'
-    usage = '''transitions [-a] [-t issue_type] [-p priority]
+    usage = '''transitions [-a] [-s] [-t issue_type] [-p priority]
     transitions
     transitions -p Critical
     transitions -a -p Critical -t 7 1
@@ -22,6 +22,7 @@ class Command(BaseCommand):
         parser.add_argument('dir', nargs='?')
         parser.add_argument('-a', action='store_true', required=False)
         parser.add_argument('-p', nargs='*', required=False)
+        parser.add_argument('-s', action='store_true', required=False)
         parser.add_argument('-t', nargs='*', required=False)
         try:
             args = parser.parse_args(args)
@@ -49,6 +50,22 @@ class Command(BaseCommand):
                     , str(transition[4]).ljust(5) \
                     , transition[0].key
 
+        if args.s:
+            results = {}
+            for transition in transitions:
+                state = str(humanize(transition[3]))
+                if state in results.keys():
+                    results[state] += 1
+                else:
+                    results[state] = 1
+            ordered = []
+            for key in results:
+                ordered.append((key, results[key]))
+            ordered.sort(key=lambda x:x[1])
+            for item in ordered:
+                print item[0].ljust(5), ':', item[1]
+
+        print
         print 'Total :', len(transitions)
         print 'First :', transitions[0][1], transitions[0][0].key 
         print 'Last  :', transitions[-1][1], transitions[-1][0].key
