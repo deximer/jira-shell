@@ -21,12 +21,12 @@ gsm = getGlobalSiteManager()
 
 class Command(BaseCommand):
     help = 'List issues in a release.'
-    usage = 'ls [[!]team] [-s status [...]] [-t issue_type [...]] [-p point] [-d dev [...]] -c [cycle_time] [-l [label] [...]]'
+    usage = 'ls [[!]team] [-s status [...]] [-t issue_type [...]] [-w point] [-d dev [...]] -c [cycle_time] [-l [label] [...]]'
     options_help = '''    -s : Show only issues with the specified status ("!" for exclusion)
     -t : Show only issues of the specified type ("!" for exclusion)
     -d : Show issues for only the specified developers
     -o : Order (sort) results by
-    -p : Show issues with the specified point estimates
+    -w : Show issues with the specified point estimates
     -b : Show issues with backflow (5 minute grace period)
     -c : Show issues with cycle times over the specified amount
     -l : Show issues with specifid label(s)
@@ -45,7 +45,7 @@ class Command(BaseCommand):
             help='show only issues of the specified type (! for exclusion)')
         parser.add_argument('-o', nargs='*', required=False,
             help='Sorting criteria')
-        parser.add_argument('-p', nargs='*', required=False,
+        parser.add_argument('-w', nargs='*', required=False,
             help='show issues with the specified point estimates')
         parser.add_argument('-d', nargs='*', required=False,
             help='show issues for only the specified developers')
@@ -65,8 +65,8 @@ class Command(BaseCommand):
         epic_points = 0
         query_points = []
         now = datetime.datetime.now()
-        if args.p:
-            query_points = [float(p) for p in args.p]
+        if args.w:
+            query_points = [float(p) for p in args.w]
         hide_status = []
         show_status = []
         if args.s:
@@ -138,7 +138,7 @@ class Command(BaseCommand):
                 continue
             if hide_type and story.type in hide_type:
                 continue
-            if args.p and story.points not in query_points:
+            if args.w and story.points not in query_points:
                 continue
             if args.d:
                 if not story.developer:

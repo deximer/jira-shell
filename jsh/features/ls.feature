@@ -159,7 +159,7 @@ Feature: list issues in a release
         | NG-2 | Bar 2 | 1.0    |
         | NG-3 | Baz 3 | 0.499  |
         And I am in the directory "/1.0"
-        When I enter the command "ls -p 2"
+        When I enter the command "ls -w 2"
         Then I see these issues listed
         | key  | title |
         | NG-1 | Foo 1 |
