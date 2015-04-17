@@ -16,6 +16,7 @@ command_plugins = {}
 #        print 'Warning: failed to load command plugin "%s"' % command
 command_plugins['ls'] = commands.ls.Plugin.Command()
 command_plugins['cd'] = commands.cd.Plugin.Command()
+command_plugins['components'] = commands.components.Plugin.Command()
 command_plugins['atp'] = commands.atp.Plugin.Command()
 command_plugins['chart'] = commands.chart.Plugin.Command()
 command_plugins['db'] = commands.db.Plugin.Command()

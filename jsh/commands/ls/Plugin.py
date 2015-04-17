@@ -21,21 +21,21 @@ gsm = getGlobalSiteManager()
 
 class Command(BaseCommand):
     help = 'List issues in a release.'
-    usage = 'ls [[!]team] [-s status [...]] [-t issue_type [...]] [-w point] [-d dev [...]] -c [cycle_time] [-l [label] [...]]'
+    usage = 'ls [[!]team] [-s status [...]] [-t issue_type [...]] [-w point] [-d dev [...]] -y [cycle_time] [-l [label] [...]]'
     options_help = '''    -s : Show only issues with the specified status ("!" for exclusion)
     -t : Show only issues of the specified type ("!" for exclusion)
     -d : Show issues for only the specified developers
     -o : Order (sort) results by
     -w : Show issues with the specified point estimates
     -b : Show issues with backflow (5 minute grace period)
-    -c : Show issues with cycle times over the specified amount
+    -y : Show issues with cycle times over the specified amount
     -l : Show issues with specifid label(s)
     '''
     examples = '''    ls
     ls Appif 
     ls !Appif 
     ls Core -d joe bill -t 78 1
-    ls Math -s !6 -t 72 -c 12'''
+    ls Math -s !6 -t 72 -y 12'''
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
@@ -51,10 +51,12 @@ class Command(BaseCommand):
             help='show issues for only the specified developers')
         parser.add_argument('-b', action='store_true', required=False,
             help='show issues with backflow (5 minute grace period)')
-        parser.add_argument('-c', nargs='*', required=False,
+        parser.add_argument('-y', nargs='*', required=False,
             help='show issues with cycle times over the specified amount')
         parser.add_argument('-l', nargs='*', required=False,
             help='show issues with specified labels')
+        parser.add_argument('-c', nargs='*', required=False,
+            help='show issues with specified components')
         parser.add_argument('team', nargs='?')
         try:
             args = parser.parse_args(args)
@@ -101,12 +103,15 @@ class Command(BaseCommand):
                     show_type.append(arg)
         container = jira.cache.get_by_path(jira.cache.cwd)
         stories = [IDirectoryListItem(s) for s in container.values()]
-        if args.c:
-            limit = int(args.c[0])
+        if args.y:
+            limit = int(args.y[0])
             stories = [s for s in stories if s.cycle_time > limit]
         if args.l:
             labels = sets.Set(args.l)
             stories =[s for s in stories if labels.issubset(sets.Set(s.labels))]
+        if args.c:
+            components = sets.Set(args.c)
+            stories =[s for s in stories if components.issubset(sets.Set(s.component))]
         sorting = []
         if stories and args.o:
             for field in args.o:

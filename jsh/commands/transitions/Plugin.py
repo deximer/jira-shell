@@ -12,9 +12,9 @@ class Command(BaseCommand):
     transitions -p Critical
     transitions -a -p Critical -t 7 1
     '''
-    options_help = '''    -a: List all transitions for all stories
+    options_help = '''    -a: List all transitions
     -p: List only specified priorities
-    -t: List only issue types
+    -t: List only specified issue types
     '''
 
     def run(self, jira, args):

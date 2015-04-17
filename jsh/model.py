@@ -242,6 +242,9 @@ class Story(Folder):
     def initialize(self, issue):
         self.jid = getattr(issue, 'id')
         self.key = issue.key
+        self.components = PersistentList()
+        for component in issue.fields.components:
+            self.components.append(component.name)
         self.labels = PersistentList(issue.fields.labels)
         self.updated = datetime.datetime.fromtimestamp(
                 time.mktime(time.strptime(
@@ -274,7 +277,8 @@ class Story(Folder):
         else:
             self.assignee = issue.fields.assignee.name
             self.developer = self.assignee
-        self.rank = int(issue.fields.customfield_10600)
+        self.rank = issue.fields.customfield_11501
+        self.old_rank = int(issue.fields.customfield_10600)
         self.root_cause = ''
         self.root_cause_details = ''
         self.scrum_team = '' # custom legacy
@@ -961,6 +965,14 @@ class Release(Folder):
             labels.extend(story.labels)
         return [l for l in sets.Set(labels)]
 
+    def unique_components(self):
+        components = []
+        for story in self.stories():
+            if not hasattr(story, 'components'):
+                continue
+            components.extend(story.components)
+        return [c for c in sets.Set(components)]
+
     def label_report(self):
         labels = []
         for story in self.stories():
@@ -979,8 +991,34 @@ class Release(Folder):
                 stories.append(story)
         return stories
 
+    def stories_for_components(self, components):
+        components = sets.Set(components)
+        stories = []
+        for story in self.stories():
+            if not hasattr(story, 'components'):
+                continue
+            if components.intersection(sets.Set(story.components)):
+                stories.append(story)
+        return stories
+
     def cycle_time_for_label(self, label):
         stories = self.stories_for_labels([label])
+        start = None
+        end = None
+        for story in stories:
+            if not start or (story.started and story.started < start):
+                start = story.started
+            if not end or (story.resolved and story.resolved > end):
+                end = story.resolved
+        if not start:
+            return None
+        if not end:
+            end = datetime.datetime.now()
+        days = end - start
+        return days.days
+
+    def cycle_time_for_component(self, component):
+        stories = self.stories_for_components([component])
         start = None
         end = None
         for story in stories:

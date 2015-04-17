@@ -29,14 +29,16 @@ except:
 
 class Command(BaseCommand):
     help = 'Provide estimate delivery dates.'
-    usage = 'atp issue_id [-l label]'
+    usage = 'atp issue_id [-l label] [-c component]'
     options_help = ''''''
     examples = '''    atp POOL-1
     atp -l non247
+    atp -c ui
     '''
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
+        parser.add_argument('-c', nargs='*', required=False)
         parser.add_argument('-l', nargs='*', required=False)
         parser.add_argument('select', nargs='?')
         try:
@@ -48,8 +50,13 @@ class Command(BaseCommand):
         stories = []
         if args.l:
             stories = container.stories_for_labels(args.l)
+        elif args.c:
+            stories = container.stories_for_components(args.c)
         else:
             stories.append(container.get(args.select))
+            if not args.select or not [s for s in stories if s]:
+                print 'Nothing to do (hint: help atp)'
+                return
         report = []
         for story in stories:
             if story.status in [5, 6]:
