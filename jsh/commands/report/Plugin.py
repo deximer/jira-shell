@@ -148,7 +148,3 @@ class Command(BaseCommand):
                 causes[story.root_cause] = [story.key]
             else:
                 causes[story.root_cause].append(story.key)
-        causes['Not Specified'] = causes['']
-        del causes['']
-        for cause in causes:
-            print cause, ':', len(causes[cause])

@@ -35,6 +35,7 @@ command_plugins['stat'] = commands.stat.Plugin.Command()
 command_plugins['transitions'] = commands.transitions.Plugin.Command()
 command_plugins['teams'] = commands.teams.Plugin.Command()
 command_plugins['top'] = commands.top.Plugin.Command()
+command_plugins['versions'] = commands.versions.Plugin.Command()
 
 command_history = []
 

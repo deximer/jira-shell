@@ -965,6 +965,14 @@ class Release(Folder):
             labels.extend(story.labels)
         return [l for l in sets.Set(labels)]
 
+    def unique_versions(self):
+        versions = []
+        for story in self.stories():
+            if not hasattr(story, 'fix_versions'):
+                continue
+            versions.extend(story.fix_versions)
+        return [l for l in sets.Set(versions)]
+
     def unique_components(self):
         components = []
         for story in self.stories():
@@ -991,6 +999,16 @@ class Release(Folder):
                 stories.append(story)
         return stories
 
+    def stories_for_versions(self, versions):
+        versions = sets.Set(versions)
+        stories = []
+        for story in self.stories():
+            if not hasattr(story, 'fix_versions'):
+                continue
+            if versions.intersection(sets.Set(story.fix_versions)):
+                stories.append(story)
+        return stories
+
     def stories_for_components(self, components):
         components = sets.Set(components)
         stories = []
@@ -1003,6 +1021,22 @@ class Release(Folder):
 
     def cycle_time_for_label(self, label):
         stories = self.stories_for_labels([label])
+        start = None
+        end = None
+        for story in stories:
+            if not start or (story.started and story.started < start):
+                start = story.started
+            if not end or (story.resolved and story.resolved > end):
+                end = story.resolved
+        if not start:
+            return None
+        if not end:
+            end = datetime.datetime.now()
+        days = end - start
+        return days.days
+
+    def cycle_time_for_version(self, version):
+        stories = self.stories_for_versions([version])
         start = None
         end = None
         for story in stories:

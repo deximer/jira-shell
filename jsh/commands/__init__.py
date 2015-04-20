@@ -6,6 +6,7 @@ import debug
 import db
 import developers
 import export
+import fake
 import importer
 import labels
 import legend
@@ -18,4 +19,4 @@ import stat
 import teams
 import top
 import transitions
-import fake
+import versions
