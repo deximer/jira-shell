@@ -618,7 +618,7 @@ class KanbanTest(unittest.TestCase):
         self.assertEqual(kanban.contingency_average('NG-1'), 0.5)
         self.assertEqual(kanban.contingency_inside('NG-1'), -3.1)
         self.assertEqual(kanban.contingency_outside('NG-1'), 5.9)
-        self.assertEqual(kanban.contingency_inside('NG-2'), 2.0)
+        self.assertEqual(kanban.contingency_inside('NG-2'), -1.1)
 
     def testContingencyNoCycleTimes(self):
         release = Release()

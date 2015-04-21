@@ -870,9 +870,6 @@ class Kanban(object):
         if not std2:
             return None
         inside = average - (std2 * 2)
-        min_atp = self.atp(story)
-        if inside < min_atp:
-            inside = min_atp
         if story.cycle_time:
             inside = inside - story.cycle_time
         return round(inside, 1)
