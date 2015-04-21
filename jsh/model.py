@@ -419,9 +419,9 @@ class Kanban(object):
         return round(numpy.average(numpy.array(days)), 1)
 
     def average_cycle_times_by_type(self, type=[]):
-        if hasattr(self, '__actbt'):
-            return self._actbt
-        stories = self.release.stories(type=type)
+        #if hasattr(self, '__actbt'):
+        #    return self._actbt
+        stories = self.release.resolved_stories(type=type)
         if not stories:
             return {}
         result = {}
@@ -796,10 +796,12 @@ class Kanban(object):
 
     def stories_in_front(self, story):
         stories_by_status = self.release.stories_by_status()
-        if not str(story.status) in stories_by_status.keys():
-            return None
+        # Looks like this bails if nothing else is in the stories status
+        # Not sure why that would be desirable so commenting out
+        #if not str(story.status) in stories_by_status.keys():
+        #    return None # Wait, what? Why this? 
         result = []
-        if not story.status in KANBAN:
+        if not story.status in KANBAN: # This makes sense, but why above?
             return None
         columns = KANBAN[KANBAN.index(story.status):-2]
         found = False
@@ -820,7 +822,10 @@ class Kanban(object):
         cycle_times = self.average_cycle_times_by_type()
         results = 0
         for story in stories:
-            results += cycle_times[story.type]
+            stype = story.type
+            if stype == '6': # Epic -> story
+                stype = '7'
+            results += cycle_times[stype]
             if story.status and story.cycle_time and \
                 humanize(story.status) in self.release.WIP.keys():
                 results = results - story.cycle_time
@@ -830,7 +835,7 @@ class Kanban(object):
         cycle_times = self.average_cycle_times_by_type()
         days = cycle_times[story.type]
         if story.cycle_time:
-            days = days - story.cycle_time
+            days = days - story.cycle_time # Already a fuckup here
         in_front = self.stories_in_front(story)
         if in_front is None:
             return self.add_weekends(days)
@@ -1108,8 +1113,10 @@ class Release(Folder):
     def started_stories(self, type=['7']):
         return [story for story in self.stories(type) if story.started]
 
-    def resolved_stories(self, type=['7']):
-        return [story for story in self.stories(type) if story.resolved]
+    def resolved_stories(self, type=[]):
+        if type:
+            return [story for story in self.stories(type) if story.resolved]
+        return self.values()
 
     def bugs(self):
         return [story for story in self.stories([BUG_TYPE,PRODUCTION_BUG_TYPE])]

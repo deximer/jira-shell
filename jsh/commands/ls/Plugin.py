@@ -110,8 +110,10 @@ class Command(BaseCommand):
             labels = sets.Set(args.l)
             stories =[s for s in stories if labels.issubset(sets.Set(s.labels))]
         if args.c:
-            components = sets.Set(args.c)
-            stories =[s for s in stories if components.issubset(sets.Set(s.component))]
+            print ' '.join(args.c)
+            components = sets.Set([' '.join(args.c)])
+            stories = [s for s in stories if components.issubset(
+                sets.Set(s.components))]
         sorting = []
         if stories and args.o:
             for field in args.o:
