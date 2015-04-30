@@ -45,10 +45,12 @@ class Command(BaseCommand):
             #if not story.started or not story.resolved:
             #    continue
             print story.key, story.title
+            if not cycle_time:
+                continue
             export_ct.write(
                 '%s, %d, %s, %.2f, %s, %s, %s, %.2f, %.2f, %.2f, %.2f, %.2f, %s, %s\r\n' % (
                 humanize(story.status),
-                kanban.rank_depth(story),
+                kanban.rank_depth(story) or 0,
                 story.key,
                 story.points or 0.0,
                 started,
