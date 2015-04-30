@@ -86,13 +86,6 @@ class Command(BaseCommand):
             print humanize(int(key)).ljust(16), ':', \
                 str(wip[key]['wip']).ljust(6)
         print
-        print 'WIP by Team:'
-        wip = release.wip_by_component()
-        print 'Team:', '             WIP:', '  #:', ' Largest:'
-        for key in wip:
-            print key[:16].ljust(16), ':',  str(wip[key]['wip']).ljust(6), \
-                str(wip[key]['stories']).ljust(3), wip[key]['largest']
-        print
         print 'Total Cycle Times by Status (days):'
         cycle_times_in_status = kanban.cycle_times_in_status()
         total = 0
@@ -139,6 +132,13 @@ class Command(BaseCommand):
             print humanize(state).ljust(5), \
                   str(intervals[state]['average']).ljust(7), \
                   intervals[state]['std']
+
+        bugs = kanban.average_cycle_times_by_bug_count(type=['7'])
+        print
+        print 'Cycle Times By Bug Count:'
+        print 'Bugs:', 'CT:'
+        for bug in bugs:
+            print str(bug).ljust(6), bugs[bug]
 
         print
         print 'Root Causes:'

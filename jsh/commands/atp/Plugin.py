@@ -33,7 +33,7 @@ except:
 
 class Command(BaseCommand):
     help = 'Provide estimate delivery dates.'
-    usage = 'atp issue_id [-l label] [-c component] [-v version]'
+    usage = 'atp [issue_id] [-l label] [-c component] [-v version]'
     options_help = ''''''
     examples = '''    atp POOL-1
     atp -l non247

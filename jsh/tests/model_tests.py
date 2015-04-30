@@ -213,6 +213,13 @@ class StoryTest(unittest.TestCase):
         obj = Story()
         self.assertTrue(obj is not None)
 
+    def testBugs(self):
+        story = make_story('NG-1')
+        bug = make_story('BUG-1', type='1')
+        story['links']['out']['BLOCKS'] = Folder()
+        story['links']['out']['BLOCKS']['BUG-1'] = bug
+        self.assertEqual(len(story.bugs), 1)
+
     def testObjectInitialized(self):
         import time
         obj = make_story('NG-1', type='7')

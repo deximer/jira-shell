@@ -310,7 +310,9 @@ class Story(Folder):
         return None
 
     def _get_cycle_time(self):
-        if self.started and self.resolved:
+        if self.status == STATUS_OPEN:
+            return None
+        elif self.started and self.resolved:
             resolved = self.resolved
         elif self.started:
             resolved = datetime.datetime.today()
@@ -357,6 +359,9 @@ class Story(Folder):
     def _get_backflow(self):
         return self.history.backflow
 
+    def _get_bugs(self):
+        return self['links'].get_links('1')
+
     cycle_time = property(_get_cycle_time)
     aggregate_cycle_time = property(_get_aggregate_cycle_time)
     cycle_time_with_weekends = property(_get_cycle_time_with_weekends)
@@ -365,6 +370,7 @@ class Story(Folder):
     resolved = property(_get_resolved)
     first_started = property(_get_first_started)
     backflow = property(_get_backflow)
+    bugs = property(_get_bugs)
 
 
 class Kanban(object):
@@ -404,14 +410,13 @@ class Kanban(object):
             self.add(story)
 
     def average_lead_time(self, component=None, type=['7']):
-        stories = self.release.stories(type=type)
+        stories = [s for s in self.release.stories(type=type)
+            if s.cycle_time is not None]
         if not stories:
             return None
         days = []
         for story in stories:
             if component and component != story.scrum_team:
-                continue
-            if not story.cycle_time:
                 continue
             days.append(story.cycle_time)
         if not days:
@@ -421,18 +426,16 @@ class Kanban(object):
     def average_cycle_times_by_type(self, type=[]):
         #if hasattr(self, '__actbt'):
         #    return self._actbt
-        stories = self.release.resolved_stories(type=type)
+        stories = [ s for s in self.release.resolved_stories(type=type)
+            if s.cycle_time is not None]
         if not stories:
             return {}
         result = {}
         for story in stories:
-            ct = story.cycle_time
-            if not ct:
-                ct = 0
             if not story.type in result.keys():
-                result[story.type] = [ct]
+                result[story.type] = [story.cycle_time]
             else:
-                result[story.type].append(ct)
+                result[story.type].append(story.cycle_time)
         for key in result.keys():
             values = [v for v in result[key] if v]
             if not values:
@@ -441,6 +444,27 @@ class Kanban(object):
             result[key] = sum(values) / len(values)
         if not hasattr(self, '__actbt'):
             self._actbt = result
+        return result
+
+    def average_cycle_times_by_bug_count(self, type=[]):
+        stories = self.release.resolved_stories(type=type)
+        if not stories:
+            return {}
+        result = {}
+        for story in stories:
+            ct = story.cycle_time
+            if not ct:
+                ct = 0
+            if not len(story.bugs) in result.keys():
+                result[len(story.bugs)] = [ct]
+            else:
+                result[len(story.bugs)].append(ct)
+        for key in result.keys():
+            values = [v for v in result[key] if v]
+            if not values:
+                result[key] = 0
+                continue
+            result[key] = sum(values) / len(values)
         return result
 
     def cycle_times_in_status(self, component=None, type=[], points=[]):
@@ -654,16 +678,18 @@ class Kanban(object):
             return None
         cycle_times = []
         for story in self.release.stories():
-            if not story.started or not story.resolved:
+            if not story.started or not story.resolved or not story.cycle_time:
                 continue
             cycle_times.append(story.cycle_time)
         return round(numpy.std(numpy.array(cycle_times), ddof=0), 1)
 
     def variance_cycle_time(self, component=None):
-        if not self.release.stories():
+        stories = [s for s in self.release.stories()
+            if s.cycle_time is not None]
+        if not stories:
             return None
         cycle_times = []
-        for story in self.release.stories():
+        for story in stories:
             if component and component not in story.components:
                 continue
             if not story.started or not story.resolved:
@@ -672,11 +698,13 @@ class Kanban(object):
         return round(numpy.var(cycle_times), 1)
 
     def squared_cycle_times(self, component=None):
-        if not self.release.stories():
+        stories = [s for s in self.release.stories()
+            if s.cycle_time is not None]
+        if not stories:
             return None
         cycle_times = []
         average_cycle_time = self.average_cycle_time()
-        for story in self.release.stories():
+        for story in stories:
             if component and component not in story.components:
                 continue
             if not story.started or not story.resolved:
@@ -825,6 +853,8 @@ class Kanban(object):
             stype = story.type
             if stype == '6': # Epic -> story
                 stype = '7'
+            if not stype in cycle_times:
+                continue
             results += cycle_times[stype]
             if story.status and story.cycle_time and \
                 humanize(story.status) in self.release.WIP.keys():
@@ -832,7 +862,11 @@ class Kanban(object):
         return results
 
     def atp(self, story):
+        ''' Cycle times by type of issue
+        '''
         cycle_times = self.average_cycle_times_by_type()
+        if story.type not in cycle_times:
+            return None
         days = cycle_times[story.type]
         if story.cycle_time:
             days = days - story.cycle_time # Already a fuckup here
@@ -1083,7 +1117,8 @@ class Release(Folder):
         total = 0
         for developer in developers:
             total += sum([
-                s.cycle_time for s in developers[developer] if s.cycle_time])
+                s.cycle_time for s in developers[developer]
+                    if s.cycle_time is not None])
         return total
 
     def average_developer_cycle_time(self):
@@ -1099,7 +1134,7 @@ class Release(Folder):
         cycle_times = []
         for developer in developers:
             cycle_times.append(sum([s.cycle_time for s in developers[developer]
-                if s.cycle_time]))
+                if s.cycle_time is not None]))
         return round(numpy.std(cycle_times), 1)
 
     def stories(self, type=[]):

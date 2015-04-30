@@ -80,3 +80,16 @@ Feature: Transitions
         Then I see "Total : 5" in the output
         And I see "Closd : 2" in the output
         And I see "Start : 3" in the output
+
+    Scenario: View number of transitions by state
+        Given I have the following release
+        | key |
+        | 1.0 |
+        And I have the following issues in the release
+        | key  | title | type | status | rank | created |started | resolved |
+        | NG-1 | ng01  | 7    | 6      | 2    | 15/3/23 | 15/3/23| 15/3/27  |
+        | NG-2 | ng01  | 1    | 6      | 3    | 15/3/23 | 15/3/26| 15/3/29  |
+        | NG-3 | ng02  | 3    | 6      | 1    | 15/3/20 | 15/3/22|          |
+        And I am in the directory "/1.0"
+        When I enter the command "transitions -s Closd"
+        Then I see "2015-03-27 00:00:00 Start -> Closd 4     NG-1" in the output

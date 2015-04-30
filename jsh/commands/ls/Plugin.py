@@ -193,9 +193,10 @@ class Command(BaseCommand):
             if story.status in [5, 6]:
                 days = 0 
             elif kanban:
-                days = int(kanban.atp(story))
-                if not days:
-                    days = 0
+                atp = kanban.atp(story)
+                days = 0
+                if atp:
+                    days = int(atp)
                 atp = now + datetime.timedelta(days)
             else:
                 days = 0
@@ -210,8 +211,8 @@ class Command(BaseCommand):
                   rank.ljust(6), \
                   str(story.points).ljust(5) if story.points else ''.ljust(5), \
                   humanize(story.status).ljust(5), \
-                  cycle_time.ljust(5), \
-                  str(story.get_cycle_time_from(10005)).ljust(5), \
+                  cycle_time.ljust(4), \
+                  str(story.type).ljust(5), \
                   rework.ljust(4), \
                   str(days).ljust(5), \
                   story.title[:16]

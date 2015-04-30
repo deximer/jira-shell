@@ -7,7 +7,7 @@ except:
 
 class Command(BaseCommand):
     help = 'View all transiions in a board'
-    usage = '''transitions [-a] [-s] [-t issue_type] [-p priority]
+    usage = '''transitions [-a] [-s [state]] [-t issue_type] [-p priority]
     transitions
     transitions -p Critical
     transitions -a -p Critical -t 7 1
@@ -22,7 +22,7 @@ class Command(BaseCommand):
         parser.add_argument('dir', nargs='?')
         parser.add_argument('-a', action='store_true', required=False)
         parser.add_argument('-p', nargs='*', required=False)
-        parser.add_argument('-s', action='store_true', required=False)
+        parser.add_argument('-s', nargs='*', required=False)
         parser.add_argument('-t', nargs='*', required=False)
         try:
             args = parser.parse_args(args)
@@ -41,7 +41,12 @@ class Command(BaseCommand):
             transitions = [t for t in transitions
                 if t[0].priority in args.p]
 
+        if args.s:
+            transitions = [t for t in transitions if humanize(t[3]) ==args.s[0]]
+            args.a = True
+
         if args.a:
+            print 'Date:'.ljust(19), 'From:'.ljust(8), 'To:'.ljust(5), 'Days:', 'ID:'
             for transition in transitions:
                 print transition[1] \
                     , humanize(transition[2]).ljust(5) \
@@ -50,7 +55,7 @@ class Command(BaseCommand):
                     , str(transition[4]).ljust(5) \
                     , transition[0].key
 
-        if args.s:
+        if args.s == []:
             results = {}
             for transition in transitions:
                 state = str(humanize(transition[3]))
@@ -67,6 +72,8 @@ class Command(BaseCommand):
 
         print
         print 'Total :', len(transitions)
+        if not transitions:
+            return
         print 'First :', transitions[0][1], transitions[0][0].key 
         print 'Last  :', transitions[-1][1], transitions[-1][0].key
         print 'Spread:', (transitions[-1][1] - transitions[0][1]).days, 'days'
