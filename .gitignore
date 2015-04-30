@@ -12,3 +12,5 @@ lib/
 man/
 pip-selfcheck.json
 jira.egg-info
+cycles-*
+export-*
