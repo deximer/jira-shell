@@ -88,7 +88,7 @@ class Command(BaseCommand):
               'Rank:'.ljust(6), \
               'Pts:'.ljust(5), \
               'Stat:'.ljust(5), \
-              'CT:'.ljust(4), \
+              'CT:'.ljust(5), \
               'Type:'.ljust(5), \
               'Bugs:'.ljust(5), \
               'ATP:'.ljust(5), \
@@ -211,7 +211,7 @@ class Command(BaseCommand):
                   rank.ljust(6), \
                   str(story.points).ljust(5) if story.points else ''.ljust(5), \
                   humanize(story.status).ljust(5), \
-                  cycle_time.ljust(4), \
+                  cycle_time.ljust(5), \
                   str(story.type).ljust(5), \
                   rework.ljust(4), \
                   str(days).ljust(5), \
