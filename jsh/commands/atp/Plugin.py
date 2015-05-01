@@ -70,7 +70,10 @@ class Command(BaseCommand):
         for story in stories:
             if story.status in [5, 6]:
                 continue
-            days = int(round(kanban.atp(story), 0))
+            atp = kanban.atp(story)
+            if not atp:
+                continue
+            days = int(round(atp, 0))
             now = datetime.datetime.now()
             atp = now + datetime.timedelta(days)
             report.append('%s %s %s %s %s days' % (str(atp)[:10],
