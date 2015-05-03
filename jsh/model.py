@@ -262,8 +262,10 @@ class Story(Folder):
         self.url = issue.self
         self.title = issue.fields.summary
         self.fix_versions = PersistentList()
+        self.fix_version_names = PersistentList()
         for version in issue.fields.fixVersions:
             self.fix_versions.append(version.id)
+            self.fix_version_names.append(version.name)
         self.points = issue.fields.customfield_10003
         if not self.points:
             self.points = 0.0
@@ -285,7 +287,7 @@ class Story(Folder):
         self.status = int(issue.fields.status.id)
         self.project = issue.fields.project.key
 
-    def get_cycle_time_from(self, state):
+    def cycle_time_from(self, state):
         resolved = self.resolved
         if not resolved:
             return None
@@ -487,6 +489,8 @@ class Kanban(object):
         return result
 
     def average_times_in_status(self, component=None, type=['7'], points=[]):
+        if hasattr(self, '__average_times_in_status'):
+            return self.__average_times_in_status
         stories = self.release.stories(type=type)
         if not stories:
             return {}
@@ -506,13 +510,14 @@ class Kanban(object):
         averages = {}
         for key in result.keys():
             averages[key] = round(numpy.average(result[key]), 1)
+        self.__average_times_in_status = averages
         return averages
 
     def average_cycle_time_between_status(self, start, end=6, type='7'):
-        times = self.average_times_in_status([type])
+        times = self.average_times_in_status(type=[type])
         results = 0
-        print times.keys()
-        for status in [s for s in KANBAN[KANBAN.index(start):KANBAN.index(end)] if s in times.keys()]:
+        for status in [s for s in KANBAN[KANBAN.index(start):KANBAN.index(end)]
+            if s in times.keys()]:
             results += times[status]
         return results
 
@@ -855,10 +860,14 @@ class Kanban(object):
                 stype = '7'
             if not stype in cycle_times:
                 continue
-            results += cycle_times[stype]
             if story.status and story.cycle_time and \
                 humanize(story.status) in self.release.WIP.keys():
-                results = results - story.cycle_time
+                remaining = cycle_times[stype] - story.cycle_time
+                if remaining < 0:
+                    remaining = 0
+                results += remaining
+            else:
+                results += cycle_times[stype] / 2.2
         return results
 
     def atp(self, story):
@@ -868,8 +877,8 @@ class Kanban(object):
         if story.type not in cycle_times:
             return None
         days = cycle_times[story.type]
-        if story.cycle_time:
-            days = days - story.cycle_time # Already a fuckup here
+        if story.cycle_time: # needs to do between states by type
+            days = days - story.cycle_time
         in_front = self.stories_in_front(story)
         if in_front is None:
             return self.add_weekends(days)

@@ -66,7 +66,7 @@ class Command(BaseCommand):
                 return
         report = []
         kanban = container.kanban()
-        print 'ATP:'.ljust(10), 'Rank:', 'Status:', 'ID:'.ljust(8), 'Delta to:'
+        print 'ATP:'.ljust(10), 'Rank:', 'Status:', 'ID:'.ljust(8), 'Days to:'
         for story in stories:
             if story.status in [5, 6]:
                 continue
@@ -76,9 +76,10 @@ class Command(BaseCommand):
             days = int(round(atp, 0))
             now = datetime.datetime.now()
             atp = now + datetime.timedelta(days)
-            report.append('%s %s %s %s %s days' % (str(atp)[:10],
+            report.append('%s %s %s %s %s %s %s' % (str(atp)[:10],
                 str(kanban.rank_depth(story)).ljust(5),
-                humanize(story.status).ljust(7), story.key.ljust(8), str(days)))
+                humanize(story.status).ljust(7), story.key.ljust(8),
+                (str(days)).ljust(9), story.type, story.points))
 
         report.sort()
         for item in report:

@@ -349,7 +349,7 @@ class KanbanTest(unittest.TestCase):
         release.add_story(make_story('NG-4', created=D20121001,
             resolved=D20121005))
         kanban = release.kanban()
-        self.assertEqual(kanban.average_lead_time(), 3.3)
+        self.assertEqual(kanban.average_lead_time(), 2.5)
 
     def testCycleTimesInStatus(self):
         release = Release()
