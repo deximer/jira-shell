@@ -144,6 +144,9 @@ class Jira(object):
         for prj in self.agile.boards():
             pid = getattr(prj, 'id')
             if self.cache.data.has_key(str(pid)):
+                transaction.begin()
+                self.cache.data[str(pid)].query = prj.filter.query
+                transaction.commit()
                 continue
             transaction.begin()
             project = Project(str(pid), prj.name)
@@ -233,7 +236,9 @@ class Jira(object):
             kanban = self.cache.data[project.key]['BRD-' + project.key]
         self.pull_kanban_stories(project, kanban, time_range)
 
-    def pull_issues(self, boards, links, time_range, all_issues, add_only):
+    def pull_issues(self, boards, links, time_range, all_issues, add_only,
+        issue_types):
+        import pdb; pdb.set_trace()
         store = self.cache.data['issues']
         if all_issues:
             issues = self.server.search_issues('', maxResults=0)
@@ -393,9 +398,10 @@ class Jira(object):
                 , basic_auth=(self.user, self.password))
 
     def refresh_cache(self, boards=[], links=True, time_range=None
-        , all_issues=False, add_only=False):
+        , all_issues=False, add_only=False, issue_types=[]):
         self.authenticate()
-        self.pull_issues(boards, links, time_range, all_issues, add_only)
+        self.pull_issues(boards, links, time_range, all_issues, add_only,
+            issue_types)
         self.pull_projects()
         self.pull_releases(boards, time_range)
 

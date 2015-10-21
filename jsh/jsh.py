@@ -82,7 +82,12 @@ def help(jira, command):
         print '    !'
         print '    !2'
         return
-    print command_plugins[command].help
+    try:
+        print command_plugins[command].help
+    except KeyError:
+        print 'Command not found: %s' % command
+        print '(try: help commands)'
+        return
     print
     print 'Usage: %s' % command_plugins[command].usage
     if command_plugins[command].options_help:

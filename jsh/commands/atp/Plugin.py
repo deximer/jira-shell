@@ -27,9 +27,9 @@ import datetime
 from dateutil.rrule import DAILY, SA, SU, rrule
 from ..base import BaseCommand
 try:
-    from model import humanize
+    from model import humanize, fclean, fpipeline
 except:
-    from ...model import humanize
+    from ...model import humanize, fclean, fpipeline
 
 class Command(BaseCommand):
     help = 'Provide estimate delivery dates.'
@@ -50,6 +50,9 @@ class Command(BaseCommand):
             args = parser.parse_args(args)
         except:
             return
+        if not args.select and not (args.c or args.l or args.v):
+            print 'No arguments. Nothing to do.'
+            return
         container = jira.cache.get_by_path(jira.cache.cwd)
         kanban = container.kanban()
         stories = []
@@ -64,6 +67,7 @@ class Command(BaseCommand):
             if not args.select or not [s for s in stories if s]:
                 print 'Nothing to do (hint: help atp)'
                 return
+        stories = fclean(fpipeline(stories))
         report = []
         kanban = container.kanban()
         print 'ATP:'.ljust(10), 'Rank:', 'Status:', 'ID:'.ljust(8), 'Days to:'

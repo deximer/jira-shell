@@ -22,14 +22,14 @@ gsm = getGlobalSiteManager()
 class Command(BaseCommand):
     help = 'List issues in a release.'
     usage = 'ls [[!]team] [-s status [...]] [-t issue_type [...]] [-w point] [-d dev [...]] -y [cycle_time] [-l [label] [...]]'
-    options_help = '''    -s : Show only issues with the specified status ("!" for exclusion)
-    -t : Show only issues of the specified type ("!" for exclusion)
+    options_help = '''    -b : Show issues with backflow (5 minute grace period)
     -d : Show issues for only the specified developers
-    -o : Order (sort) results by
-    -w : Show issues with the specified point estimates
-    -b : Show issues with backflow (5 minute grace period)
-    -y : Show issues with cycle times over the specified amount
     -l : Show issues with specifid label(s)
+    -o : Order (sort) results by
+    -s : Show only issues with the specified status ("!" for exclusion)
+    -t : Show only issues of the specified type ("!" for exclusion)
+    -w : Show issues with the specified point estimates
+    -y : Show issues with cycle times over the specified amount
     '''
     examples = '''    ls
     ls Appif 
@@ -110,8 +110,7 @@ class Command(BaseCommand):
             labels = sets.Set(args.l)
             stories =[s for s in stories if labels.issubset(sets.Set(s.labels))]
         if args.c:
-            print ' '.join(args.c)
-            components = sets.Set([' '.join(args.c)])
+            components = sets.Set(args.c)
             stories = [s for s in stories if components.issubset(
                 sets.Set(s.components))]
         sorting = []

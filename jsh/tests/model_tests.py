@@ -23,6 +23,7 @@ def make_story(key, points=1.0, status=10004, scrum_team='foo', type='7',
         created=D20121001, started=D20121002, resolved=D20121003, dev='joe',
         rank=1):
     story = Story()
+    story.resolution = 'fixed'
     story.rank = 1
     story.key = key
     story.points = points
@@ -691,14 +692,20 @@ class ReleaseTests(unittest.TestCase):
     def testAddStory(self):
         release = Release()
         key = 'NG-1'
-        s1 = Story(); s1.key = key; release.add_story(s1)
+        s1 = Story()
+        s1.resolution = 'fixed'
+        s1.key = key
+        release.add_story(s1)
         release.add_story(s1)
         self.assertEqual(release[key].key, key)
 
     def testGetStory(self):
         release = Release()
         key = 'NG-1'
-        s1 = Story(); s1.key = key; release.add_story(s1)
+        s1 = Story()
+        s1.resolution = 'fixed'
+        s1.key = key
+        release.add_story(s1)
         release.add_story(s1)
         story = release.get(key)
         self.assertEqual(story.key, key)
@@ -711,10 +718,14 @@ class ReleaseTests(unittest.TestCase):
 
     def testTaskedTeams(self):
         release = Release()
-        s1 = Story(); s1.key = 'NG-1'; release.add_story(s1)
-        s2 = Story(); s2.key = 'NG-2'; release.add_story(s2)
-        s3 = Story(); s3.key = 'NG-3'; release.add_story(s3)
-        s4 = Story(); s4.key = 'NG-4'; release.add_story(s4)
+        s1 = Story()
+        s1.resolution = 'fixed'; s1.key = 'NG-1'; release.add_story(s1)
+        s2 = Story()
+        s2.resolution = 'fixed'; s2.key = 'NG-2'; release.add_story(s2)
+        s3 = Story()
+        s3.resolution = 'fixed'; s3.key = 'NG-3'; release.add_story(s3)
+        s4 = Story()
+        s4.resolution = 'fixed'; s4.key = 'NG-4'; release.add_story(s4)
         release['NG-1'].type = '7'
         release['NG-1'].scrum_team = 'Foo'
         release['NG-2'].type = '7'
@@ -731,9 +742,13 @@ class ReleaseTests(unittest.TestCase):
     def testStoriesForLabels(self):
         release = Release()
         s1 = Story(); s1.key = 'NG-1'; release.add_story(s1)
+        s1.resolution = 'fixed'
         s2 = Story(); s2.key = 'NG-2'; release.add_story(s2)
+        s2.resolution = 'fixed'
         s3 = Story(); s3.key = 'NG-3'; release.add_story(s3)
+        s3.resolution = 'fixed'
         s4 = Story(); s4.key = 'NG-4'; release.add_story(s4)
+        s4.resolution = 'fixed'
         s1.labels = ['l1']
         s2.labels = ['l2']
         s3.labels = ['l1', 'l3']
@@ -857,10 +872,13 @@ class ReleaseTests(unittest.TestCase):
         s2 = Story(); s2.key = 'NG-2'; release.add_story(s2)
         s3 = Story(); s3.key = 'NG-3'; release.add_story(s3)
         release['NG-1'].points = 2.0
+        release['NG-1'].resolution = 'fixed'
         release['NG-1'].type = '7'
         release['NG-2'].points = 4.0
+        release['NG-2'].resolution = 'fixed'
         release['NG-2'].type = '7'
         release['NG-3'].points = 8.0
+        release['NG-3'].resolution = 'fixed'
         release['NG-3'].type = '7'
         self.assertEqual(release.std_story_size(), 2.4944382578492941)
 
@@ -899,10 +917,13 @@ class ReleaseTests(unittest.TestCase):
         s2 = Story(); s2.key = 'NG-2'; release.add_story(s2)
         s3 = Story(); s3.key = 'NG-3'; release.add_story(s3)
         release['NG-1'].points = 2.0
+        release['NG-1'].resolution = 'fixed'
         release['NG-1'].type = '7'
         release['NG-2'].points = 2.0
+        release['NG-2'].resolution = 'fixed'
         release['NG-2'].type = '7'
         release['NG-3'].points = 3.0
+        release['NG-3'].resolution = 'fixed'
         release['NG-3'].type = '7'
         self.assertEqual(len(release.stories_by_estimate().keys()), 2)
         self.assertEqual(len(release.stories_by_estimate()['2.0']), 2)
@@ -915,15 +936,19 @@ class ReleaseTests(unittest.TestCase):
         s3 = Story(); s3.key = 'NG-3'; release.add_story(s3)
         s4 = Story(); s4.key = 'NG-4'; release.add_story(s4)
         release['NG-1'].status = 10004
+        release['NG-1'].resolution = 'fixed'
         release['NG-1'].type = '7'
         release['NG-1'].points = 1.0
         release['NG-2'].status = 10005
+        release['NG-2'].resolution = 'fixed'
         release['NG-2'].type = '7'
         release['NG-2'].points = 2.0
         release['NG-3'].status = 6
+        release['NG-3'].resolution = 'fixed'
         release['NG-3'].type = '7'
         release['NG-3'].points = 3.0
         release['NG-4'].status = 10004 
+        release['NG-4'].resolution = 'fixed'
         release['NG-4'].type = '1'
         release['NG-4'].points = 5.0
         self.assertEqual(release.stories_in_process(), 2)
@@ -955,40 +980,51 @@ class ReleaseTests(unittest.TestCase):
         s8.key = 'NG-8'
         release.add_story(s8)
         release['NG-1'].status = 1
+        release['NG-1'].resolution = 'fixed'
         release['NG-1'].points = 1.0
         release['NG-1'].type = '1'
         release['NG-2'].status = 10005 # WIP
+        release['NG-2'].resolution = 'fixed'
         release['NG-2'].points = 1.0
         release['NG-2'].type = '7'
         release['NG-3'].status = 6
+        release['NG-3'].resolution = 'fixed'
         release['NG-3'].points = 1.0
         release['NG-3'].type = '7'
         release['NG-4'].status = 10004
+        release['NG-4'].resolution = 'fixed'
         release['NG-4'].points = 1.0
         release['NG-4'].type = '7'
         release['NG-5'].status = 10005
+        release['NG-5'].resolution = 'fixed'
         release['NG-5'].points = 1.0
         release['NG-5'].type = '7'
         release['NG-6'].status = 10005
+        release['NG-6'].resolution = 'fixed'
         release['NG-6'].points = 1.0
         release['NG-6'].type = '7'
         release['NG-7'].status = 1
+        release['NG-7'].resolution = 'fixed'
         release['NG-7'].points = 1.0
         release['NG-7'].type = '7'
         release['NG-8'].status = 10004
+        release['NG-8'].resolution = 'fixed'
         release['NG-8'].points = 1.0
         release['NG-8'].type = '7'
         self.assertEqual(release.wip(), 5.0)
 
     def testWipByStatus(self):
         release = Release()
+        s1 = Story()
+        s1.key = 'NG-1'
+        s1.resolution = 'fixed'
+        release.add_story(s1)
         s2 = Story()
-        s2.key = 'NG-1'
-        release.add_story(s2)
-        s2 = Story()
+        s2.resolution = 'fixed'
         s2.key = 'NG-2'
         release.add_story(s2)
         s3 = Story()
+        s3.resolution = 'fixed'
         s3.key = 'NG-3'
         release.add_story(s3)
         release['NG-1'].status = 10002 # In Progress
@@ -1015,14 +1051,17 @@ class ReleaseTests(unittest.TestCase):
         s3 = Story()
         s3.key = 'NG-3'
         release.add_story(s3)
+        release['NG-1'].resolution = 'fixed'
         release['NG-1'].status = 10004 # In Progress
         release['NG-1'].points = 5.0
         release['NG-1'].type = '7'
         release['NG-1'].scrum_team = 'FooTeam'
         release['NG-2'].status = 10004 # In Progress
+        release['NG-2'].resolution = 'fixed'
         release['NG-2'].points = 2.0
         release['NG-2'].type = '7'
         release['NG-2'].scrum_team = 'FooTeam'
+        release['NG-3'].resolution = 'fixed'
         release['NG-3'].status = 6 # Closed
         release['NG-3'].points = 0.499
         release['NG-3'].type = '7'
@@ -1039,9 +1078,11 @@ class ReleaseTests(unittest.TestCase):
         s1.key = 'NG-1'
         release.add_story(s1)
         s2 = Story()
+        s2.resolution = 'fixed'
         s2.key = 'NG-2'
         release.add_story(s2)
         release['NG-1'].status = 10004 # In Progress
+        release['NG-1'].resolution = 'fixed'
         release['NG-1'].points = 5.0
         release['NG-1'].type = '7'
         release['NG-1'].scrum_team = 'Some Team'

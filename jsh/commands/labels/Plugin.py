@@ -9,10 +9,12 @@ import jira as JIRA
 class Command(BaseCommand):
     help = 'Various ways of looking at issue labels'
     usage = 'labels'
+    option_help = '    -a : show only active labels'
 
     def run(self, jira, args):
         parser = argparse.ArgumentParser()
         parser.add_argument('dir', nargs='?')
+        parser.add_argument('-a', action='store_true', required=False)
         try:
             args = parser.parse_args(args)
         except:
@@ -28,6 +30,10 @@ class Command(BaseCommand):
         print 'CT:'.ljust(5), 'Label:'
         for label in sorted(labels):
             days = container.cycle_time_for_label(label)
+            if args.a:
+                stories = container.stories_for_labels([label])
+                if not [s for s in stories if s.status != 6]:
+                    continue
             if not days:
                 days = ''
             else:

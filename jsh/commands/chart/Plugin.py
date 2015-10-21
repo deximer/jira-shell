@@ -17,7 +17,8 @@ except:
 class Command(BaseCommand):
     help = 'Render various charts'
     usage = 'chart [team] [-o chart_type] [-d developer] [-s sort_by]' \
-        ' [-p point] [-c cycle_time] [-x file_name.ext] [-t issue types] [-f]'
+        ' [-p point] [-c cycle_time] [-x file_name.ext] [-t issue types] [-f]' \
+        ' [-l [issue keys]]'
     options_help = '''    -c : specify cycle time outlier limit
     -d : chart for developer
     -e : include estimates subplot
@@ -46,7 +47,7 @@ class Command(BaseCommand):
         parser.add_argument('-e', action='store_true', required=False)
         parser.add_argument('-f', action='store_true', required=False)
         parser.add_argument('-g', nargs='?', required=False)
-        parser.add_argument('-l', action='store_true', required=False)
+        parser.add_argument('-l', nargs='*', required=False)
         parser.add_argument('-k', nargs='*', required=False)
         parser.add_argument('-o', nargs='*', required=False)
         parser.add_argument('-p', nargs='*', required=False)
@@ -73,28 +74,28 @@ class Command(BaseCommand):
             else:
                 types = self.args.t
         if self.args.team:
-            stories = [s for s in self.release.stories(type=types)
+            stories = [s for s in self.release.clean_stories(type=types)
                 if s.scrum_team and s.scrum_team[:len(self.args.team)] \
                     == self.args.team]
             self.release = Release()
             for story in stories:
                 self.release.add_story(story)
         if self.args.d:
-            stories = [s for s in self.release.stories(type=types)
+            stories = [s for s in self.release.clean_stories(type=types)
                 if s.developer and s.developer[:len(self.args.d[0])] \
                     == self.args.d[0]]
             self.release = Release()
             for story in stories:
                 self.release.add_story(story)
         if self.args.v:
-            stories = [s for s in self.release.stories(type=types)
+            stories = [s for s in self.release.clean_stories(type=types)
                 if s.points and s.points == float(self.args.p[0])]
             self.release = Release()
             for story in stories:
                 self.release.add_story(story)
         if self.args.c:
             cycle_time = int(self.args.c[0])
-            stories = [s for s in self.release.stories(type=types)
+            stories = [s for s in self.release.clean_stories(type=types)
                 if getattr(s, self.cycle_time) < cycle_time]
             self.release = Release()
             for story in stories:
@@ -108,13 +109,13 @@ class Command(BaseCommand):
                 else:
                     show_keys.append('NG-' + k)
             if show_keys:
-                stories = [s for s in self.release.stories(type=types)
+                stories = [s for s in self.release.clean_stories(type=types)
                     and s.key in show_keys]
                 self.release = Release()
                 for story in stories:
                     self.release.add_story(story)
             if hide_keys:
-                stories = [s for s in self.release.stories(type=types)
+                stories = [s for s in self.release.clean_stories(type=types)
                     and s.key not in hide_keys]
                 self.release = Release()
                 for story in stories:
@@ -124,7 +125,7 @@ class Command(BaseCommand):
         else:
             self.file = None
         kanban = self.release.kanban()
-        stories = self.release.stories(type=types)
+        stories = self.release.clean_stories(type=types)
         if self.args.p:
             stories = [s for s in stories if s.priority in self.args.p]
         if not stories:
@@ -175,7 +176,7 @@ class Command(BaseCommand):
         arrivals = self.release.kanban().state_arrival_interval(state)
         dates = [a['date'] for a in arrivals]
         arrivals = [round(a['interval']/60./60., 1) for a in arrivals]
-        average = numpy.average([arrivals])
+        average = numpy.median([arrivals])
         std = numpy.std([arrivals])
         iql = numpy.percentile([arrivals], 25)
         iqh = numpy.percentile([arrivals], 75)
@@ -243,10 +244,14 @@ class Command(BaseCommand):
             else:
                 count.append(count[-1] + 1)
 
-        std = numpy.std([d for d in alldata if d])
-        iql = numpy.percentile([d for d in alldata if d], 25)
-        iqh = numpy.percentile([d for d in alldata if d], 75)
-        average = numpy.average([d for d in alldata if d])
+        all_non_empty_data = [d for d in alldata if d]
+        if not all_non_empty_data:
+            print 'Nothing to do. Probably need to finish some work.'
+            return
+        std = numpy.std(all_non_empty_data)
+        iql = numpy.percentile(all_non_empty_data, 25)
+        iqh = numpy.percentile(all_non_empty_data, 75)
+        average = numpy.median(all_non_empty_data)
         nsul = []
         nsuw = []
         nsll = []
@@ -279,9 +284,12 @@ class Command(BaseCommand):
             else:
                 previous_y = y
                 y_label = 10
-            if not self.args.l:
+            if self.args.l is None:
                 if y < iqh * 3 + average:
                     continue
+            if self.args.l is not None and len(self.args.l) \
+                and label not in self.args.l:
+                continue
             pyplot.annotate(
             label,
             url='http://www.google.com',

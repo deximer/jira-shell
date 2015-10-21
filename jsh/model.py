@@ -11,6 +11,10 @@ from persistent.mapping import PersistentMapping
 from persistent.list import PersistentList
 from interfaces import IRelease, IStory, ILinks, IProject, IKanban, IIssues
 
+class GlobalCache(dict):
+    pass
+global_cache = GlobalCache()
+
 def sort(stories, fields):
     def compare(a, b):
         if not a[0]:
@@ -21,6 +25,28 @@ def sort(stories, fields):
     return [s for s in sorted(stories, key=lambda x:tuple([getattr(x, key)
         for key in fields]), cmp=compare)]
 
+def fclean(stories):
+    def f(s):
+        if s.resolution in DIRTY_RESOLUTIONS:
+            return False
+        return True
+    return filter(f, stories)
+
+def fstory(stories):
+    def f(s):
+        if s.type != '7':
+            return False
+        return True
+    return filter(f, stories)
+
+def fpipeline(stories):
+    def f(s):
+        if s.type not in ['7', '3', '1']:
+            return False
+        return True
+    return filter(f, stories)
+
+DIRTY_RESOLUTIONS=('Duplicate', "Won't Fix")
 STORY_TYPE = '7'
 BUG_TYPE = '1'
 PRODUCTION_BUG_TYPE = '1'
@@ -412,7 +438,7 @@ class Kanban(object):
             self.add(story)
 
     def average_lead_time(self, component=None, type=['7']):
-        stories = [s for s in self.release.stories(type=type)
+        stories = [s for s in self.release.clean_stories(type=type)
             if s.cycle_time is not None]
         if not stories:
             return None
@@ -426,9 +452,7 @@ class Kanban(object):
         return round(numpy.average(numpy.array(days)), 1)
 
     def average_cycle_times_by_type(self, type=[]):
-        #if hasattr(self, '__actbt'):
-        #    return self._actbt
-        stories = [ s for s in self.release.resolved_stories(type=type)
+        stories = [ s for s in self.release.clean_resolved_stories(type=type)
             if s.cycle_time is not None]
         if not stories:
             return {}
@@ -444,12 +468,10 @@ class Kanban(object):
                 result[key] = 0
                 continue
             result[key] = sum(values) / len(values)
-        if not hasattr(self, '__actbt'):
-            self._actbt = result
         return result
 
     def average_cycle_times_by_bug_count(self, type=[]):
-        stories = self.release.resolved_stories(type=type)
+        stories = self.release.clean_resolved_stories(type=type)
         if not stories:
             return {}
         result = {}
@@ -470,7 +492,7 @@ class Kanban(object):
         return result
 
     def cycle_times_in_status(self, component=None, type=[], points=[]):
-        stories = self.release.stories(type=type)
+        stories = self.release.clean_stories(type=type)
         if not stories:
             return {}
         result = {}
@@ -489,9 +511,7 @@ class Kanban(object):
         return result
 
     def average_times_in_status(self, component=None, type=['7'], points=[]):
-        if hasattr(self, '__average_times_in_status'):
-            return self.__average_times_in_status
-        stories = self.release.stories(type=type)
+        stories = self.release.clean_stories(type=type)
         if not stories:
             return {}
         result = {}
@@ -510,7 +530,6 @@ class Kanban(object):
         averages = {}
         for key in result.keys():
             averages[key] = round(numpy.average(result[key]), 1)
-        self.__average_times_in_status = averages
         return averages
 
     def average_cycle_time_between_status(self, start, end=6, type='7'):
@@ -522,7 +541,7 @@ class Kanban(object):
         return results
 
     def std_times_in_status(self, component=None, type=['7'], points=[]):
-        stories = self.release.stories(type=type)
+        stories = self.release.clean_stories(type=type)
         if not stories:
             return None
         result = {}
@@ -545,7 +564,7 @@ class Kanban(object):
 
     def average_arrival_for_status(self, component=None, type=['7'],
         points=[]):
-        stories = self.release.stories(type=type)
+        stories = self.release.clean_stories(type=type)
         if not stories:
             return {}
         result = {}
@@ -567,7 +586,7 @@ class Kanban(object):
         return averages
 
     def std_arrival_for_status(self, component=None, type=['7'], points=[]):
-        stories = self.release.stories(type=type)
+        stories = self.release.clean_stories(type=type)
         if not stories:
             return None
         result = {}
@@ -592,7 +611,7 @@ class Kanban(object):
         ''' Create a plot point for every arrival into state
         '''
         dates = []
-        for story in self.release.stories():
+        for story in self.release.clean_stories():
             dates.extend([d for d in story.history.get_transition_to(state)])
         if not dates:
             return []
@@ -617,7 +636,7 @@ class Kanban(object):
         return result
 
     def average_cycle_time(self, component=None, type=['7']):
-        stories = self.release.stories(type=type)
+        stories = self.release.clean_stories(type=type)
         if not stories:
             return None
         days = []
@@ -630,7 +649,7 @@ class Kanban(object):
         return round(numpy.average(numpy.array(days)), 1)
 
     def median_lead_time(self, component=None, type=['7']):
-        stories = self.release.stories(type=type)
+        stories = self.release.clean_stories(type=type)
         if not stories:
             return None
         days = []
@@ -645,7 +664,7 @@ class Kanban(object):
         return numpy.median(numpy.array(days))
 
     def median_cycle_time(self, component=None, type=['7']):
-        stories = self.release.stories(type=type)
+        stories = self.release.clean_stories(type=type)
         if not stories:
             return None
         days = []
@@ -662,7 +681,7 @@ class Kanban(object):
     def stdev_lead_time(self, component=None, type=['7']):
         ''' Uses ddof=0 because that is right and excel is wrong
         '''
-        stories = self.release.stories(type)
+        stories = self.release.clean_stories(type)
         if not stories:
             return None
         cycle_times = []
@@ -679,17 +698,17 @@ class Kanban(object):
     def stdev_cycle_time(self, component=None):
         ''' Uses ddof=0 because that is right and excel is wrong
         '''
-        if not self.release.stories():
+        if not self.release.clean_stories():
             return None
         cycle_times = []
-        for story in self.release.stories():
+        for story in self.release.clean_stories():
             if not story.started or not story.resolved or not story.cycle_time:
                 continue
             cycle_times.append(story.cycle_time)
         return round(numpy.std(numpy.array(cycle_times), ddof=0), 1)
 
     def variance_cycle_time(self, component=None):
-        stories = [s for s in self.release.stories()
+        stories = [s for s in self.release.clean_stories()
             if s.cycle_time is not None]
         if not stories:
             return None
@@ -703,7 +722,7 @@ class Kanban(object):
         return round(numpy.var(cycle_times), 1)
 
     def squared_cycle_times(self, component=None):
-        stories = [s for s in self.release.stories()
+        stories = [s for s in self.release.clean_stories()
             if s.cycle_time is not None]
         if not stories:
             return None
@@ -729,10 +748,10 @@ class Kanban(object):
             with a 50 day cycle time will have a greater impact on the average
             using this method. This better surfaces variance.
         '''
-        if not self.release.stories():
+        if not self.release.clean_stories():
             return None
         days = []
-        for story in self.release.stories():
+        for story in self.release.clean_stories():
             if component and component not in story.components:
                 continue
             if not story.started or not story.resolved or not story.points:
@@ -744,10 +763,10 @@ class Kanban(object):
         ''' See doc string for cycle_time_per_point re: calculations
             Use ddof=0 becasue that is right and excel is wrong
         '''
-        if not self.release.stories():
+        if not self.release.clean_stories():
             return None
         days = []
-        for story in self.release.stories():
+        for story in self.release.clean_stories():
             if component and component not in story.components:
                 continue
             if not story.started or not story.resolved or not story.points:
@@ -779,7 +798,7 @@ class Kanban(object):
         return numpy.std(numpy.array(days))
 
     def state_transition_probabilities(self):
-        stories = self.release.stories()
+        stories = self.release.clean_stories()
         result = {}
         for story in stories:
             for transition in story.history.all:
@@ -857,8 +876,8 @@ class Kanban(object):
         for story in stories:
             stype = story.type
             if stype == '6': # Epic -> story
-                stype = '7'
-            if not stype in cycle_times:
+                continue
+            if not stype in cycle_times or stype == '5':
                 continue
             if story.status and story.cycle_time and \
                 humanize(story.status) in self.release.WIP.keys():
@@ -867,12 +886,17 @@ class Kanban(object):
                     remaining = 0
                 results += remaining
             else:
-                results += cycle_times[stype] / 2.2
+                results += cycle_times[stype] / 3.0
         return results
 
     def atp(self, story):
         ''' Cycle times by type of issue
         '''
+        global global_cache
+        if 'atp' in global_cache and story.key in global_cache['atp']:
+            return global_cache['atp'][story.key]
+        elif not 'atp' in global_cache:
+            global_cache['atp'] = {}
         cycle_times = self.average_cycle_times_by_type()
         if story.type not in cycle_times:
             return None
@@ -883,7 +907,9 @@ class Kanban(object):
         if in_front is None:
             return self.add_weekends(days)
         days += self.time_remaining(in_front)
-        return self.add_weekends(days)
+        result = self.add_weekends(days)
+        global_cache['atp'][story.key] = result
+        return result
 
     def add_weekends(self, days):
         now = datetime.datetime.now()
@@ -891,8 +917,8 @@ class Kanban(object):
         days += len(list(rrule(DAILY, dtstart=now, until=then,
             byweekday=(SA, SU))))
         then = now + datetime.timedelta(days)
-        if then.weekday() >= 5:
-            days += 7 - then.weekday()
+        if then.weekday() >= 6:
+            days += 8 - then.weekday()
         return days
 
     def contingency_average(self, key):
@@ -1146,6 +1172,11 @@ class Release(Folder):
                 if s.cycle_time is not None]))
         return round(numpy.std(cycle_times), 1)
 
+    def clean_stories(self, type=[]):
+        stories = self.stories(type)
+        return fclean(stories)
+
+
     def stories(self, type=[]):
         if type:
             return [story for story in self.values() if story.type in type]
@@ -1159,6 +1190,12 @@ class Release(Folder):
             return [story for story in self.stories(type) if story.resolved]
         return self.values()
 
+    def clean_resolved_stories(self, type=[]):
+        if type:
+            return [story for story in self.clean_stories(type)
+                if story.resolved]
+        return self.values()
+
     def bugs(self):
         return [story for story in self.stories([BUG_TYPE,PRODUCTION_BUG_TYPE])]
 
@@ -1167,7 +1204,7 @@ class Release(Folder):
 
     def stories_by_estimate(self, estimate=None):
         result = {}
-        for story in self.stories():
+        for story in self.clean_stories():
             if not story.points:
                 continue
             points = str(story.points)
@@ -1179,7 +1216,7 @@ class Release(Folder):
 
     def stories_by_status(self):
         result = {}
-        for story in self.stories():
+        for story in self.clean_stories():
             status = story.status
             if not story.status:
                 status = -1
@@ -1209,7 +1246,7 @@ class Release(Folder):
 
     def points_completed(self):
         points = 0
-        for story in self.stories():
+        for story in self.clean_stories():
             if story.status == 6 and story.points:
                 points += story.points
         return points
@@ -1220,14 +1257,14 @@ class Release(Folder):
             e.g. for cycle times positive skew is towards shorter cycles
         '''
         points = []
-        for story in self.stories():
+        for story in self.clean_stories():
             if story.cycle_time:
                 points.append(story.cycle_time)
         return round(stats.skew(points), 1)
 
     def average_story_size(self):
         points = []
-        for story in self.stories():
+        for story in self.clean_stories():
             if story.points:
                 points.append(story.points)
         return numpy.average(numpy.array(points))
@@ -1236,7 +1273,7 @@ class Release(Folder):
         ''' Uses ddof=0 because that is right and excel is wrong
         '''
         points = []
-        for story in self.stories():
+        for story in self.clean_stories():
             if story.points:
                 points.append(story.points)
         return numpy.std(numpy.array(points), ddof=0)
@@ -1247,21 +1284,21 @@ class Release(Folder):
 
     def stories_in_process(self):
         stories = 0
-        for story in self.stories(type=['7']):
+        for story in self.clean_stories(type=['7']):
             if story.status in self.WIP.values():
                 stories += 1
         return stories
 
     def wip(self):
         stories = 0
-        for story in self.stories():
+        for story in self.clean_stories():
             if story.status in self.WIP.values():
                 stories += 1
         return stories
 
     def wip_by_status(self):
         tallies = {}
-        for story in self.stories():
+        for story in self.clean_stories():
             if story.status in self.WIP.values():
                 if str(story.status) not in tallies:
                     tallies[str(story.status)] = {'wip': 1}
@@ -1271,7 +1308,7 @@ class Release(Folder):
 
     def wip_by_component(self):
         tallies = {}
-        for story in self.stories():
+        for story in self.clean_stories():
             if story.status in self.WIP.values() and story.points:
                 team = story.scrum_team
                 if not team:
@@ -1330,7 +1367,7 @@ class Release(Folder):
         return ''.join(points)
 
     def upper_percentiles(self, percentile, type):
-        stories = self.stories(type)
+        stories = self.clean_stories(type)
         if not stories:
             []
         stories.sort(key=lambda x:x.cycle_time if x.type !='7' else x.lead_time)

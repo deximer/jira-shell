@@ -247,7 +247,7 @@ Feature: list issues in a release
         When I enter the command "ls"
         Then I see "Start  1  " in the output
         And I see "Start  6  " in the output
-        And I see "Start       None" in the output
+        And I see "Start       " in the output
 
     Scenario: A user views the cycle times over the specified amount
         Given I have the following release

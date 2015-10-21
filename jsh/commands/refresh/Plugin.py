@@ -8,6 +8,7 @@ class Command(BaseCommand):
     options_help = '''    -a : refresh all issues
     -l : refresh link graph (takes a lot longer)
     -n : only add missing issues, skip updates
+    -i : issue types
     -t : time range (e.g. 3d)'''
 
     def run(self, jira, args):
@@ -18,6 +19,7 @@ class Command(BaseCommand):
         parser.add_argument('-l', action='store_true', required=False)
         parser.add_argument('-n', action='store_true', required=False)
         parser.add_argument('-t', nargs='*', required=False)
+        parser.add_argument('-i', nargs='*', required=False)
         try:
             args = parser.parse_args(args)
         except:
@@ -26,13 +28,17 @@ class Command(BaseCommand):
         if args.a:
             self.refresh_data(jira, all_issues=True)
         time_range = None
+        issue_types = []
         if args.t:
             time_range = '-' + args.t[0]
+        if args.i:
+            issue_types = [t for t in args.i]
         if not args.boards:
             folder = jira.cache.get_by_path(jira.cache.cwd)
             if hasattr(folder, 'key'):
                 args.boards.append(folder)
-        self.refresh_data(jira, args.boards, args.l, time_range, args.a, args.n)
+        self.refresh_data(jira, args.boards, args.l, time_range, args.a, args.n
+            , issue_types)
         elapsed = datetime.datetime.now() - start
         print 'Cache refreshed in about %d minutes' \
             % round(elapsed.seconds/60.0, 1)
