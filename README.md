@@ -1,8 +1,10 @@
 # jira-shell
 Jira Shell
 
-Setting up a dev environment
+<h1>Setting up a dev environment</h1>
 
-virtualenv --no-site-packages jira-shell
-pip install -r requirements.pip
-python setup.py develop
+<ol>
+  <li>virtualenv --no-site-packages jira-shell</li>
+  <li>pip install -r requirements.pip</li>
+  <li>python setup.py develop</li>
+</ol>
